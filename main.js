@@ -37,6 +37,20 @@
     gsap.to(".hero-sub", { y: 0, opacity: 1, duration: 0.9, delay: 0.25, ease: "power3.out", clearProps: "opacity,transform" });
     gsap.to(".scroll-hint", { y: 0, opacity: 1, duration: 1, delay: 0.7, clearProps: "opacity,transform" });
 
+    // hero stats count-up (start after intro)
+    gsap.utils.toArray(".stat-num").forEach(function (el) {
+      var target = parseInt(el.getAttribute("data-target"), 10) || 0;
+      var suffix = el.getAttribute("data-suffix") || "";
+      var obj = { v: 0 };
+      gsap.set(el, { opacity: 0 });
+      gsap.to(obj, {
+        v: target, duration: 1.6, delay: 0.5, ease: "power2.out",
+        onUpdate: function () { el.textContent = Math.round(obj.v) + suffix; },
+        onComplete: function () { el.textContent = target + suffix; }
+      });
+      gsap.to(el, { opacity: 1, duration: 0.6, delay: 0.5 });
+    });
+
     // reveal-on-scroll
     if (window.ScrollTrigger) {
       gsap.utils.toArray(".reveal").forEach(function (el) {
@@ -74,6 +88,31 @@
     Array.prototype.forEach.call(document.querySelectorAll(".reveal"), function (el) {
       el.style.opacity = 1;
       el.style.transform = "none";
+    });
+    // show final stat values immediately
+    Array.prototype.forEach.call(document.querySelectorAll(".stat-num"), function (el) {
+      var t = parseInt(el.getAttribute("data-target"), 10) || 0;
+      el.textContent = t + (el.getAttribute("data-suffix") || "");
+    });
+  }
+
+  /* ---------- sticky section-nav active state ---------- */
+  var navLinks = document.querySelectorAll(".section-nav a[data-nav]");
+  if (navLinks.length && "IntersectionObserver" in window) {
+    var navById = {};
+    navLinks.forEach(function (a) { navById[a.getAttribute("data-nav")] = a; });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          navLinks.forEach(function (a) { a.classList.remove("is-active"); });
+          var link = navById[entry.target.id];
+          if (link) link.classList.add("is-active");
+        }
+      });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    ["about", "experience", "opensource", "projects", "contact"].forEach(function (id) {
+      var sec = document.getElementById(id);
+      if (sec) io.observe(sec);
     });
   }
 })();

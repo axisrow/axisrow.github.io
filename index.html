@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>axisrow — Portfolio</title>
   <meta name="description" content="axisrow — Python engineer. AI agent tooling, automation, data/finance systems. Open to open-source contributions." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:title" content="axisrow — Python engineer" />
+  <meta property="og:description" content="AI agent tooling, automation, data/finance systems. 37 merged upstream PRs · 67 stars · 70+ public repos." />
+  <meta property="og:url" content="https://axisrow.github.io/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://axisrow.github.io/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="axisrow — Python engineer" />
+  <meta name="twitter:description" content="AI agent tooling, automation, data/finance. Open to open-source contributions." />
+  <meta name="twitter:image" content="https://axisrow.github.io/og.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -14,7 +27,13 @@
   <!-- top bar -->
   <header class="topbar">
     <div class="topbar-inner">
-      <span class="topbar-slash">/</span>
+      <nav class="section-nav" aria-label="Section navigation">
+        <a href="#about" data-nav="about">About</a>
+        <a href="#experience" data-nav="experience">Experience</a>
+        <a href="#opensource" data-nav="opensource">Work</a>
+        <a href="#projects" data-nav="projects">Projects</a>
+        <a href="#contact" data-nav="contact">Contact</a>
+      </nav>
       <div class="topbar-actions">
         <button id="theme-toggle" class="chip-btn" aria-label="Toggle theme">☀</button>
         <a class="chip-btn" href="https://github.com/axisrow" target="_blank" rel="noopener">GH</a>
@@ -42,6 +61,13 @@
     <section id="hero" class="section hero">
       <h1 class="hero-name">AXISROW</h1>
       <p class="hero-sub">Python engineer · AI agent tooling · automation · data &amp; finance</p>
+      <div class="hero-stats" aria-label="Key stats">
+        <div class="stat"><span class="stat-num" data-target="67">0</span><span class="stat-label">Stars earned</span></div>
+        <div class="stat-sep" aria-hidden="true"></div>
+        <div class="stat"><span class="stat-num" data-target="37">0</span><span class="stat-label">Merged upstream PRs</span></div>
+        <div class="stat-sep" aria-hidden="true"></div>
+        <div class="stat"><span class="stat-num" data-target="70" data-suffix="+">0</span><span class="stat-label">Public repos</span></div>
+      </div>
       <div class="scroll-hint">scroll ↓</div>
     </section>
 
@@ -51,14 +77,52 @@
       <h2 class="section-title">Building agents &amp; automation</h2>
       <div class="about-grid">
         <div class="about-text reveal">
-          <p>I build AI agent tooling, Telegram automation systems, and data/finance software in Python. I ship real, tested code — and contribute upstream to the tools I use.</p>
-          <p>Account since 2021 · 70+ public repos.</p>
+          <p>I'm a Python engineer building AI agent tooling, Telegram automation, and data/finance systems. I ship tested, production code — and contribute the fixes I need back upstream to the libraries I depend on.</p>
+          <p>Open-source contributor since 2024. Account on GitHub since 2021.</p>
         </div>
         <ul class="stack-chips reveal">
           <li>Python</li><li>asyncio</li><li>aiogram</li><li>LangChain</li>
           <li>MCP</li><li>pandas</li><li>statsmodels</li><li>sktime</li>
           <li>LightGBM</li><li>Docker</li><li>Git</li><li>Linux</li>
         </ul>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE -->
+    <section id="experience" class="section">
+      <p class="eyebrow">Experience</p>
+      <h2 class="section-title">What I've shipped</h2>
+      <div class="timeline">
+        <div class="timeline-item reveal">
+          <div class="timeline-dot" aria-hidden="true"></div>
+          <div class="timeline-body">
+            <div class="timeline-head">
+              <h3 class="timeline-role">Open-Source Contributor</h3>
+              <span class="timeline-period">2024 — Present</span>
+            </div>
+            <p class="timeline-org">yfinance · IBM/mcp-cli · ai-resto · agent-orchestrator</p>
+            <ul class="timeline-bullets">
+              <li>37 merged PRs across upstream projects — bug fixes, reliability, and new features.</li>
+              <li>Retry mechanism for transient network errors, <a href="https://github.com/ranaroussi/yfinance/pull/2627" target="_blank" rel="noopener">merged into yfinance</a>.</li>
+              <li><code>CmdCommand</code> for Unix-friendly automation, <a href="https://github.com/IBM/mcp-cli/pull/227" target="_blank" rel="noopener">merged into IBM/mcp-cli</a>.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="timeline-item reveal">
+          <div class="timeline-dot" aria-hidden="true"></div>
+          <div class="timeline-body">
+            <div class="timeline-head">
+              <h3 class="timeline-role">Independent Python Engineer</h3>
+              <span class="timeline-period">2021 — Present</span>
+            </div>
+            <p class="timeline-org">Telegram automation · AI agent tooling · data &amp; finance</p>
+            <ul class="timeline-bullets">
+              <li>Author of <a href="https://github.com/axisrow/tg_content_factory" target="_blank" rel="noopener">tg_content_factory</a> (31★) and the <a href="https://github.com/axisrow/yandex-direct-mcp-plugin" target="_blank" rel="noopener">Yandex.Direct MCP plugin</a> (6★).</li>
+              <li>70+ public repositories across agent tooling, bots, and ML utilities.</li>
+              <li>67 stars earned across open-source work.</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
 
