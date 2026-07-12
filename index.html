@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>axisrow — Portfolio</title>
+  <meta name="description" content="axisrow — Python engineer. AI agent tooling, automation, data/finance systems. Open to open-source contributions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- top bar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="topbar-slash">/</span>
+      <div class="topbar-actions">
+        <button id="theme-toggle" class="chip-btn" aria-label="Toggle theme">☀</button>
+        <a class="chip-btn" href="https://github.com/axisrow" target="_blank" rel="noopener">GH</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- fixed left rail: socials -->
+  <nav class="rail">
+    <a href="https://github.com/axisrow" target="_blank" rel="noopener" aria-label="GitHub">GH</a>
+    <a href="https://t.me/axisrow" target="_blank" rel="noopener" aria-label="Telegram">TG</a>
+    <a href="mailto:axisrow@gmail.com" aria-label="Email">@</a>
+  </nav>
+
+  <!-- decorative outline letters -->
+  <div class="deco" aria-hidden="true">
+    <span class="deco-l deco-1">a</span>
+    <span class="deco-l deco-2">x</span>
+    <span class="deco-l deco-3">i</span>
+    <span class="deco-l deco-4">s</span>
+  </div>
+
+  <main>
+    <!-- HERO -->
+    <section id="hero" class="section hero">
+      <h1 class="hero-name">AXISROW</h1>
+      <p class="hero-sub">Python engineer · AI agent tooling · automation · data &amp; finance</p>
+      <div class="scroll-hint">scroll ↓</div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section">
+      <p class="eyebrow">About</p>
+      <h2 class="section-title">Building agents &amp; automation</h2>
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <p>I build AI agent tooling, Telegram automation systems, and data/finance software in Python. I ship real, tested code — and contribute upstream to the tools I use.</p>
+          <p>Account since 2021 · 70+ public repos.</p>
+        </div>
+        <ul class="stack-chips reveal">
+          <li>Python</li><li>asyncio</li><li>aiogram</li><li>LangChain</li>
+          <li>MCP</li><li>pandas</li><li>statsmodels</li><li>sktime</li>
+          <li>LightGBM</li><li>Docker</li><li>Git</li><li>Linux</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CTA: open to contributions -->
+    <section id="contribute" class="section cta">
+      <div class="cta-card reveal">
+        <div class="cta-status"><span class="dot"></span> Open to open-source contributions &amp; collaboration</div>
+        <h2 class="cta-title">Let's build something upstream.</h2>
+        <p class="cta-desc">I'm available for open-source work, tooling, and freelance/contract projects. Reach out.</p>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="https://github.com/axisrow" target="_blank" rel="noopener">GitHub</a>
+          <a class="btn" href="mailto:axisrow@gmail.com">Email</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- OPEN SOURCE -->
+    <section id="opensource" class="section">
+      <p class="eyebrow">Proof of Work</p>
+      <h2 class="section-title">Open-source contributions</h2>
+      <p class="section-note">Merged upstream — every link points to a merged PR.</p>
+      <div class="cards">
+        <a class="card os-card reveal" href="https://github.com/ranaroussi/yfinance/pull/2627" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">yfinance</span><span class="card-tag">merged</span></div>
+          <p class="card-desc">Optional retry mechanism for transient network errors.</p>
+          <span class="card-meta">ranaroussi/yfinance · PR #2627</span>
+        </a>
+        <a class="card os-card reveal" href="https://github.com/IBM/mcp-cli/pull/227" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">IBM / mcp-cli</span><span class="card-tag">merged</span></div>
+          <p class="card-desc"><code>CmdCommand</code> for Unix-friendly automation + serialization fix.</p>
+          <span class="card-meta">IBM/mcp-cli · PR #227</span>
+        </a>
+        <a class="card os-card reveal" href="https://github.com/etopro/ai-resto/pulls?q=is%3Apr+author%3Aaxisrow+is%3Amerged" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">ai-resto</span><span class="card-tag">23 merged</span></div>
+          <p class="card-desc">Milestones v0.2–v1.0: auth, Redis caching, DB optimization, E2E/Playwright, PWA push, security.</p>
+          <span class="card-meta">etopro/ai-resto · 23 PRs</span>
+        </a>
+        <a class="card os-card reveal" href="https://github.com/AgentWrapper/agent-orchestrator/pull/2357" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">agent-orchestrator</span><span class="card-tag">merged</span></div>
+          <p class="card-desc">Multiline prompt submit + safer permission-dialog handling.</p>
+          <span class="card-meta">AgentWrapper/agent-orchestrator · PR #2357</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="section">
+      <p class="eyebrow">Selected Work</p>
+      <h2 class="section-title">Projects</h2>
+
+      <h3 class="group-title">AI / Agent Tooling</h3>
+      <div class="cards">
+        <a class="card reveal" href="https://github.com/axisrow/yandex-direct-mcp-plugin" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">yandex-direct-mcp-plugin</span><span class="card-star">★ 6</span></div>
+          <p class="card-desc">Claude Code plugin for Yandex.Direct — MCP server + skills + OAuth.</p>
+        </a>
+        <a class="card reveal" href="https://github.com/axisrow/clihost" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">clihost</span><span class="card-star">★ 5</span></div>
+          <p class="card-desc">Self-hosting / proxy CLI, security-hardened.</p>
+        </a>
+        <a class="card reveal" href="https://github.com/axisrow/claude-code-cycle-review-skill" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">claude-code-cycle-review-skill</span><span class="card-star">★ 5</span></div>
+          <p class="card-desc">Automated PR review cycle for Claude Code.</p>
+        </a>
+        <a class="card reveal" href="https://github.com/axisrow/gemini-webapi-mcp" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">gemini-webapi-mcp</span><span class="card-star">★ 2</span></div>
+          <p class="card-desc">MCP server for Gemini — image gen/edit/chat, no API keys.</p>
+        </a>
+      </div>
+
+      <h3 class="group-title">Telegram Bots &amp; Systems</h3>
+      <div class="cards">
+        <a class="card reveal" href="https://github.com/axisrow/tg_content_factory" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">tg_content_factory</span><span class="card-star">★ 31</span></div>
+          <p class="card-desc">Content-factory pipeline for Telegram — flagship project.</p>
+        </a>
+        <a class="card reveal" href="https://github.com/axisrow/tg_messenger" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">tg_messenger</span></div>
+          <p class="card-desc">UI-agnostic core with CLI / TUI / Web front-ends.</p>
+        </a>
+        <a class="card reveal" href="https://github.com/axisrow/deepresearch_bot" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">deepresearch_bot</span></div>
+          <p class="card-desc">Deep-research bot (aiogram3 + LangChain).</p>
+        </a>
+      </div>
+
+      <h3 class="group-title">Data / Finance / ML</h3>
+      <div class="cards">
+        <a class="card reveal" href="https://github.com/axisrow/llm_benchmark" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">llm_benchmark</span><span class="card-star">★ 3</span></div>
+          <p class="card-desc">LLM benchmark harness.</p>
+        </a>
+        <a class="card reveal" href="https://github.com/axisrow/stocks_momento_bot" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">stocks_momento_bot</span></div>
+          <p class="card-desc">Trading bot with financial-data integrity invariants.</p>
+        </a>
+      </div>
+
+      <h3 class="group-title">Yandex Ecosystem</h3>
+      <div class="cards">
+        <a class="card reveal" href="https://github.com/axisrow/direct-cli" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">direct-cli</span><span class="card-star">★ 4</span></div>
+          <p class="card-desc">CLI for Yandex.Direct.</p>
+        </a>
+        <a class="card reveal" href="https://github.com/axisrow/yandex-audience-cli" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">yandex-audience-cli</span><span class="card-star">★ 1</span></div>
+          <p class="card-desc">Yandex Audience API wrapper (28 endpoints).</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contact" class="section footer">
+      <h2 class="section-title">Get in touch</h2>
+      <div class="footer-links">
+        <a href="https://github.com/axisrow" target="_blank" rel="noopener">github.com/axisrow</a>
+        <a href="mailto:axisrow@gmail.com">axisrow@gmail.com</a>
+      </div>
+      <p class="footer-note">Built with plain HTML/CSS/JS. © axisrow</p>
+    </footer>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
