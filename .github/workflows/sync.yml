@@ -95,14 +95,33 @@ jobs:
           tmp="$(mktemp -d)"
           git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/axisrow/axisrow.github.io.git" "$tmp/repo"
           python3 - "$tmp/repo/index.html" <<'PY'
-          import re, sys
+          import json, re, sys
           target, path = sys.argv[1], "out/site/projects.html"
           fragment = open(path).read().rstrip() + "\n"
+          stats = json.load(open("out/site/stats.json"))
           html = open(target).read()
           new = re.sub(
               r'(?ms)(    <section id="projects" class="section">.*?</section>)',
               lambda m: fragment.rstrip(),
               html, count=1)
+          replacements = [
+              (r'(content="[^"]*? )\d+( merged upstream PRs · )\d+( stars · )\d+( starred projects\.")',
+               lambda m: f'{m.group(1)}{stats["merged_upstream_prs"]}{m.group(2)}{stats["stars_earned"]}{m.group(3)}{stats["starred_projects"]}{m.group(4)}'),
+              (r'(<span class="stat-num" data-target=")\d+(">0</span><span class="stat-label">Stars earned</span>)',
+               lambda m: f'{m.group(1)}{stats["stars_earned"]}{m.group(2)}'),
+              (r'(<span class="stat-num" data-target=")\d+(">0</span><span class="stat-label">Merged upstream PRs</span>)',
+               lambda m: f'{m.group(1)}{stats["merged_upstream_prs"]}{m.group(2)}'),
+              (r'(<span class="stat-num" data-target=")\d+(">0</span><span class="stat-label">Starred projects</span>)',
+               lambda m: f'{m.group(1)}{stats["starred_projects"]}{m.group(2)}'),
+              (r'Author of \d+ starred open-source projects',
+               lambda m: f'Author of {stats["starred_projects"]} starred open-source projects'),
+              (r'\d+ stars earned across open-source work\.',
+               lambda m: f'{stats["stars_earned"]} stars earned across open-source work.'),
+          ]
+          for pattern, replacement in replacements:
+              new, count = re.subn(pattern, replacement, new, count=1)
+              if count != 1:
+                  raise SystemExit(f"expected one match for: {pattern}")
           if new == html:
               print("no change"); sys.exit(0)
           open(target, "w").write(new)

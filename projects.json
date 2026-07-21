@@ -7,10 +7,10 @@
   "telegram": "https://t.me/axisrow",
 
   "stats": {
-    "stars_earned": 67,
+    "stars_earned": 104,
     "merged_upstream_prs": 37,
     "starred_projects": 7,
-    "_note": "stars_earned/merged_upstream_prs are verified snapshots (gh, 2026-07-12); per-repo stars are pulled live by sync/generate.py"
+    "_note": "stars_earned/merged_upstream_prs are verified snapshots (GitHub, 2026-07-21); per-repo stars are pulled live by sync/generate.py"
   },
 
   "contributions": [

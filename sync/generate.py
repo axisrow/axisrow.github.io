@@ -12,6 +12,7 @@ Env:
 Outputs (relative to cwd):
   out/axisrow/README.md
   out/site/projects.html
+  out/site/stats.json
 """
 from __future__ import annotations
 
@@ -95,6 +96,13 @@ def main() -> int:
     out_html.parent.mkdir(parents=True, exist_ok=True)
     out_html.write_text(html)
     print(f"wrote {out_html} ({len(html)} bytes)", file=sys.stderr)
+
+    # The rest of the site is maintained in axisrow.github.io, but these
+    # profile-wide snapshot stats appear in its hero, metadata and timeline.
+    # Keep them generated from the same source of truth as the project cards.
+    out_stats = OUT / "site" / "stats.json"
+    out_stats.write_text(json.dumps(cfg["stats"], ensure_ascii=False) + "\n")
+    print(f"wrote {out_stats}", file=sys.stderr)
 
     return 0
 
