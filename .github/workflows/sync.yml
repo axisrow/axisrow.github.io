@@ -165,10 +165,11 @@ jobs:
               open(script_path, "w").write(script)
           PY
           cp data/stars-history.json "$tmp/repo/stars-history.json"
+          git -C "$tmp/repo" add stars-history.json
           msg="bot: sync profile Projects section (stars $(date -u +%Y-%m-%d))"
-          if git -C "$tmp/repo" diff --quiet; then
+          if git -C "$tmp/repo" diff --quiet && git -C "$tmp/repo" diff --cached --quiet; then
             echo "site unchanged."
           else
-            git -C "$tmp/repo" -c user.email="4278593+axisrow-ci[bot]@users.noreply.github.com" -c user.name="axisrow-ci[bot]" commit -am "$msg"
+            git -C "$tmp/repo" -c user.email="4278593+axisrow-ci[bot]@users.noreply.github.com" -c user.name="axisrow-ci[bot]" commit -m "$msg"
             git -C "$tmp/repo" push origin HEAD:main
           fi
