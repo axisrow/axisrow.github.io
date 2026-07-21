@@ -110,7 +110,7 @@
         }
       });
     }, { rootMargin: "-45% 0px -50% 0px" });
-    ["about", "experience", "opensource", "projects", "contact"].forEach(function (id) {
+    ["about", "experience", "opensource", "stars", "projects", "contact"].forEach(function (id) {
       var sec = document.getElementById(id);
       if (sec) io.observe(sec);
     });
