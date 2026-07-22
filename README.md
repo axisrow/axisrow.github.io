@@ -19,6 +19,9 @@ projects.json  ──▶ sync/generate.py  ──▶  out/axisrow/README.md     
   (CI mode — PEM from the `APP_PRIVATE_KEY` secret, **no Bitwarden in CI**),
   pulls live star counts, renders both outputs, and cross-pushes them to the two
   output repos as `axisrow-ci[bot]`.
+- Portfolio fragments are replaced only inside the stable
+  `PROFILE:PROJECTS` and `PROFILE:STARS` marker blocks. The sync never patches
+  the site's JavaScript or unrelated presentation markup.
 
 ## Edit content
 
