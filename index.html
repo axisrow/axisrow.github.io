@@ -3,228 +3,300 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>axisrow — Portfolio</title>
-  <meta name="description" content="axisrow — Python engineer. AI agent tooling, automation, data/finance systems. Open to open-source contributions." />
+  <title>axisrow — Python engineer</title>
+  <meta name="description" content="Python engineer building AI agent tooling, automation, and data systems. 37 merged upstream PRs · 104 stars · 7 starred projects." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="demoscene-base" content="/demoscene_classics/dist" />
 
-  <!-- Open Graph / social preview -->
   <meta property="og:title" content="axisrow — Python engineer" />
-  <meta property="og:description" content="AI agent tooling, automation, data/finance systems. 37 merged upstream PRs · 104 stars · 7 starred projects." />
+  <meta property="og:description" content="AI agent tooling, automation, and data systems. 37 merged upstream PRs · 104 stars · 7 starred projects." />
   <meta property="og:url" content="https://axisrow.github.io/" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://axisrow.github.io/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="axisrow — Python engineer" />
-  <meta name="twitter:description" content="AI agent tooling, automation, data/finance. Open to open-source contributions." />
+  <meta name="twitter:description" content="AI agent tooling, automation, and production Python systems." />
   <meta name="twitter:image" content="https://axisrow.github.io/og.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    (function () {
+      var stored = null;
+      try { stored = localStorage.getItem("theme"); } catch (error) {}
+      var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = stored || (dark ? "dark" : "light");
+      document.documentElement.classList.add("js");
+    }());
+  </script>
+  <link rel="stylesheet" href="styles.css?v=ambient-fields-2" />
 </head>
 <body>
-  <!-- top bar -->
   <header class="topbar">
     <div class="topbar-inner">
+      <a class="brand" href="#hero" aria-label="axisrow — back to top">AX</a>
       <nav class="section-nav" aria-label="Section navigation">
-        <a href="#about" data-nav="about">About</a>
-        <a href="#experience" data-nav="experience">Experience</a>
-        <a href="#opensource" data-nav="opensource">Work</a>
+        <a href="#stars" data-nav="stars">Stars</a>
         <a href="#projects" data-nav="projects">Projects</a>
+        <a href="#opensource" data-nav="opensource">Open Source</a>
+        <a href="#experience" data-nav="experience">Experience</a>
+        <a href="#about" data-nav="about">About</a>
         <a href="#contact" data-nav="contact">Contact</a>
       </nav>
       <div class="topbar-actions">
-        <button id="theme-toggle" class="chip-btn" aria-label="Toggle theme">☀</button>
-        <a class="chip-btn" href="https://github.com/axisrow" target="_blank" rel="noopener">GH</a>
+        <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch colour theme" aria-pressed="false">
+          <span aria-hidden="true">◐</span>
+        </button>
+        <a class="topbar-link" href="https://github.com/axisrow" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
     </div>
   </header>
 
-  <!-- fixed left rail: socials -->
-  <nav class="rail">
-    <a href="https://github.com/axisrow" target="_blank" rel="noopener" aria-label="GitHub">GH</a>
-    <a href="https://t.me/axisrow" target="_blank" rel="noopener" aria-label="Telegram">TG</a>
-    <a href="mailto:axisrow@gmail.com" aria-label="Email">@</a>
-  </nav>
-
-  <!-- decorative outline letters -->
-  <div class="deco" aria-hidden="true">
-    <span class="deco-l deco-1">a</span>
-    <span class="deco-l deco-2">x</span>
-    <span class="deco-l deco-3">i</span>
-    <span class="deco-l deco-4">s</span>
-  </div>
-
   <main>
-    <!-- HERO -->
-    <section id="hero" class="section hero">
-      <h1 class="hero-name">AXISROW</h1>
-      <p class="hero-sub">Python engineer · AI agent tooling · automation · data &amp; finance</p>
-      <div class="hero-stats" aria-label="Key stats">
-        <div class="stat"><span class="stat-num" data-target="104">0</span><span class="stat-label">Stars earned</span></div>
-        <div class="stat-sep" aria-hidden="true"></div>
-        <div class="stat"><span class="stat-num" data-target="37">0</span><span class="stat-label">Merged upstream PRs</span></div>
-        <div class="stat-sep" aria-hidden="true"></div>
-        <div class="stat"><span class="stat-num" data-target="7">0</span><span class="stat-label">Starred projects</span></div>
+    <section id="hero" class="hero" aria-labelledby="hero-title">
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-aura"></div>
+        <canvas id="hero-metaballs" class="effect-canvas" data-effect="metaballs"></canvas>
+        <span class="orbit orbit-outer"></span>
+        <span class="orbit orbit-inner"></span>
       </div>
-      <div class="scroll-hint">scroll ↓</div>
-    </section>
-
-    <!-- ABOUT -->
-    <section id="about" class="section">
-      <p class="eyebrow">About</p>
-      <h2 class="section-title">Building agents &amp; automation</h2>
-      <div class="about-grid">
-        <div class="about-text reveal">
-          <p>I'm a Python engineer building AI agent tooling, Telegram automation, and data/finance systems. I ship tested, production code — and contribute the fixes I need back upstream to the libraries I depend on.</p>
-          <p>Open-source contributor since 2024. Account on GitHub since 2021.</p>
-        </div>
-        <ul class="stack-chips reveal">
-          <li>Python</li><li>asyncio</li><li>aiogram</li><li>LangChain</li>
-          <li>MCP</li><li>pandas</li><li>statsmodels</li><li>sktime</li>
-          <li>LightGBM</li><li>Docker</li><li>Git</li><li>Linux</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- EXPERIENCE -->
-    <section id="experience" class="section">
-      <p class="eyebrow">Experience</p>
-      <h2 class="section-title">What I've shipped</h2>
-      <div class="timeline">
-        <div class="timeline-item reveal">
-          <div class="timeline-dot" aria-hidden="true"></div>
-          <div class="timeline-body">
-            <div class="timeline-head">
-              <h3 class="timeline-role">Open-Source Contributor</h3>
-              <span class="timeline-period">2024 — Present</span>
+      <div class="hero-copy">
+        <p class="availability"><span></span> Available for selected engineering work</p>
+        <h1 id="hero-title">AXISROW</h1>
+        <div class="hero-copy-plane">
+          <p class="hero-lead">Python engineer building AI agent tooling, automation, and data systems that survive production.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#projects">View selected work</a>
+            <a class="button button-secondary" href="mailto:axisrow@gmail.com">Start a conversation</a>
+          </div>
+          <dl class="hero-stats" aria-label="Open-source statistics">
+            <div>
+              <dt>Stars across GitHub</dt>
+              <dd><span data-profile-value="stars_earned" data-target="104">104</span></dd>
             </div>
-            <p class="timeline-org">yfinance · IBM/mcp-cli · ai-resto · agent-orchestrator</p>
-            <ul class="timeline-bullets">
-              <li>37 merged PRs across upstream projects — bug fixes, reliability, and new features.</li>
-              <li>Retry mechanism for transient network errors, <a href="https://github.com/ranaroussi/yfinance/pull/2627" target="_blank" rel="noopener">merged into yfinance</a>.</li>
-              <li><code>CmdCommand</code> for Unix-friendly automation, <a href="https://github.com/IBM/mcp-cli/pull/227" target="_blank" rel="noopener">merged into IBM/mcp-cli</a>.</li>
-            </ul>
+            <div>
+              <dt>Merged upstream PRs</dt>
+              <dd><span data-profile-value="merged_upstream_prs" data-target="37">37</span></dd>
+            </div>
+            <div>
+              <dt>Starred projects</dt>
+              <dd><span data-profile-value="starred_projects" data-target="7">7</span></dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+      <div class="hero-foot" aria-hidden="true">
+        <span>Canvas 2D / Metaballs</span>
+        <span>Scroll to inspect ↓</span>
+      </div>
+    </section>
+
+    <!-- PROFILE:STARS:START -->
+    <section id="stars" class="section section-stars">
+      <div class="visual-field stars-field reveal">
+        <div class="stars-field-copy veil-panel">
+          <p class="eyebrow"><span>01</span> Momentum</p>
+          <h2 class="section-title">Stars over time.</h2>
+          <p class="section-note">Daily cumulative stars on original GitHub repositories. The line starts with an opening balance on 2026-03-01; this chart excludes the 5 stars earned on maintained forks.</p>
+          <div class="stars-current"><strong>99★</strong><span>2026-07-21 · original repositories</span></div>
+        </div>
+        <div class="stars-chart">
+        <svg viewBox="0 0 960 340" role="img" aria-labelledby="stars-chart-title stars-chart-desc">
+          <title id="stars-chart-title">Cumulative GitHub stars since 2026-03-01</title>
+          <desc id="stars-chart-desc">The chart ends at 99 stars on 2026-07-21.</desc>
+          <line class="stars-grid" x1="54" x2="936" y1="298.0" y2="298.0" />
+          <text class="stars-y-label" x="44" y="298.0">0</text>
+          <line class="stars-grid" x1="54" x2="936" y1="160.0" y2="160.0" />
+          <text class="stars-y-label" x="44" y="160.0">50</text>
+          <line class="stars-grid" x1="54" x2="936" y1="22.0" y2="22.0" />
+          <text class="stars-y-label" x="44" y="22.0">100</text>
+          <polyline class="stars-line" points="54.0,209.7 60.2,209.7 66.4,209.7 72.6,209.7 78.8,209.7 85.1,209.7 91.3,195.9 97.5,193.1 103.7,190.4 109.9,184.8 116.1,176.6 122.3,173.8 128.5,173.8 134.7,171.0 141.0,171.0 147.2,160.0 153.4,157.2 159.6,157.2 165.8,157.2 172.0,157.2 178.2,154.5 184.4,151.7 190.6,149.0 196.9,143.4 203.1,140.7 209.3,137.9 215.5,137.9 221.7,137.9 227.9,135.2 234.1,135.2 240.3,124.1 246.5,121.4 252.8,121.4 259.0,121.4 265.2,121.4 271.4,118.6 277.6,118.6 283.8,118.6 290.0,118.6 296.2,118.6 302.5,115.8 308.7,113.1 314.9,113.1 321.1,107.6 327.3,104.8 333.5,102.0 339.7,102.0 345.9,99.3 352.1,99.3 358.4,99.3 364.6,99.3 370.8,99.3 377.0,99.3 383.2,99.3 389.4,99.3 395.6,96.5 401.8,96.5 408.0,96.5 414.3,96.5 420.5,96.5 426.7,93.8 432.9,93.8 439.1,93.8 445.3,93.8 451.5,91.0 457.7,91.0 463.9,91.0 470.2,91.0 476.4,91.0 482.6,91.0 488.8,91.0 495.0,91.0 501.2,91.0 507.4,91.0 513.6,91.0 519.8,91.0 526.1,91.0 532.3,91.0 538.5,91.0 544.7,91.0 550.9,91.0 557.1,91.0 563.3,91.0 569.5,91.0 575.7,91.0 582.0,91.0 588.2,91.0 594.4,91.0 600.6,88.2 606.8,85.5 613.0,85.5 619.2,74.4 625.4,68.9 631.6,68.9 637.9,66.2 644.1,66.2 650.3,66.2 656.5,66.2 662.7,63.4 668.9,60.6 675.1,57.9 681.3,57.9 687.5,57.9 693.8,57.9 700.0,57.9 706.2,57.9 712.4,57.9 718.6,55.1 724.8,52.4 731.0,52.4 737.2,52.4 743.5,52.4 749.7,52.4 755.9,52.4 762.1,52.4 768.3,52.4 774.5,52.4 780.7,52.4 786.9,52.4 793.1,49.6 799.4,46.8 805.6,46.8 811.8,41.3 818.0,41.3 824.2,41.3 830.4,41.3 836.6,41.3 842.8,41.3 849.0,41.3 855.3,41.3 861.5,41.3 867.7,41.3 873.9,38.6 880.1,38.6 886.3,35.8 892.5,33.0 898.7,33.0 904.9,33.0 911.2,33.0 917.4,30.3 923.6,30.3 929.8,24.8 936.0,24.8" />
+          <circle class="stars-end" cx="936.0" cy="24.8" r="5" />
+          <text class="stars-x-label" x="54.0" y="322">Mar</text>
+          <text class="stars-x-label" x="246.5" y="322">Apr</text>
+          <text class="stars-x-label" x="432.9" y="322">May</text>
+          <text class="stars-x-label" x="625.4" y="322">Jun</text>
+          <text class="stars-x-label" x="811.8" y="322">Jul</text>
+        </svg>
+        </div>
+      </div>
+    </section>
+    <!-- PROFILE:STARS:END -->
+
+    <!-- PROFILE:PROJECTS:START -->
+    <section id="projects" class="section section-projects">
+      <div class="visual-field projects-field reveal">
+        <div class="projects-field-visual" aria-hidden="true">
+          <canvas id="projects-plasma" class="effect-canvas" data-effect="plasma"></canvas>
+        </div>
+        <div class="projects-field-copy veil-panel">
+          <p class="eyebrow"><span>02</span> Selected Work</p>
+          <h2 class="section-title">Systems with measurable output.</h2>
+          <p class="section-note">Original repositories with the most stars — see all at <a href="https://github.com/axisrow?tab=repositories" target="_blank" rel="noopener">github.com/axisrow</a>.</p>
+          <div class="field-caption">
+            <span>Selected systems</span>
+            <strong>Automation that ships.</strong>
+            <small>Agents · integrations · data</small>
           </div>
         </div>
-        <div class="timeline-item reveal">
-          <div class="timeline-dot" aria-hidden="true"></div>
-          <div class="timeline-body">
-            <div class="timeline-head">
-              <h3 class="timeline-role">Independent Python Engineer</h3>
-              <span class="timeline-period">2021 — Present</span>
-            </div>
-            <p class="timeline-org">Telegram automation · AI agent tooling · data &amp; finance</p>
-            <ul class="timeline-bullets">
-              <li>Author of <a href="https://github.com/axisrow/tg_content_factory" target="_blank" rel="noopener">tg_content_factory</a> (31★) and the <a href="https://github.com/axisrow/yandex-direct-mcp-plugin" target="_blank" rel="noopener">Yandex.Direct MCP plugin</a> (6★).</li>
-              <li>Author of 7 starred open-source projects across agent tooling, bots, and ML.</li>
-              <li>104 stars earned across open-source work.</li>
-            </ul>
-          </div>
-        </div>
       </div>
-    </section>
-
-    <!-- CTA: open to contributions -->
-    <section id="contribute" class="section cta">
-      <div class="cta-card reveal">
-        <div class="cta-status"><span class="dot"></span> Open to open-source contributions &amp; collaboration</div>
-        <h2 class="cta-title">Let's build something upstream.</h2>
-        <p class="cta-desc">I'm available for open-source work, tooling, and freelance/contract projects. Reach out.</p>
-        <div class="cta-actions">
-          <a class="btn btn-primary" href="https://github.com/axisrow" target="_blank" rel="noopener">GitHub</a>
-          <a class="btn" href="mailto:axisrow@gmail.com">Email</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- OPEN SOURCE -->
-    <section id="opensource" class="section">
-      <p class="eyebrow">Proof of Work</p>
-      <h2 class="section-title">Open-source contributions</h2>
-      <p class="section-note">Merged upstream — every link points to a merged PR.</p>
-      <div class="cards">
-        <a class="card os-card reveal" href="https://github.com/ranaroussi/yfinance/pull/2627" target="_blank" rel="noopener">
-          <div class="card-head"><span class="card-name">yfinance</span><span class="card-tag">merged</span></div>
-          <p class="card-desc">Optional retry mechanism for transient network errors.</p>
-          <span class="card-meta">ranaroussi/yfinance · PR #2627</span>
-        </a>
-        <a class="card os-card reveal" href="https://github.com/IBM/mcp-cli/pull/227" target="_blank" rel="noopener">
-          <div class="card-head"><span class="card-name">IBM / mcp-cli</span><span class="card-tag">merged</span></div>
-          <p class="card-desc"><code>CmdCommand</code> for Unix-friendly automation + serialization fix.</p>
-          <span class="card-meta">IBM/mcp-cli · PR #227</span>
-        </a>
-        <a class="card os-card reveal" href="https://github.com/etopro/ai-resto/pulls?q=is%3Apr+author%3Aaxisrow+is%3Amerged" target="_blank" rel="noopener">
-          <div class="card-head"><span class="card-name">ai-resto</span><span class="card-tag">23 merged</span></div>
-          <p class="card-desc">Milestones v0.2–v1.0: auth, Redis caching, DB optimization, E2E/Playwright, PWA push, security.</p>
-          <span class="card-meta">etopro/ai-resto · 23 PRs</span>
-        </a>
-        <a class="card os-card reveal" href="https://github.com/AgentWrapper/agent-orchestrator/pull/2357" target="_blank" rel="noopener">
-          <div class="card-head"><span class="card-name">agent-orchestrator</span><span class="card-tag">merged</span></div>
-          <p class="card-desc">Multiline prompt submit + safer permission-dialog handling.</p>
-          <span class="card-meta">AgentWrapper/agent-orchestrator · PR #2357</span>
-        </a>
-      </div>
-    </section>
-
-    <!-- PROJECTS -->
-    <section id="projects" class="section">
-      <p class="eyebrow">Selected Work</p>
-      <h2 class="section-title">Projects</h2>
-      <p class="section-note">Original repositories with the most stars — see all at <a href="https://github.com/axisrow?tab=repositories" target="_blank" rel="noopener">github.com/axisrow</a>.</p>
+      <div class="project-surface veil-panel">
       <h3 class="group-title">Telegram &amp; Yandex</h3>
-      <div class="cards">
+      <div class="cards project-cards">
         <a class="card reveal" href="https://github.com/axisrow/tg_content_factory" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">tg_content_factory</span><span class="card-star">★ 32</span></div>
           <p class="card-desc">Content-factory pipeline for Telegram — flagship project.</p>
+          <span class="card-link">View repository ↗</span>
         </a>
         <a class="card reveal" href="https://github.com/axisrow/yandex-direct-mcp-plugin" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">yandex-direct-mcp-plugin</span><span class="card-star">★ 7</span></div>
           <p class="card-desc">Claude Code plugin for Yandex.Direct — MCP server + skills + OAuth.</p>
+          <span class="card-link">View repository ↗</span>
         </a>
         <a class="card reveal" href="https://github.com/axisrow/direct-cli" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">direct-cli</span><span class="card-star">★ 4</span></div>
           <p class="card-desc">CLI for Yandex.Direct.</p>
+          <span class="card-link">View repository ↗</span>
         </a>
       </div>
       <h3 class="group-title">AI / Agent Tooling</h3>
-      <div class="cards">
+      <div class="cards project-cards">
         <a class="card reveal" href="https://github.com/axisrow/clihost" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">clihost</span><span class="card-star">★ 5</span></div>
           <p class="card-desc">Self-hosting / proxy CLI, security-hardened.</p>
+          <span class="card-link">View repository ↗</span>
         </a>
         <a class="card reveal" href="https://github.com/axisrow/claude-code-cycle-review-skill" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">claude-code-cycle-review-skill</span><span class="card-star">★ 6</span></div>
           <p class="card-desc">Automated PR review cycle for Claude Code.</p>
+          <span class="card-link">View repository ↗</span>
         </a>
         <a class="card reveal" href="https://github.com/axisrow/claude_code_gmail_plugin" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">claude_code_gmail_plugin</span><span class="card-star">★ 3</span></div>
           <p class="card-desc">Gmail plugin for Claude Code.</p>
+          <span class="card-link">View repository ↗</span>
         </a>
       </div>
       <h3 class="group-title">Data / ML</h3>
-      <div class="cards">
+      <div class="cards project-cards">
         <a class="card reveal" href="https://github.com/axisrow/llm_benchmark" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">llm_benchmark</span><span class="card-star">★ 3</span></div>
           <p class="card-desc">LLM benchmark harness.</p>
+          <span class="card-link">View repository ↗</span>
         </a>
+      </div>
+      </div>
+    </section>
+    <!-- PROFILE:PROJECTS:END -->
+
+    <section id="opensource" class="section section-open-source">
+      <div class="section-heading reveal">
+        <p class="eyebrow"><span>03</span> Proof of Work</p>
+        <h2 class="section-title">Useful changes, merged upstream.</h2>
+        <p class="section-note">Every contribution below points to accepted production code.</p>
+      </div>
+      <div class="visual-field proof-field reveal" aria-label="Merged upstream contributions">
+        <div class="proof-field-visual" aria-hidden="true">
+          <canvas id="opensource-mandelbrot" class="effect-canvas" data-effect="mandelbrot"></canvas>
+        </div>
+        <div class="proof-field-copy veil-panel">
+          <div class="proof-summary"><strong><span data-profile-value="merged_upstream_prs" data-target="37">37</span></strong><span>merged upstream PRs</span></div>
+          <div class="proof-rows">
+            <a class="proof-row" href="https://github.com/ranaroussi/yfinance/pull/2627" target="_blank" rel="noopener"><strong>yfinance</strong><span>Retry transient network errors.</span><small>Merged · PR #2627 ↗</small></a>
+            <a class="proof-row" href="https://github.com/IBM/mcp-cli/pull/227" target="_blank" rel="noopener"><strong>IBM / mcp-cli</strong><span>Unix-friendly automation and serialization.</span><small>Merged · PR #227 ↗</small></a>
+            <a class="proof-row" href="https://github.com/etopro/ai-resto/pulls?q=is%3Apr+author%3Aaxisrow+is%3Amerged" target="_blank" rel="noopener"><strong>ai-resto</strong><span>Auth, caching, database, E2E, PWA and security.</span><small>23 merged PRs ↗</small></a>
+            <a class="proof-row" href="https://github.com/AgentWrapper/agent-orchestrator/pull/2357" target="_blank" rel="noopener"><strong>agent-orchestrator</strong><span>Multiline submit and safer permission handling.</span><small>Merged · PR #2357 ↗</small></a>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer id="contact" class="section footer">
-      <h2 class="section-title">Get in touch</h2>
-      <div class="footer-links">
-        <a href="https://github.com/axisrow" target="_blank" rel="noopener">github.com/axisrow</a>
-        <a href="mailto:axisrow@gmail.com">axisrow@gmail.com</a>
+    <section id="experience" class="section section-experience">
+      <div class="section-heading reveal">
+        <p class="eyebrow"><span>04</span> Experience</p>
+        <h2 class="section-title">Engineering through shipped work.</h2>
       </div>
-      <p class="footer-note">Built with plain HTML/CSS/JS. © axisrow</p>
-    </footer>
+      <div class="experience-field veil-panel">
+      <div class="timeline">
+        <article class="timeline-item reveal">
+          <span class="timeline-index">01</span>
+          <div>
+            <div class="timeline-head">
+              <h3>Open-Source Contributor</h3>
+              <span>2024 — Present</span>
+            </div>
+            <p class="timeline-org">yfinance · IBM/mcp-cli · ai-resto · agent-orchestrator</p>
+            <ul>
+              <li><span data-profile-value="merged_upstream_prs">37</span> merged PRs across upstream projects.</li>
+              <li>Reliability fixes, production features, automation, and safer interfaces.</li>
+              <li>Changes are scoped, tested, reviewed, and maintained after merge.</li>
+            </ul>
+          </div>
+        </article>
+        <article class="timeline-item reveal">
+          <span class="timeline-index">02</span>
+          <div>
+            <div class="timeline-head">
+              <h3>Independent Python Engineer</h3>
+              <span>2021 — Present</span>
+            </div>
+            <p class="timeline-org">Telegram automation · AI agent tooling · data &amp; finance</p>
+            <ul>
+              <li>Production services built around Python, asyncio, agents, and APIs.</li>
+              <li>Author of <span data-profile-value="starred_projects">7</span> starred open-source projects.</li>
+              <li><span data-profile-value="stars_earned">104</span> stars across original work and maintained forks.</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+      </div>
+    </section>
+
+    <section id="about" class="section section-about">
+      <div class="section-heading reveal">
+        <p class="eyebrow"><span>05</span> About</p>
+        <h2 class="section-title">Calm systems for complicated work.</h2>
+      </div>
+      <div class="about-field veil-panel">
+      <div class="about-grid">
+        <div class="about-copy reveal">
+          <p>I build AI agent tooling, Telegram automation, and data systems with a bias toward explicit behaviour, observable failures, and boring operations.</p>
+          <p>When a dependency needs a fix, I prefer contributing the improvement upstream instead of carrying a permanent local patch.</p>
+        </div>
+        <div class="stack-panel reveal">
+          <p class="panel-label">Working stack</p>
+          <ul class="stack-list">
+            <li>Python</li><li>asyncio</li><li>aiogram</li><li>LangChain</li>
+            <li>MCP</li><li>pandas</li><li>statsmodels</li><li>sktime</li>
+            <li>LightGBM</li><li>Docker</li><li>Git</li><li>Linux</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section section-contact">
+      <div class="contact-field reveal">
+      <div class="contact-card veil-panel">
+        <p class="availability"><span></span> Open to contributions, tooling, and selected contract work</p>
+        <h2>Need a system that should keep working?</h2>
+        <p>Bring the difficult integration, unreliable workflow, or data process. I’ll help turn it into explicit, tested software.</p>
+        <div class="contact-actions">
+          <a class="button button-primary" href="mailto:axisrow@gmail.com">axisrow@gmail.com</a>
+          <a class="button button-secondary" href="https://t.me/axisrow" target="_blank" rel="noopener">Telegram ↗</a>
+          <a class="button button-secondary" href="https://github.com/axisrow" target="_blank" rel="noopener">GitHub ↗</a>
+        </div>
+      </div>
+      </div>
+      <footer class="site-footer">
+        <span>© axisrow · 2026</span>
+        <span>Canvas effects powered by <a href="https://github.com/axisrow/demoscene_classics" target="_blank" rel="noopener">Demoscene Classics ↗</a></span>
+      </footer>
+    </section>
   </main>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="main.js"></script>
+  <script src="effect-skins.js?v=api-v2-final"></script>
+  <script src="main.js?v=api-v2-final"></script>
 </body>
 </html>
