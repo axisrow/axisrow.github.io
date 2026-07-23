@@ -1,0 +1,24 @@
+# Dependabot keeps the immutable-SHA pins below current.
+#
+# github-actions ecosystem: Dependabot rewrites the 40-char commit SHA in each
+# `uses:` and preserves the trailing `# <tag> @ <date>` comment, opening a PR a
+# human reviews before merge. This is the controlled bump path for the pinned
+# Actions (issue #5).
+#
+# pip ecosystem is intentionally NOT enabled here: the Python deps are
+# hash-locked in requirements.ci.txt and installed with --require-hashes, which
+# Dependabot cannot regenerate. A Python bump is therefore a manual, reviewed
+# change (regenerate hashes, verify provenance) — see the header of that file.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - supply-chain
+    commit-message:
+      prefix: chore(deps)
+      include: scope
