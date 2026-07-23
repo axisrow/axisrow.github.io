@@ -112,12 +112,22 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   assert.match(script, /controller\.renderOnce\(0\)/);
   assert.match(script, /controller\.getStats\(\)\.backend === "canvas2d"/);
   assert.match(script, /definition\.staticOnly \|\| cpuOnlyMandelbrot/);
-  assert.match(script, /selector: "#opensource-mandelbrot",\s*staticOnly: reduced/);
+  assert.match(script, /selector: "#opensource-mandelbrot",\s*surface: "preview",\s*staticOnly: reduced/);
   assert.doesNotMatch(script, /staticOnly: reduced \|\| mobile/);
+  // API v3 descriptor: the factory receives { skin, surface, device, config },
+  // never the legacy flat-options object (resolver.js detectLegacy throws on it).
+  assert.match(script, /skin: "classic"/);
+  assert.match(script, /surface: definition\.surface/);
+  assert.match(script, /device: "auto"/);
+  assert.match(script, /config: definition\.options/);
+  assert.match(script, /surface: "fullscreen"/);
+  assert.match(script, /surface: "preview"/);
   assert.match(html, /effect-skins\.js/);
-  assert.match(skins, /maxFps: 30/);
+  // v3 moves execution budgets into library profile slots, so skins keep only
+  // algorithmic identity, motion and the rendering backend — never runtime or
+  // render.resolution, which the library now owns.
+  assert.doesNotMatch(skins, /runtime:|maxFps:|pixelRatio:|pauseWhenHidden:/);
   assert.match(skins, /backend: "auto"/);
-  assert.match(skins, /resolution: 1/);
   assert.match(skins, /minZoom: 4000/);
   assert.match(skins, /maxZoom: 250000/);
   assert.match(skins, /startPhase: mobile \? 0\.12 : 0\.25/);
@@ -182,10 +192,10 @@ test('individual non-color settings remain independently configurable', async ()
 
   const baseline = sandbox.PortfolioEffectSkins.create('dark', false);
   const customized = sandbox.PortfolioEffectSkins.create('dark', false, {
-    plasma: { motion: { speed: 0.9 }, render: { resolution: 0.3 } }
+    plasma: { motion: { speed: 0.9 }, field: { radialCenterX: 0.3 } }
   });
   assert.equal(customized.plasma.motion.speed, 0.9);
-  assert.equal(customized.plasma.render.resolution, 0.3);
+  assert.equal(customized.plasma.field.radialCenterX, 0.3);
   assert.equal(customized.metaballs.motion.speed, baseline.metaballs.motion.speed);
   assert.equal(customized.mandelbrot.motion.speed, baseline.mandelbrot.motion.speed);
   assert.equal(customized.plasma.appearance, customized.metaballs.appearance);
@@ -206,13 +216,58 @@ test('mobile skins render a finer pattern without changing desktop composition',
   assert.deepEqual(Array.from(mobile.plasma.field.frequencies), [0.09, 0.09, 0.09, 1.8]);
   assert.equal(desktop.mandelbrot.motion.startPhase, 0.25);
   assert.equal(mobile.mandelbrot.motion.startPhase, 0.12);
-  assert.equal(desktop.mandelbrot.runtime.maxFps, 30);
-  assert.equal(mobile.mandelbrot.runtime.maxFps, 30);
-  assert.equal(desktop.mandelbrot.render.resolution, 1);
-  assert.equal(mobile.mandelbrot.render.resolution, 1);
+  // v3 owns execution budgets (runtime / render.resolution) via per-(surface,
+  // device) profile slots, so a skin never carries them — only the backend
+  // choice and algorithmic identity remain here.
+  assert.equal(desktop.mandelbrot.runtime, undefined);
+  assert.equal(mobile.mandelbrot.runtime, undefined);
+  assert.equal(desktop.mandelbrot.render.resolution, undefined);
+  assert.equal(mobile.mandelbrot.render.resolution, undefined);
   assert.equal(desktop.mandelbrot.render.backend, 'auto');
   assert.equal(mobile.mandelbrot.render.backend, 'auto');
   assert.equal(desktop.mandelbrot.motion.cycleSeconds, 4800);
+});
+
+test('v3 skins only carry config-compatible groups (no library-owned budgets)', async () => {
+  const skinScript = await source('effect-skins.js');
+  const sandbox = { window: null };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+
+  // Groups the library's per-(surface, device) profile slots own in API v3.
+  // A skin must not emit them: they would override the matched profile and are
+  // not part of the algorithmic identity a skin is meant to express. This is
+  // the invariant that prevents the v2-to-v3 regression where the whole site
+  // silently falls back to static accents.
+  const LIBRARY_OWNED = new Set(['runtime']);
+  for (const mobile of [false, true]) {
+    const skins = sandbox.PortfolioEffectSkins.create('dark', mobile);
+    for (const name of ['metaballs', 'plasma', 'mandelbrot']) {
+      for (const key of Object.keys(skins[name])) {
+        assert.ok(
+          !LIBRARY_OWNED.has(key),
+          `${name}.${key} is a library-owned budget group; skins must not set it`
+        );
+      }
+      // render is allowed only to carry the backend choice for mandelbrot —
+      // never resolution/smoothing, which the library owns via profile slots.
+      if (skins[name].render) {
+        for (const key of Object.keys(skins[name].render)) {
+          assert.ok(key === 'backend', `${name}.render.${key} must not be set by a skin`);
+        }
+      }
+      // The config groups a skin emits must all be valid API v3 config keys.
+      const VALID_CONFIG = new Set([
+        'runtime', 'render', 'motion', 'appearance',
+        'field', 'simulation', 'particles', 'geometry', 'camera', 'algorithm',
+        'texture', 'feedback', 'bars', 'shading', 'text', 'wave', 'stars'
+      ]);
+      for (const key of Object.keys(skins[name])) {
+        assert.ok(VALID_CONFIG.has(key), `${name}.${key} is not a recognised v3 config group`);
+      }
+    }
+  }
 });
 
 function createClassList() {
@@ -327,6 +382,64 @@ test('manifest loader succeeds and cache-busts the bundle', async () => {
   assert.deepEqual(result.appendedScripts, [
     'http://localhost/demoscene_classics/dist/demoscene.js?v=abc123'
   ]);
+});
+
+test('the descriptor main.js builds is accepted by the API v3 resolver', async () => {
+  // Reproduce the API v3 resolver's descriptor gate (demoscene_classics
+  // src/resolver.js detectLegacy): a legacy v2 flat-options object at the
+  // descriptor root throws, while a { skin, surface, device, config } descriptor
+  // is accepted. main.js must build the latter from the skins effect-skins.js
+  // produces — otherwise every mount throws and the whole site falls back.
+  const skinScript = await source('effect-skins.js');
+  const sandbox = { window: null };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+
+  const DESCRIPTOR_KEYS = new Set(['skin', 'surface', 'device', 'config']);
+  const V2_GROUPS = new Set([
+    'runtime', 'render', 'motion', 'appearance',
+    'field', 'simulation', 'particles', 'geometry', 'camera', 'algorithm',
+    'texture', 'feedback', 'bars', 'shading', 'text', 'wave', 'stars'
+  ]);
+  const SURFACES = new Set(['fullscreen', 'preview']);
+  const DEVICES = new Set(['auto', 'desktop', 'mobile']);
+
+  function detectLegacy(name, input) {
+    for (const key of Object.keys(input)) {
+      if (V2_GROUPS.has(key)) {
+        throw new Error(`${name}: legacy v2 group '${key}' at descriptor root is rejected by v3`);
+      }
+      if (!DESCRIPTOR_KEYS.has(key)) {
+        throw new Error(`${name}: unknown descriptor field '${key}'`);
+      }
+    }
+  }
+
+  const surfaces = { metaballs: 'fullscreen', plasma: 'preview', mandelbrot: 'preview' };
+  for (const mobile of [false, true]) {
+    const skins = sandbox.PortfolioEffectSkins.create('dark', mobile);
+    for (const name of ['metaballs', 'plasma', 'mandelbrot']) {
+      // Exactly the descriptor main.js assembles at the factory call site.
+      const descriptor = {
+        skin: 'classic',
+        surface: surfaces[name],
+        device: 'auto',
+        config: skins[name]
+      };
+      assert.doesNotThrow(() => detectLegacy(name, descriptor), `${name} (mobile=${mobile})`);
+      assert.equal(descriptor.surface, surfaces[name]);
+      assert.ok(SURFACES.has(descriptor.surface), `${name} surface must be a known v3 surface`);
+      assert.ok(DEVICES.has(descriptor.device), `${name} device must be a known v3 device`);
+      // Regression guard: the old code passed skins[name] directly as the
+      // descriptor, which always tripped detectLegacy. Prove that path throws.
+      assert.throws(
+        () => detectLegacy(name, skins[name]),
+        /legacy v2 group/,
+        `${name} skins passed flat (pre-v3) must be rejected`
+      );
+    }
+  }
 });
 
 test('manifest loader falls back when the manifest is missing', async () => {

@@ -42,18 +42,21 @@
       {
         name: "metaballs",
         selector: "#hero-metaballs",
+        surface: "fullscreen",
         staticOnly: reduced,
         options: skins.metaballs
       },
       {
         name: "plasma",
         selector: "#projects-plasma",
+        surface: "preview",
         staticOnly: reduced,
         options: skins.plasma
       },
       {
         name: "mandelbrot",
         selector: "#opensource-mandelbrot",
+        surface: "preview",
         staticOnly: reduced,
         options: skins.mandelbrot
       }
@@ -86,7 +89,18 @@
       var element = document.querySelector(definition.selector);
       var factory = window.Demoscene[definition.name];
       if (!element || typeof factory !== "function") return;
-      var controller = factory(element, definition.options);
+      // API v3 takes a descriptor `{ skin, surface, device, config }`. The skin
+      // carries only algorithmic identity, motion and colours (see
+      // effect-skins.js); execution budgets come from the library's matched
+      // (surface, device) profile slot. `device: "auto"` lets the library pick
+      // mobile vs desktop from the viewport itself.
+      var descriptor = {
+        skin: "classic",
+        surface: definition.surface,
+        device: "auto",
+        config: definition.options
+      };
+      var controller = factory(element, descriptor);
       var cpuOnlyMandelbrot = definition.name === "mandelbrot"
         && definition.options.render.backend !== "canvas2d"
         && typeof controller.getStats === "function"
