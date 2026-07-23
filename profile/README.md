@@ -28,7 +28,10 @@ profile/projects.json ──▶ profile/sync/generate.py ──▶ .build/profil
 ## Edit content
 
 Change `profile/projects.json`. Generated files live in `.build/` and
-`.pages-dist/` (both gitignored).
+`.pages-dist/` (both gitignored). The Pages builder (`profile/sync/build_pages.py`)
+owns `.pages-dist` as a canonical, derived output and only ever writes the known
+allowlisted files; it performs no recursive deletion, and a `.pages-dist` holding
+any unexpected entry fails the build closed.
 
 To preview locally:
 
