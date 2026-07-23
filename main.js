@@ -216,7 +216,7 @@
       });
       if (!response.ok) throw new Error("Demoscene manifest is unavailable.");
       var manifest = await response.json();
-      if (manifest.apiVersion !== 2 || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
+      if (manifest.apiVersion !== 3 || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
         throw new Error("Demoscene manifest is incompatible.");
       }
       var bundle = new URL(manifest.bundle, base);
@@ -226,7 +226,7 @@
       if (!window.Demoscene || requiredEffects.some(function (name) {
         return typeof window.Demoscene[name] !== "function";
       })) {
-        throw new Error("Demoscene bundle does not expose the required API v2 effects.");
+        throw new Error("Demoscene bundle does not expose the required API v3 effects.");
       }
       libraryReady = true;
       mountEffects();

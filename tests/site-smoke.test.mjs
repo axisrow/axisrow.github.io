@@ -106,7 +106,7 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   const skins = await source('effect-skins.js');
   const html = await source('index.html');
   assert.match(script, /manifest\.json/);
-  assert.match(script, /apiVersion !== 2/);
+  assert.match(script, /apiVersion !== 3/);
   assert.match(script, /searchParams\.set\("v", manifest\.version\)/);
   assert.match(script, /demoscene-fallback/);
   assert.match(script, /controller\.renderOnce\(0\)/);
@@ -320,7 +320,7 @@ async function runLoader({
 
 test('manifest loader succeeds and cache-busts the bundle', async () => {
   const result = await runLoader({
-    manifest: { version: 'abc123', apiVersion: 2, bundle: 'demoscene.js' }
+    manifest: { version: 'abc123', apiVersion: 3, bundle: 'demoscene.js' }
   });
   assert.equal(result.root.classList.contains('demoscene-ready'), true);
   assert.equal(result.root.classList.contains('demoscene-fallback'), false);
@@ -338,7 +338,7 @@ test('manifest loader falls back when the manifest is missing', async () => {
 
 test('manifest loader rejects an incompatible API version', async () => {
   const result = await runLoader({
-    manifest: { version: 'abc123', apiVersion: 1, bundle: 'demoscene.js' }
+    manifest: { version: 'abc123', apiVersion: 2, bundle: 'demoscene.js' }
   });
   assert.equal(result.root.classList.contains('demoscene-fallback'), true);
   assert.deepEqual(result.appendedScripts, []);
@@ -347,7 +347,7 @@ test('manifest loader rejects an incompatible API version', async () => {
 
 test('manifest loader falls back when the bundle fails', async () => {
   const result = await runLoader({
-    manifest: { version: 'abc123', apiVersion: 2, bundle: 'demoscene.js' },
+    manifest: { version: 'abc123', apiVersion: 3, bundle: 'demoscene.js' },
     bundleError: true
   });
   assert.equal(result.root.classList.contains('demoscene-fallback'), true);
@@ -355,19 +355,19 @@ test('manifest loader falls back when the bundle fails', async () => {
   assert.match(result.warnings.join('\n'), /bundle failed to load/i);
 });
 
-test('manifest loader falls back when the loaded bundle lacks API v2 effects', async () => {
+test('manifest loader falls back when the loaded bundle lacks API v3 effects', async () => {
   const result = await runLoader({
-    manifest: { version: 'abc123', apiVersion: 2, bundle: 'demoscene.js' },
+    manifest: { version: 'abc123', apiVersion: 3, bundle: 'demoscene.js' },
     missingApi: true
   });
   assert.equal(result.root.classList.contains('demoscene-fallback'), true);
-  assert.match(result.warnings.join('\n'), /required API v2 effects/i);
+  assert.match(result.warnings.join('\n'), /required API v3 effects/i);
 });
 
 test('reduced motion loads the library in static mode without starting animated scenes', async () => {
   const result = await runLoader({
     reducedMotion: true,
-    manifest: { version: 'static123', apiVersion: 2, bundle: 'demoscene.js' }
+    manifest: { version: 'static123', apiVersion: 3, bundle: 'demoscene.js' }
   });
   assert.equal(result.root.classList.contains('demoscene-reduced'), true);
   assert.equal(result.root.classList.contains('demoscene-ready'), true);
