@@ -113,7 +113,12 @@ jobs:
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5 @ 2024-03-30
 
-      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3 @ 2024-02-07
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5 @ 2026-04-08
+        # v5 SHA-pins its nested `actions/upload-artifact` ref (-> bbbca2dd…),
+        # closing the transitive mutable-tag path that v3 (@56afc609) left open:
+        # v3's composite action.yml called `actions/upload-artifact@v4` (a movable
+        # tag). This step runs with pages:write + id-token:write, so the nested
+        # ref must be immutable. See issue #5.
         with:
           path: .pages-dist
 
