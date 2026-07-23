@@ -56,6 +56,15 @@ class BuildPagesTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 build_pages(repo, temp / "generated", link)
 
+    def test_rejects_source_descendant_as_output_dir(self) -> None:
+        # A descendant of the site root (sources, .git, .build) must never be
+        # the cleanup target, even though it is neither the root nor an ancestor.
+        repo = Path(__file__).resolve().parents[2]
+        for descendant in ("profile", ".git", ".build"):
+            with self.subTest(descendant=descendant):
+                with self.assertRaises(ValueError):
+                    build_pages(repo, repo / "generated", repo / descendant)
+
 
 if __name__ == "__main__":
     unittest.main()
