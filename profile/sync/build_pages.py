@@ -118,15 +118,15 @@ def _validate_artifact(canonical: Path) -> None:
     """Mandatory self-validation gate: assert the artifact is exactly the
     allowlisted flat set of regular files.
 
-    Any deviation (extra entry, symlink, subdirectory, an entry whose name looks
-    like source material, malformed ``stars-history.json``) raises and fails the
-    build closed — the foreign or dangerous state is never deleted by this
-    builder. Missing allowlisted files are produced by ``_write_artifact_files``
-    and are not a validation concern here.
+    Any deviation — an extra/foreign entry, a symlink, a subdirectory, an entry
+    whose name looks like source material, a missing allowlisted file, or
+    malformed ``stars-history.json`` — raises and fails the build closed. The
+    foreign or dangerous state is never deleted by this builder.
     """
     if not canonical.is_dir():
         raise ValueError(f"artifact directory missing: {canonical}")
 
+    seen: set[str] = set()
     for entry in os.scandir(canonical):
         if entry.name.endswith(".tmp"):
             continue
@@ -139,10 +139,15 @@ def _validate_artifact(canonical: Path) -> None:
             raise ValueError(f"artifact entry must be a regular file: {name}")
         if name.endswith(".py") or "test" in name or name.endswith(".pem"):
             raise ValueError(f"artifact entry must not be source material: {name}")
+        seen.add(name)
 
-    stars_history = canonical / "stars-history.json"
-    if stars_history.is_file():
-        json.loads(stars_history.read_text())
+    missing = set(ALLOWED_ARTIFACT_FILES) - seen
+    if missing:
+        raise ValueError(f"artifact is missing allowlisted entries: {sorted(missing)}")
+
+    # stars-history.json is part of the allowlist, so it is present on a valid
+    # artifact; parse it unconditionally to confirm it is well-formed.
+    json.loads((canonical / "stars-history.json").read_text())
 
 
 def _retire_stale(canonical: Path) -> None:

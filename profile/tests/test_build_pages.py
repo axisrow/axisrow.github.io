@@ -167,6 +167,26 @@ class BuildPagesTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         _validate_artifact(canonical)
 
+    def test_validate_rejects_missing_file(self) -> None:
+        # The gate must assert the EXACT allowlist set: a missing allowlisted
+        # file (e.g. left absent after a crashed os.replace) must fail closed,
+        # not pass because only present entries are checked.
+        from profile.sync.build_pages import _validate_artifact
+
+        with TemporaryDirectory() as tmp:
+            temp = Path(tmp)
+            canonical = temp / CANONICAL_OUTPUT_NAME
+            canonical.mkdir()
+            # Present only a strict subset of the allowlist — all valid names,
+            # all regular files, no symlinks, no extras. The old validator
+            # accepted this; the fixed one must reject it.
+            for name in ALLOWED_ARTIFACT_FILES:
+                (canonical / name).write_text("ok" if name != "stars-history.json" else "{}")
+            # Remove one allowlisted file to make the set incomplete.
+            (canonical / "index.html").unlink()
+            with self.assertRaises(ValueError):
+                _validate_artifact(canonical)
+
     def test_unknown_entry_fails_closed(self) -> None:
         with TemporaryDirectory() as tmp:
             site_root = _seed_site_root(Path(tmp))
