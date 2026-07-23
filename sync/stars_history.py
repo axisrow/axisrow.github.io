@@ -9,40 +9,36 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import urllib.error
 import urllib.parse
-import urllib.request
 from collections import Counter
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+
+# This script is invoked directly by the CI workflow (`python3 sync/...`), which
+# puts its own directory on sys.path[0] instead of the repo root. Absolute
+# ``from sync import ...`` needs the repo root on the path, so add it here.
+_ROOT = str(Path(__file__).resolve().parent.parent)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from sync import github  # noqa: E402  (path bootstrap must precede this import)
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_HISTORY = ROOT / "data" / "stars-history.json"
 
 
 def api_get(path: str, accept: str | None = None) -> list[dict] | dict:
-    headers = {"Accept": accept or "application/vnd.github+json", "User-Agent": "axisrow-profile-sync"}
-    if token := os.environ.get("GH_TOKEN"):
-        headers["Authorization"] = f"Bearer {token}"
-    request = urllib.request.Request(f"https://api.github.com/{path}", headers=headers)
-    with urllib.request.urlopen(request, timeout=30) as response:
-        return json.loads(response.read().decode())
+    """Thin wrapper preserving the historical return shape for local callers."""
+    data, _ = github.api_get(path, accept)
+    if data is None:
+        raise RuntimeError(f"Empty response from {path}")
+    return data
 
 
 def paged(path: str, accept: str | None = None) -> list[dict]:
-    rows: list[dict] = []
-    page = 1
-    while True:
-        separator = "&" if "?" in path else "?"
-        batch = api_get(f"{path}{separator}per_page=100&page={page}", accept)
-        if not isinstance(batch, list):
-            raise RuntimeError(f"Expected a list from {path}")
-        rows.extend(batch)
-        if len(batch) < 100:
-            return rows
-        page += 1
+    return github.paged(path, accept)
 
 
 def installation_repositories() -> list[dict]:

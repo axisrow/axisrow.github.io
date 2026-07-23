@@ -19,9 +19,17 @@ from __future__ import annotations
 import json
 import os
 import sys
-import urllib.request
 from datetime import date
 from pathlib import Path
+
+# This script is invoked directly by the CI workflow (`python3 sync/...`), which
+# puts its own directory on sys.path[0] instead of the repo root. Absolute
+# ``from sync import ...`` needs the repo root on the path, so add it here.
+_ROOT = str(Path(__file__).resolve().parent.parent)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from sync import github  # noqa: E402  (path bootstrap must precede this import)
 
 try:
     from jinja2 import Environment, FileSystemLoader
@@ -74,22 +82,19 @@ def chart_data(history: dict) -> dict:
 
 
 def get_stars(handle: str, repos: list[str]) -> dict[str, int]:
-    """Return {repo_name: star_count} via the GitHub REST API."""
-    token = os.environ.get("GH_TOKEN", "")
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "axisrow-profile-sync",
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    """Return {repo_name: star_count} via the GitHub REST API.
+
+    Any network or HTTP failure for a single repo degrades to ``0`` with a
+    WARNING on stderr, so one unreachable repo never aborts the whole render.
+    Requests use the shared client's default 30s timeout (previously 15s when
+    this owned its own urllib call).
+    """
     stars: dict[str, int] = {}
     for name in repos:
-        url = f"https://api.github.com/repos/{handle}/{name}"
-        req = urllib.request.Request(url, headers=headers)
+        path = f"repos/{handle}/{name}"
         try:
-            with urllib.request.urlopen(req, timeout=15) as r:
-                data = json.loads(r.read().decode())
-            stars[name] = int(data.get("stargazers_count", 0))
+            data, _ = github.api_get(path)
+            stars[name] = int(data.get("stargazers_count", 0) if isinstance(data, dict) else 0)
             print(f"  {name}: {stars[name]}★", file=sys.stderr)
         except Exception as e:
             print(f"  WARNING: {name}: could not fetch stars ({e})", file=sys.stderr)
