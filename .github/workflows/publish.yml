@@ -39,7 +39,10 @@ jobs:
           # execute on import while GH_TOKEN still holds the App installation token
           # minted below. Bumps are a deliberate, reviewed change to
           # requirements.ci.txt. See issue #5.
-          python3 -m pip install --require-hashes -r requirements.ci.txt
+          # --only-binary=:all: forbids sdist builds: building an sdist pulls in
+          # build deps (setuptools/flit_core) the hash lock does NOT cover,
+          # reopening an unhashed code-execution path before the token mint.
+          python3 -m pip install --require-hashes --only-binary=:all: -r requirements.ci.txt
           mkdir -p ~/.local/bin/pat_lib
           # Pin the token helper to an immutable commit (not the mutable `main`
           # branch): this code runs with APP_PRIVATE_KEY in its environment, so a

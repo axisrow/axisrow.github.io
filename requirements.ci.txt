@@ -1,22 +1,27 @@
 # Hash-locked Python dependencies for CI/Publish workflows.
 #
 # Installed in .github/workflows/{ci,publish}.yml with:
-#     python3 -m pip install --require-hashes -r requirements.ci.txt
+#     python3 -m pip install --require-hashes --only-binary=:all: -r requirements.ci.txt
 #
 # In publish.yml this install happens while GH_TOKEN still holds a GitHub App
 # installation token minted from APP_PRIVATE_KEY (write access to source + Pages).
 # Hash-locking means a compromised/malicious PyPI release of Jinja2 or MarkupSafe
-# cannot execute on import: every file in the dependency closure is pinned to a
+# cannot execute on import: every wheel in the dependency closure is pinned to a
 # reviewed SHA256, so a bump is a deliberate, human-reviewed change. This mirrors
 # the immutable-SHA discipline already applied to the `pat` token helper.
 #
-# Regenerate hashes when bumping a version:
+# --only-binary=:all: (paired with --require-hashes per pip's secure-installs
+# guidance) forbids building source distributions. An sdist would pull in build
+# dependencies (setuptools, flit_core) that the parent hash lock does NOT cover,
+# reopening an unhashed code-execution path. Only wheel hashes are listed below
+# (no .tar.gz), so an sdist can never be selected.
+#
+# Regenerate hashes when bumping a version (wheels only — exclude .tar.gz):
 #   curl -fsSL https://pypi.org/pypi/<pkg>/<version>/json \
-#     | python3 -c "import sys,json; [print(f['digests']['sha256']) for f in json.load(sys.stdin)['urls']]"
+#     | python3 -c "import sys,json; [print(f['digests']['sha256']) for f in json.load(sys.stdin)['urls'] if not f['filename'].endswith('.tar.gz')]"
 # and verify each against a local download before committing.
 Jinja2==3.1.6 \
-    --hash=sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67 \
-    --hash=sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d
+    --hash=sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67
 MarkupSafe==3.0.3 \
     --hash=sha256:2f981d352f04553a7171b8e44369f2af4055f888dfb147d55e42d29e29e74559 \
     --hash=sha256:e1c1493fb6e50ab01d20a22826e57520f1284df32f2d8601fdd90b6304601419 \
@@ -105,5 +110,4 @@ MarkupSafe==3.0.3 \
     --hash=sha256:a320721ab5a1aba0a233739394eb907f8c8da5c98c9181d1161e77a0c8e36f2d \
     --hash=sha256:df2449253ef108a379b8b5d6b43f4b1a8e81a061d6537becd5582fba5f9196d7 \
     --hash=sha256:7c3fb7d25180895632e5d3148dbdc29ea38ccb7fd210aa27acbd1201a1902c6e \
-    --hash=sha256:38664109c14ffc9e7437e86b4dceb442b0096dfe3541d7864d9cbe1da4cf36c8 \
-    --hash=sha256:722695808f4b6457b320fdc131280796bdceb04ab50fe1795cd540799ebe1698
+    --hash=sha256:38664109c14ffc9e7437e86b4dceb442b0096dfe3541d7864d9cbe1da4cf36c8
