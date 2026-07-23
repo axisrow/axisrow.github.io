@@ -24,6 +24,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4 @ 2026-07-16
+        with:
+          # Do NOT persist the default GITHUB_TOKEN (github-actions[bot]) into the
+          # runner's git credential store. The push steps below embed the App
+          # installation token in the push URL; with persist-credentials:true
+          # (the default) git reuses the stored GITHUB_TOKEN, so the remote sees
+          # github-actions[bot] and rejects the push with 403 (this job has only
+          # contents:read). Disable the store so the URL token wins.
+          persist-credentials: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v4 @ 2025-04-02
         with:
@@ -97,6 +105,7 @@ jobs:
         env:
           TOKEN: ${{ steps.token.outputs.token }}
         run: |
+          test -n "$TOKEN" || { echo "::error::TOKEN is empty"; exit 1; }
           tmp="$(mktemp -d)"
           git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/axisrow/axisrow.git" "$tmp/repo"
           cp .build/profile/axisrow/README.md "$tmp/repo/README.md"
@@ -106,13 +115,17 @@ jobs:
             git -C "$tmp/repo" -c user.email="4278593+axisrow-ci[bot]@users.noreply.github.com" \
               -c user.name="axisrow-ci[bot]" commit -am \
               "bot: sync profile README (stars $(date -u +%Y-%m-%d))"
-            git -C "$tmp/repo" push origin HEAD:main
+            # -c credential.helper='' neutralises any stored credential helper so
+            # git uses the App token embedded in the push URL, never a stored
+            # GITHUB_TOKEN. See publish.yml checkout step for the full rationale.
+            git -C "$tmp/repo" -c credential.helper='' push origin HEAD:main
           fi
 
       - name: Persist star history
         env:
           TOKEN: ${{ steps.token.outputs.token }}
         run: |
+          test -n "$TOKEN" || { echo "::error::TOKEN is empty"; exit 1; }
           if git diff --quiet -- profile/data/stars-history.json; then
             echo "Star history unchanged."
           else
@@ -120,7 +133,10 @@ jobs:
             git -c user.email="4278593+axisrow-ci[bot]@users.noreply.github.com" \
               -c user.name="axisrow-ci[bot]" commit -m \
               "bot: update star history ($(date -u +%Y-%m-%d)) [skip ci]"
-            git push "https://x-access-token:${TOKEN}@github.com/axisrow/axisrow.github.io.git" HEAD:main
+            # -c credential.helper='' neutralises any stored credential helper so
+            # git uses the App token embedded in the push URL, never a stored
+            # GITHUB_TOKEN. See publish.yml checkout step for the full rationale.
+            git -c credential.helper='' push "https://x-access-token:${TOKEN}@github.com/axisrow/axisrow.github.io.git" HEAD:main
           fi
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5 @ 2024-03-30
