@@ -23,6 +23,10 @@
   --veil: rgba(248, 245, 238, 0.91);
   --veil-solid: #f8f5ee;
   --veil-border: rgba(23, 25, 29, 0.2);
+  --panel-space: clamp(24px, 4vw, 48px);
+  --card-space: 24px;
+  --row-space: 16px;
+  --surface-radius: 12px;
 }
 
 :root[data-theme="dark"] {
@@ -524,7 +528,7 @@ main {
 
 .veil-panel {
   border: 1px solid var(--veil-border);
-  border-radius: 8px;
+  border-radius: var(--surface-radius);
   background: var(--veil);
 }
 
@@ -539,7 +543,9 @@ main {
 }
 
 .projects-field {
-  height: clamp(330px, 30vw, 390px);
+  display: flex;
+  justify-content: flex-end;
+  padding: 24px max(16px, calc((100% - var(--max-width)) / 2));
 }
 
 .projects-field-visual,
@@ -551,7 +557,7 @@ main {
 }
 
 .projects-field-visual {
-  inset: -190px calc(50% - 50vw) -120px calc(50% - 50vw);
+  inset: 0 calc(50% - 50vw);
   width: auto;
   border: 0;
   border-radius: 0;
@@ -576,11 +582,11 @@ main {
   z-index: 2;
   display: flex;
   width: min(680px, 58%);
-  height: calc(100% - 48px);
+  height: auto;
   flex-direction: column;
-  justify-content: center;
-  margin: 24px max(16px, calc((100% - var(--max-width)) / 2)) 24px auto;
-  padding: clamp(28px, 4vw, 50px);
+  justify-content: flex-start;
+  margin: 0;
+  padding: var(--panel-space);
 }
 
 .projects-field-copy .eyebrow,
@@ -592,7 +598,7 @@ main {
 
 .projects-field-copy .section-title {
   max-width: 590px;
-  font-size: clamp(42px, 5vw, 68px);
+  font-size: clamp(42px, 5vw, 64px);
 }
 
 .projects-field-copy .section-note {
@@ -604,8 +610,8 @@ main {
   display: flex;
   align-items: baseline;
   gap: 14px;
-  margin-top: auto;
-  padding-top: 22px;
+  margin-top: var(--card-space);
+  padding-top: var(--card-space);
   border-top: 1px solid var(--line);
 }
 
@@ -639,7 +645,7 @@ main {
 }
 
 .project-surface .card {
-  border-radius: 9px;
+  border-radius: var(--surface-radius);
   background: color-mix(in srgb, var(--surface-solid) 68%, transparent);
 }
 
@@ -667,7 +673,7 @@ main {
   flex-direction: column;
   justify-content: center;
   margin: 0;
-  padding: clamp(28px, 4vw, 50px);
+  padding: var(--panel-space);
 }
 
 .stars-field-copy .section-title {
@@ -744,7 +750,7 @@ main {
 }
 
 .proof-field-visual {
-  inset: -250px calc(50% - 50vw) -170px calc(50% - 50vw);
+  inset: 0 calc(50% - 50vw);
   width: auto;
   border: 0;
   border-radius: 0;
@@ -764,9 +770,9 @@ main {
   min-height: 336px;
   flex-direction: column;
   margin: 0 auto 0 max(16px, calc((100% - var(--max-width)) / 2));
-  overflow: visible;
+  overflow: hidden;
   border: 1px solid var(--veil-border);
-  border-radius: 8px;
+  border-radius: var(--surface-radius);
   background: color-mix(in srgb, var(--veil-solid) 97%, transparent);
 }
 
@@ -775,7 +781,7 @@ main {
   min-height: 80px;
   align-items: baseline;
   gap: 12px;
-  padding: 18px 28px;
+  padding: var(--row-space) var(--card-space);
   border-bottom: 1px solid var(--line);
 }
 
@@ -797,7 +803,7 @@ main {
   grid-template-columns: minmax(120px, 0.28fr) minmax(230px, 1fr) auto;
   align-items: center;
   gap: 18px;
-  padding: 12px 28px;
+  padding: var(--row-space) var(--card-space);
   border-bottom: 1px solid var(--line);
   transition: background 180ms ease, color 180ms ease;
 }
@@ -829,13 +835,13 @@ main {
 .about-field {
   position: relative;
   width: min(1340px, calc(100vw - 24px));
-  padding: 10px clamp(22px, 5vw, 70px);
-  border-inline: 0;
-  border-radius: 0;
+  padding: var(--panel-space);
+  border: 1px solid var(--veil-border);
+  border-radius: var(--surface-radius);
 }
 
 .experience-field {
-  left: calc(50% - 4vw);
+  left: calc(50% - min(4vw, calc((100vw - 1364px) / 2)));
   transform: translateX(-50%);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, var(--veil)), var(--veil) 42%),
@@ -843,8 +849,7 @@ main {
 }
 
 .about-field {
-  left: calc(50% + 4vw);
-  padding-block: clamp(30px, 5vw, 60px);
+  left: calc(50% + min(4vw, calc((100vw - 1364px) / 2)));
   transform: translateX(-50%);
   background:
     linear-gradient(270deg, color-mix(in srgb, var(--accent-cool) 8%, var(--veil)), var(--veil) 46%),
@@ -956,10 +961,10 @@ main {
   display: flex;
   min-height: 188px;
   flex-direction: column;
-  padding: 24px;
+  padding: var(--card-space);
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--surface-radius);
   background: color-mix(in srgb, var(--surface-solid) 88%, transparent);
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
@@ -1123,7 +1128,7 @@ main {
 }
 
 .stack-panel {
-  padding: 26px;
+  padding: var(--card-space);
   border-left: 1px solid var(--line-strong);
   background: transparent;
 }
@@ -1236,12 +1241,11 @@ main {
 
 .contact-card {
   width: min(940px, 82%);
-  padding: clamp(34px, 7vw, 82px);
+  padding: var(--panel-space);
   margin-left: 4%;
-  border: 0;
-  border-left: 1px solid var(--veil-border);
-  border-radius: 0;
-  background: linear-gradient(90deg, var(--veil) 0 76%, transparent);
+  border: 1px solid var(--veil-border);
+  border-radius: var(--surface-radius);
+  background: var(--veil);
   box-shadow: none;
 }
 
@@ -1374,10 +1378,14 @@ main {
 }
 
 @media (min-width: 721px) and (max-width: 980px) {
+  .projects-field {
+    padding: 14px;
+  }
+
   .projects-field-copy {
     width: 62%;
-    margin-right: 14px;
-    padding: 30px;
+    margin: 0;
+    padding: var(--panel-space);
   }
 
   .projects-field-visual {
@@ -1394,7 +1402,7 @@ main {
     width: 100%;
     min-height: 0;
     margin: 0;
-    padding: 30px;
+    padding: var(--panel-space);
   }
 
   .stars-field .stars-chart {
@@ -1424,6 +1432,10 @@ main {
 }
 
 @media (max-width: 720px) {
+  :root {
+    --panel-space: 24px;
+  }
+
   html {
     scroll-padding-top: 112px;
   }
@@ -1600,17 +1612,17 @@ main {
   }
 
   .projects-field {
-    display: block;
     height: auto;
-    min-height: 430px;
+    min-height: 0;
+    padding: 8px;
   }
 
   .projects-field-copy {
-    width: calc(100% - 16px);
+    width: 100%;
     height: auto;
-    min-height: 360px;
-    margin: 8px;
-    padding: 24px;
+    min-height: 0;
+    margin: 0;
+    padding: var(--panel-space);
   }
 
   .projects-field-copy .section-title {
@@ -1619,7 +1631,7 @@ main {
 
   .projects-field-visual {
     position: absolute;
-    inset: 34% -12px -40px -12px;
+    inset: 34% -12px 0;
     width: auto;
     height: auto;
     opacity: 0.68;
@@ -1639,7 +1651,7 @@ main {
 
   .project-surface {
     margin-top: 24px;
-    padding: 18px;
+    padding: var(--card-space);
   }
 
   .stars-field {
@@ -1654,7 +1666,7 @@ main {
     width: calc(100% - 16px);
     min-height: 350px;
     margin: 8px;
-    padding: 24px;
+    padding: var(--panel-space);
   }
 
   .stars-field .stars-chart {
@@ -1689,7 +1701,7 @@ main {
 
   .proof-field-visual {
     position: absolute;
-    inset: 24% -12px -50px 18%;
+    inset: 24% -12px 0 18%;
     width: auto;
     height: auto;
     opacity: 0.72;
@@ -1699,14 +1711,14 @@ main {
 
   .proof-summary {
     min-height: 66px;
-    padding-inline: 16px;
+    padding: var(--row-space) var(--card-space);
   }
 
   .proof-row {
     min-height: 104px;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 5px 12px;
-    padding: 14px 16px;
+    padding: var(--row-space) var(--card-space);
   }
 
   .proof-row > span {
@@ -1723,11 +1735,7 @@ main {
   .about-field {
     left: 50%;
     width: calc(100vw - 24px);
-    padding: 12px 18px;
-  }
-
-  .about-field {
-    padding-block: 28px;
+    padding: var(--panel-space);
   }
 
   .contact-field {
@@ -1808,8 +1816,8 @@ main {
   }
 
   .contact-card {
-    padding: 30px 22px;
-    border-radius: 18px;
+    padding: var(--panel-space);
+    border-radius: var(--surface-radius);
   }
 
   .contact-card h2 {

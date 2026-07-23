@@ -26,6 +26,35 @@ test('page keeps the approved proof-first section order and sync markers', async
   assert.match(html, /id="projects"[\s\S]*?<span>02<\/span> Selected Work/);
 });
 
+test('content surfaces share one spacing and radius system', async () => {
+  const css = await source('styles.css');
+  for (const token of [
+    '--panel-space: clamp(24px, 4vw, 48px)',
+    '--card-space: 24px',
+    '--row-space: 16px',
+    '--surface-radius: 12px'
+  ]) {
+    assert.match(css, new RegExp(token.replace(/[(),]/g, '\\$&')));
+  }
+  assert.ok((css.match(/var\(--panel-space\)/g) || []).length >= 6);
+  assert.ok((css.match(/var\(--card-space\)/g) || []).length >= 6);
+  assert.ok((css.match(/var\(--surface-radius\)/g) || []).length >= 6);
+  assert.match(css, /\.projects-field\s*\{[^}]*display:\s*flex[^}]*padding:/s);
+  assert.match(css, /\.projects-field-copy \.section-title\s*\{[^}]*font-size:\s*clamp\(42px,\s*5vw,\s*64px\)/s);
+  assert.match(css, /@media \(max-width: 720px\)\s*\{\s*:root\s*\{[^}]*--panel-space:\s*24px/s);
+  assert.doesNotMatch(css, /height:\s*clamp\(330px,\s*30vw,\s*(?:390|410)px\)/);
+});
+
+test('animated fields stay within their owning section vertically', async () => {
+  const css = await source('styles.css');
+  assert.match(css, /\.projects-field-visual\s*\{[^}]*inset:\s*0 calc\(50% - 50vw\);/s);
+  assert.match(css, /\.proof-field-visual\s*\{[^}]*inset:\s*0 calc\(50% - 50vw\);/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-visual\s*\{[^}]*inset:\s*34% -12px 0;/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.proof-field-visual\s*\{[^}]*inset:\s*24% -12px 0 18%;/s);
+  assert.doesNotMatch(css, /\.projects-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
+  assert.doesNotMatch(css, /\.proof-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
+});
+
 test('only the three restrained Demoscene accents are mounted', async () => {
   const html = await source('index.html');
   const effects = Array.from(html.matchAll(/data-effect="([^"]+)"/g), (match) => match[1]);
@@ -343,7 +372,7 @@ test('both themes and reduced-motion rendering are present', async () => {
   assert.match(css, /grid-template-columns: minmax\(360px, 0\.38fr\) minmax\(0, 0\.62fr\)/);
   assert.match(css, /\.proof-field\s*\{[^}]*height: 380px;/s);
   assert.match(css, /background: color-mix\(in srgb, var\(--veil-solid\) 97%, transparent\)/);
-  assert.doesNotMatch(css, /\.proof-field-copy\s*\{[^}]*overflow: hidden/s);
+  assert.match(css, /\.proof-field-copy\s*\{[^}]*overflow: hidden/s);
   assert.match(css, /mandelbrot-proof-fallback\.jpg/);
   assert.doesNotMatch(css, /backdrop-filter: blur\(3px\)/);
   assert.doesNotMatch(css, /\.hero-visual \.effect-canvas\s*\{[^}]*filter:/s);
