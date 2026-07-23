@@ -1,0 +1,27 @@
+    <section id="projects" class="section section-projects">
+      <div class="visual-field projects-field reveal">
+        <div class="projects-field-visual" aria-hidden="true">
+          <canvas id="projects-plasma" class="effect-canvas" data-effect="plasma"></canvas>
+        </div>
+        <div class="projects-field-copy veil-panel">
+          <p class="eyebrow"><span>02</span> Selected Work</p>
+          <h2 class="section-title">Systems with measurable output.</h2>
+          <p class="section-note">Original repositories with the most stars — see all at <a href="https://github.com/{{ handle }}?tab=repositories" target="_blank" rel="noopener">github.com/{{ handle }}</a>.</p>
+          <div class="field-caption">
+            <span>Selected systems</span>
+            <strong>Automation that ships.</strong>
+            <small>Agents · integrations · data</small>
+          </div>
+        </div>
+      </div>
+      <div class="project-surface veil-panel">
+{% for group, repos in projects.items() %}      <h3 class="group-title">{{ group }}</h3>
+      <div class="cards project-cards">
+{% for name in repos %}        <a class="card reveal" href="https://github.com/{{ handle }}/{{ name }}" target="_blank" rel="noopener">
+          <div class="card-head"><span class="card-name">{{ name }}</span>{% if stars[name] %}<span class="card-star">★ {{ stars[name] }}</span>{% endif %}</div>
+          <p class="card-desc">{{ descriptions[name] }}</p>
+          <span class="card-link">View repository ↗</span>
+        </a>
+{% endfor %}      </div>
+{% endfor %}      </div>
+    </section>
