@@ -49,11 +49,15 @@
     }
   });
 
+  // API v3 ships each effect as a descriptor `{ skin, surface, device, config }`.
+  // Execution budgets (runtime.maxFps / pixelRatio / pauseWhenHidden and
+  // render.resolution / smoothing) are owned by the library's per-(surface,
+  // device) profile slots, so a skin only carries algorithmic identity
+  // (field / camera / algorithm), motion identity and the rendering backend
+  // choice. Colours arrive through `appearance`, attached in create().
   function effectSettings(mobile) {
     return {
       metaballs: {
-        runtime: { autoStart: false, maxFps: mobile ? 30 : 60, pixelRatio: 1, pauseWhenHidden: false },
-        render: { resolution: mobile ? 0.2 : 0.3333333333, smoothing: true },
         motion: { speed: 0.72 },
         field: {
           pointCount: mobile ? 3 : 5,
@@ -61,8 +65,6 @@
         }
       },
       plasma: {
-        runtime: { autoStart: false, maxFps: mobile ? 20 : 30, pixelRatio: 1, pauseWhenHidden: false },
-        render: { resolution: mobile ? 0.18 : 0.25, smoothing: true },
         motion: { speed: 0.42, paletteCycleSpeed: 0 },
         field: mobile ? {
           frequencies: [0.09, 0.09, 0.09, 1.8],
@@ -79,8 +81,7 @@
         }
       },
       mandelbrot: {
-        runtime: { autoStart: false, maxFps: 30, pixelRatio: 1, pauseWhenHidden: false },
-        render: { backend: "auto", resolution: 1, smoothing: true },
+        render: { backend: "auto" },
         motion: { speed: 1, cycleSeconds: 4800, startPhase: mobile ? 0.12 : 0.25 },
         camera: {
           centerX: -0.7436438870371587,

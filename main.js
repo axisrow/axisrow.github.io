@@ -42,18 +42,21 @@
       {
         name: "metaballs",
         selector: "#hero-metaballs",
+        surface: "fullscreen",
         staticOnly: reduced,
         options: skins.metaballs
       },
       {
         name: "plasma",
         selector: "#projects-plasma",
+        surface: "preview",
         staticOnly: reduced,
         options: skins.plasma
       },
       {
         name: "mandelbrot",
         selector: "#opensource-mandelbrot",
+        surface: "preview",
         staticOnly: reduced,
         options: skins.mandelbrot
       }
@@ -86,7 +89,18 @@
       var element = document.querySelector(definition.selector);
       var factory = window.Demoscene[definition.name];
       if (!element || typeof factory !== "function") return;
-      var controller = factory(element, definition.options);
+      // API v3 takes a descriptor `{ skin, surface, device, config }`. The skin
+      // carries only algorithmic identity, motion and colours (see
+      // effect-skins.js); execution budgets come from the library's matched
+      // (surface, device) profile slot. `device: "auto"` lets the library pick
+      // mobile vs desktop from the viewport itself.
+      var descriptor = {
+        skin: "classic",
+        surface: definition.surface,
+        device: "auto",
+        config: definition.options
+      };
+      var controller = factory(element, descriptor);
       var cpuOnlyMandelbrot = definition.name === "mandelbrot"
         && definition.options.render.backend !== "canvas2d"
         && typeof controller.getStats === "function"
@@ -216,7 +230,7 @@
       });
       if (!response.ok) throw new Error("Demoscene manifest is unavailable.");
       var manifest = await response.json();
-      if (manifest.apiVersion !== 2 || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
+      if (manifest.apiVersion !== 3 || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
         throw new Error("Demoscene manifest is incompatible.");
       }
       var bundle = new URL(manifest.bundle, base);
@@ -226,7 +240,7 @@
       if (!window.Demoscene || requiredEffects.some(function (name) {
         return typeof window.Demoscene[name] !== "function";
       })) {
-        throw new Error("Demoscene bundle does not expose the required API v2 effects.");
+        throw new Error("Demoscene bundle does not expose the required API v3 effects.");
       }
       libraryReady = true;
       mountEffects();
