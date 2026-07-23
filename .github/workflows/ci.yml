@@ -48,5 +48,5 @@ jobs:
         with:
           name: pages-preview
           path: .pages-dist
+          include-hidden-files: true
           if-no-files-found: error
-
