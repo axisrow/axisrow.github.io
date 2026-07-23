@@ -8,8 +8,8 @@ from unittest import mock
 
 from jinja2 import Environment
 
-import sync.generate as generate
-from sync.generate import chart_data, load_history, make_env, write_output
+import profile.sync.generate as generate
+from profile.sync.generate import chart_data, load_history, make_env, write_output
 
 
 class MakeEnvTests(unittest.TestCase):

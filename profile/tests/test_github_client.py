@@ -7,7 +7,7 @@ import urllib.error
 from email.message import Message
 from unittest import mock
 
-from sync import github
+from profile.sync import github
 
 
 def _response(body, status=200):
@@ -40,7 +40,7 @@ class ApiGetTests(unittest.TestCase):
         self._token.stop()
 
     def test_sends_default_headers_without_token(self) -> None:
-        with mock.patch("sync.github.urllib.request.urlopen", return_value=_response({"ok": True})) as opened:
+        with mock.patch("profile.sync.github.urllib.request.urlopen", return_value=_response({"ok": True})) as opened:
             data, status = github.api_get("repos/foo/bar")
         self.assertEqual(data, {"ok": True})
         self.assertEqual(status, 200)
@@ -51,7 +51,7 @@ class ApiGetTests(unittest.TestCase):
 
     def test_attaches_bearer_token_and_custom_accept(self) -> None:
         mock.patch.dict("os.environ", {"GH_TOKEN": "abc123"}).start()
-        with mock.patch("sync.github.urllib.request.urlopen", return_value=_response([])) as opened:
+        with mock.patch("profile.sync.github.urllib.request.urlopen", return_value=_response([])) as opened:
             github.api_get("repos/foo/bar", "application/vnd.github.star+json")
         request = opened.call_args.args[0]
         self.assertEqual(request.headers["Authorization"], "Bearer abc123")
@@ -59,18 +59,18 @@ class ApiGetTests(unittest.TestCase):
 
     def test_tolerated_code_returns_none(self) -> None:
         err = _http_error(404)
-        with mock.patch("sync.github.urllib.request.urlopen", side_effect=err):
+        with mock.patch("profile.sync.github.urllib.request.urlopen", side_effect=err):
             data, status = github.api_get("repos/foo/bar", tolerate=(403, 404))
         self.assertIsNone(data)
         self.assertEqual(status, 404)
 
     def test_non_tolerated_code_raises(self) -> None:
-        with mock.patch("sync.github.urllib.request.urlopen", side_effect=_http_error(500)):
+        with mock.patch("profile.sync.github.urllib.request.urlopen", side_effect=_http_error(500)):
             with self.assertRaises(urllib.error.HTTPError):
                 github.api_get("repos/foo/bar", tolerate=(403, 404))
 
     def test_passes_timeout_through(self) -> None:
-        with mock.patch("sync.github.urllib.request.urlopen", return_value=_response({})) as opened:
+        with mock.patch("profile.sync.github.urllib.request.urlopen", return_value=_response({})) as opened:
             github.api_get("repos/foo/bar", timeout=7)
         self.assertEqual(opened.call_args.kwargs["timeout"], 7)
 
@@ -85,7 +85,7 @@ class PagedTests(unittest.TestCase):
 
     def test_walks_pages_until_short_page(self) -> None:
         pages = [_response([{"id": i} for i in range(100)]), _response([{"id": 100}])]
-        with mock.patch("sync.github.urllib.request.urlopen", side_effect=pages) as opened:
+        with mock.patch("profile.sync.github.urllib.request.urlopen", side_effect=pages) as opened:
             rows = github.paged("repos/foo/bar/stargazers", "application/vnd.github.star+json")
         self.assertEqual(len(rows), 101)
         urls = [c.args[0].full_url for c in opened.call_args_list]
@@ -103,7 +103,7 @@ class PagedTests(unittest.TestCase):
     def test_appends_query_separator_for_prefiltered_path(self) -> None:
         # Real callers (owned_original_repositories) page a path that already
         # carries a query string; pagination must join with "&", not "?".
-        with mock.patch("sync.github.urllib.request.urlopen",
+        with mock.patch("profile.sync.github.urllib.request.urlopen",
                         return_value=_response([{"id": 1}])) as opened:
             github.paged("user/repos?affiliation=owner&visibility=all")
         self.assertEqual(
@@ -112,7 +112,7 @@ class PagedTests(unittest.TestCase):
         )
 
     def test_non_list_payload_raises(self) -> None:
-        with mock.patch("sync.github.urllib.request.urlopen", return_value=_response({"not": "a list"})):
+        with mock.patch("profile.sync.github.urllib.request.urlopen", return_value=_response({"not": "a list"})):
             with self.assertRaises(RuntimeError):
                 github.paged("repos/foo/bar/stargazers")
 

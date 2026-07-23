@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from sync.apply_site_fragments import (
+from profile.sync.apply_site_fragments import (
     PROFILE_VALUE_KEYS,
     SUMMARY_FORMAT,
     _summary_regex,

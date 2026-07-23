@@ -1,41 +1,43 @@
 # profile
 
-**Single source of truth for my GitHub profile** — the README on
-[`github.com/axisrow`](https://github.com/axisrow) and the Projects section on
-[axisrow.github.io](https://axisrow.github.io) are **generated from here**.
+Profile data and generators for the canonical
+[`axisrow/axisrow.github.io`](https://github.com/axisrow/axisrow.github.io)
+repository. The README on [`github.com/axisrow`](https://github.com/axisrow)
+and generated portfolio sections are built from this directory.
 
 ## How it works
 
 ```
-projects.json  ──▶ sync/generate.py  ──▶  out/axisrow/README.md        ──▶  axisrow/axisrow
-                       (live stars        out/site/projects.html        ──▶  axisrow.github.io
-                        from GitHub API)
+profile/projects.json ──▶ profile/sync/generate.py ──▶ .build/profile/axisrow/README.md
+                                   │
+                                   └─────────────────▶ .build/profile/site/*.html
 ```
 
-- Edit `projects.json` (descriptions, grouping, contributions, stats) — commit to `main`.
-- A GitHub Actions workflow (`.github/workflows/sync.yml`) runs on every push to
-  `projects.json`/`sync/**`, daily, and on manual dispatch.
+- Edit `profile/projects.json` (descriptions, grouping, contributions, stats)
+  and commit to `main`.
+- Root GitHub Actions workflows run checks on pull requests and publish from
+  `main`, daily, or on manual dispatch.
 - It mints a short-lived GitHub App installation token via [`pat`](https://github.com/etopro/plugin-marketplace/tree/main/plugins/pat)
   (CI mode — PEM from the `APP_PRIVATE_KEY` secret, **no Bitwarden in CI**),
-  pulls live star counts, renders both outputs, and cross-pushes them to the two
-  output repos as `axisrow-ci[bot]`.
+  pulls live star counts, renders the Pages artifact, and cross-pushes only the
+  generated README to `axisrow/axisrow` as `axisrow-ci[bot]`.
 - Portfolio fragments are replaced only inside the stable
   `PROFILE:PROJECTS` and `PROFILE:STARS` marker blocks. The sync never patches
   the site's JavaScript or unrelated presentation markup.
 
 ## Edit content
 
-Change `projects.json` only. The generated files live in `out/` (gitignored) and
-in the output repos — never edit them there directly.
+Change `profile/projects.json`. Generated files live in `.build/` and
+`.pages-dist/` (both gitignored).
 
 To preview locally:
 
 ```bash
-GH_TOKEN="$(bash /path/to/pat/scripts/pat.sh token)" python3 sync/generate.py
-diff out/axisrow/README.md <(gh api repos/axisrow/axisrow/contents/README.md -q .content | base64 -d)
+GH_TOKEN="$(gh auth token)" python3 profile/sync/generate.py
+python3 profile/sync/build_pages.py
 ```
 
-## Secrets (in `axisrow/profile` → Settings → Secrets)
+## Secrets (in `axisrow/axisrow.github.io` → Settings → Secrets)
 
 - `APP_PRIVATE_KEY` — the `axisrow-ci` GitHub App private key (PEM). One-time,
   never expires; `pat` mints a fresh 1h token from it on every run.

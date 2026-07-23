@@ -16,14 +16,14 @@ from collections import Counter
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
-# This script is invoked directly by the CI workflow (`python3 sync/...`), which
+# This script is invoked directly by the CI workflow (`python3 profile/sync/...`), which
 # puts its own directory on sys.path[0] instead of the repo root. Absolute
-# ``from sync import ...`` needs the repo root on the path, so add it here.
-_ROOT = str(Path(__file__).resolve().parent.parent)
+# ``from profile.sync import ...`` needs the repo root on the path, so add it.
+_ROOT = str(Path(__file__).resolve().parents[2])
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from sync import github  # noqa: E402  (path bootstrap must precede this import)
+from profile.sync import github  # noqa: E402  (path bootstrap must precede this import)
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_HISTORY = ROOT / "data" / "stars-history.json"

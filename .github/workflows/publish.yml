@@ -1,0 +1,114 @@
+name: Publish profile and Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install generator dependencies and token helper
+        run: |
+          python3 -m pip install --quiet jinja2
+          mkdir -p ~/.local/bin/pat_lib
+          base="https://raw.githubusercontent.com/etopro/plugin-marketplace/main/plugins/pat"
+          curl -fsSL "$base/scripts/pat.sh" -o ~/.local/bin/pat
+          curl -fsSL "$base/scripts/pat_lib/jwt.sh" -o ~/.local/bin/pat_lib/jwt.sh
+          curl -fsSL "$base/scripts/pat_lib/bw.sh" -o ~/.local/bin/pat_lib/bw.sh
+          chmod +x ~/.local/bin/pat
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Configure token helper
+        run: |
+          mkdir -p ~/.config/pat
+          printf 'PAT_APP_ID=%s\n' "${{ secrets.PAT_APP_ID }}" > ~/.config/pat/config
+          chmod 600 ~/.config/pat/config
+
+      - name: Mint installation token
+        id: token
+        env:
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+        run: echo "token=$(pat token)" >> "$GITHUB_OUTPUT"
+
+      - name: Update daily star history
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: python3 profile/sync/stars_history.py
+
+      - name: Generate profile fragments
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: python3 profile/sync/generate.py
+
+      - name: Test and build
+        run: |
+          npm test
+          python3 -m unittest discover -s profile/tests
+          python3 profile/sync/build_pages.py
+
+      - name: Sync README to axisrow/axisrow
+        env:
+          TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          tmp="$(mktemp -d)"
+          git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/axisrow/axisrow.git" "$tmp/repo"
+          cp .build/profile/axisrow/README.md "$tmp/repo/README.md"
+          if git -C "$tmp/repo" diff --quiet; then
+            echo "README unchanged."
+          else
+            git -C "$tmp/repo" -c user.email="4278593+axisrow-ci[bot]@users.noreply.github.com" \
+              -c user.name="axisrow-ci[bot]" commit -am \
+              "bot: sync profile README (stars $(date -u +%Y-%m-%d))"
+            git -C "$tmp/repo" push origin HEAD:main
+          fi
+
+      - name: Persist star history
+        env:
+          TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          if git diff --quiet -- profile/data/stars-history.json; then
+            echo "Star history unchanged."
+          else
+            git add profile/data/stars-history.json
+            git -c user.email="4278593+axisrow-ci[bot]@users.noreply.github.com" \
+              -c user.name="axisrow-ci[bot]" commit -m \
+              "bot: update star history ($(date -u +%Y-%m-%d)) [skip ci]"
+            git push "https://x-access-token:${TOKEN}@github.com/axisrow/axisrow.github.io.git" HEAD:main
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .pages-dist
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

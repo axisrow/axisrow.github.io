@@ -9,27 +9,28 @@ Env:
               (rate-limited) if unset.
   HANDLE    — override the handle from projects.json (rarely needed).
 
-Outputs (relative to cwd):
-  out/axisrow/README.md
-  out/site/projects.html
-  out/site/stats.json
+Outputs (under --out-dir, defaulting to .build/profile):
+  axisrow/README.md
+  site/projects.html
+  site/stats.json
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
 from datetime import date
 from pathlib import Path
 
-# This script is invoked directly by the CI workflow (`python3 sync/...`), which
+# This script is invoked directly by the CI workflow (`python3 profile/sync/...`), which
 # puts its own directory on sys.path[0] instead of the repo root. Absolute
-# ``from sync import ...`` needs the repo root on the path, so add it here.
-_ROOT = str(Path(__file__).resolve().parent.parent)
+# ``from profile.sync import ...`` needs the repo root on the path, so add it.
+_ROOT = str(Path(__file__).resolve().parents[2])
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from sync import github  # noqa: E402  (path bootstrap must precede this import)
+from profile.sync import github  # noqa: E402  (path bootstrap must precede this import)
 
 try:
     from jinja2 import Environment, FileSystemLoader
@@ -38,7 +39,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent
 TEMPLATES = ROOT / "templates"
-OUT = Path("out")
+DEFAULT_OUT = Path(".build/profile")
 
 
 def chart_data(history: dict) -> dict:
@@ -135,6 +136,9 @@ def load_history(cfg: dict) -> dict | None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
+    args = parser.parse_args()
     cfg = json.loads((ROOT.parent / "projects.json").read_text())
     handle = os.environ.get("HANDLE") or str(cfg["handle"])
 
@@ -151,21 +155,21 @@ def main() -> int:
     md_env = make_env(TEMPLATES, autoescape=False)
     md_env.filters["no_period"] = lambda s: s[:-1] if s.endswith(".") else s
     readme = md_env.get_template("README.md.j2").render(**cfg)
-    write_output(OUT / "axisrow" / "README.md", readme)
+    write_output(args.out_dir / "axisrow" / "README.md", readme)
 
     # HTML fragment — autoescape on (& → &amp;) so group names render safely.
     html_env = make_env(TEMPLATES, autoescape=True)
     html = html_env.get_template("projects.html.j2").render(**cfg)
-    write_output(OUT / "site" / "projects.html", html)
+    write_output(args.out_dir / "site" / "projects.html", html)
 
     if history is not None:
         stars_html = html_env.get_template("stars.html.j2").render(**cfg)
-        write_output(OUT / "site" / "stars.html", stars_html)
+        write_output(args.out_dir / "site" / "stars.html", stars_html)
 
     # The rest of the site is maintained in axisrow.github.io, but these
     # profile-wide snapshot stats appear in its hero, metadata and timeline.
     # Keep them generated from the same source of truth as the project cards.
-    out_stats = OUT / "site" / "stats.json"
+    out_stats = args.out_dir / "site" / "stats.json"
     write_output(out_stats, json.dumps(cfg["stats"], ensure_ascii=False) + "\n")
 
     return 0
