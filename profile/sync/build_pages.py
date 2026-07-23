@@ -151,14 +151,14 @@ def _validate_artifact(canonical: Path) -> None:
 
 
 def _retire_stale(canonical: Path) -> None:
-    """Remove allowlisted files that this run will not re-produce, via a
-    non-recursive ``os.unlink``. Fail closed on any entry not in the allowlist.
+    """Clean stale ``.tmp`` siblings and fail closed on any foreign entry.
 
-    Currently every allowlisted file is produced every run, so this is a
-    defensive no-op for known files. It exists so a future change that retires a
-    file (removing it from ``_write_artifact_files`` but not yet from the
-    allowlist) drops the stale copy safely, and so a foreign entry is never
-    silently left behind or deleted. Runs before ``_write_artifact_files``.
+    Unlinks leftover ``<name>.tmp`` files from a previously interrupted atomic
+    write, and raises on any entry that is not in the allowlist (a foreign file
+    must be resolved deliberately, never deleted by this builder). It does NOT
+    unlink allowlisted files — ``_write_artifact_files`` re-creates every one
+    each run, so known files are never stale. Runs before
+    ``_write_artifact_files``.
     """
     if not canonical.is_dir():
         return
