@@ -85,6 +85,22 @@ test('navigation and generated values are data-driven', async () => {
   assert.match(html, /chart excludes the 5 stars earned on maintained forks/);
 });
 
+test('contact uses the configured Telegram channel chat link', async () => {
+  const html = await source('index.html');
+  const profile = JSON.parse(await source('profile/projects.json'));
+  assert.equal(profile.telegram, 'https://t.me/prog_ai?direct');
+  assert.match(html, new RegExp(`href="${profile.telegram.replace('?', '\\?')}"`));
+  assert.doesNotMatch(html, /href="https:\/\/t\.me\/axisrow"/);
+});
+
+test('publishing fails closed when GitHub App credentials are unavailable', async () => {
+  const workflow = await source('.github/workflows/publish.yml');
+  assert.match(workflow, /Validate publishing secrets/);
+  assert.match(workflow, /PAT_APP_ID is not configured/);
+  assert.match(workflow, /APP_PRIVATE_KEY is not configured/);
+  assert.match(workflow, /GitHub App token is empty/);
+});
+
 test('loader uses the version manifest and retains explicit fallbacks', async () => {
   const script = await source('main.js');
   const skins = await source('effect-skins.js');
