@@ -37,7 +37,12 @@ jobs:
         run: |
           python3 -m pip install --quiet jinja2
           mkdir -p ~/.local/bin/pat_lib
-          base="https://raw.githubusercontent.com/etopro/plugin-marketplace/main/plugins/pat"
+          # Pin the token helper to an immutable commit (not the mutable `main`
+          # branch): this code runs with APP_PRIVATE_KEY in its environment, so a
+          # pinned, reviewed SHA is the only ref a compromise of `main` cannot
+          # swap in. Bump PAT_REF deliberately and re-review the fetched files.
+          PAT_REF="20496e67b653713e7b533458b3e7860087e88608"
+          base="https://raw.githubusercontent.com/etopro/plugin-marketplace/$PAT_REF/plugins/pat"
           curl -fsSL "$base/scripts/pat.sh" -o ~/.local/bin/pat
           curl -fsSL "$base/scripts/pat_lib/jwt.sh" -o ~/.local/bin/pat_lib/jwt.sh
           curl -fsSL "$base/scripts/pat_lib/bw.sh" -o ~/.local/bin/pat_lib/bw.sh

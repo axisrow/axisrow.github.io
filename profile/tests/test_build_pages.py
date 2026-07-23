@@ -38,6 +38,24 @@ class BuildPagesTests(unittest.TestCase):
             self.assertIn("generated projects", (output / "index.html").read_text())
             self.assertIn("generated stars", (output / "index.html").read_text())
 
+    def test_rejects_parent_output_dir(self) -> None:
+        # `--output-dir ..` would make the cleanup rmtree the whole repository.
+        repo = Path(__file__).resolve().parents[2]
+        with TemporaryDirectory() as tmp:
+            with self.assertRaises(ValueError):
+                build_pages(repo, Path(tmp) / "generated", repo.parent)
+
+    def test_rejects_symlinked_output_dir(self) -> None:
+        repo = Path(__file__).resolve().parents[2]
+        with TemporaryDirectory() as tmp:
+            temp = Path(tmp)
+            real_target = temp / "real"
+            real_target.mkdir()
+            link = temp / "pages"
+            link.symlink_to(real_target, target_is_directory=True)
+            with self.assertRaises(ValueError):
+                build_pages(repo, temp / "generated", link)
+
 
 if __name__ == "__main__":
     unittest.main()

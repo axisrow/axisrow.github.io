@@ -27,9 +27,20 @@ PUBLIC_FILES = (
 
 def build_pages(site_root: Path, generated_dir: Path, output_dir: Path) -> None:
     site_root = site_root.resolve()
+    # Validate the output directory before any destructive operation. A typo
+    # (`--output-dir ..`), an absolute path that contains the site root, or a
+    # stale symlink must never turn the cleanup ``shutil.rmtree`` into a
+    # recursive delete of unrelated data.
+    if output_dir.is_symlink():
+        raise ValueError("output directory must not be a symlink")
     output_dir = output_dir.resolve()
     if output_dir == site_root:
         raise ValueError("output directory must be a dedicated build directory")
+    # Refuse anything that would delete the site root (or anything above it):
+    # ``output_dir == site_root.parent`` (a bare ``..``) deletes the whole repo,
+    # and any ancestor of the site root does the same recursively.
+    if output_dir == site_root.parent or output_dir in site_root.parents:
+        raise ValueError("output directory must not contain or equal the site root")
 
     if output_dir.exists():
         shutil.rmtree(output_dir)
