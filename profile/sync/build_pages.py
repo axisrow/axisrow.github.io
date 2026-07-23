@@ -127,19 +127,20 @@ def _validate_artifact(canonical: Path) -> None:
         raise ValueError(f"artifact directory missing: {canonical}")
 
     seen: set[str] = set()
-    for entry in os.scandir(canonical):
-        if entry.name.endswith(".tmp"):
-            continue
-        name = entry.name
-        if name not in ALLOWED_ARTIFACT_FILES:
-            raise ValueError(f"artifact contains unexpected entry: {name}")
-        if entry.is_symlink():
-            raise ValueError(f"artifact entry must not be a symlink: {name}")
-        if not entry.is_file():
-            raise ValueError(f"artifact entry must be a regular file: {name}")
-        if name.endswith(".py") or "test" in name or name.endswith(".pem"):
-            raise ValueError(f"artifact entry must not be source material: {name}")
-        seen.add(name)
+    with os.scandir(canonical) as entries:
+        for entry in entries:
+            if entry.name.endswith(".tmp"):
+                continue
+            name = entry.name
+            if name not in ALLOWED_ARTIFACT_FILES:
+                raise ValueError(f"artifact contains unexpected entry: {name}")
+            if entry.is_symlink():
+                raise ValueError(f"artifact entry must not be a symlink: {name}")
+            if not entry.is_file():
+                raise ValueError(f"artifact entry must be a regular file: {name}")
+            if name.endswith(".py") or "test" in name or name.endswith(".pem"):
+                raise ValueError(f"artifact entry must not be source material: {name}")
+            seen.add(name)
 
     missing = set(ALLOWED_ARTIFACT_FILES) - seen
     if missing:
@@ -162,15 +163,16 @@ def _retire_stale(canonical: Path) -> None:
     """
     if not canonical.is_dir():
         return
-    for entry in os.scandir(canonical):
-        name = entry.name
-        if name.endswith(".tmp"):
-            os.unlink(entry.path)
-            continue
-        if name not in ALLOWED_ARTIFACT_FILES:
-            raise ValueError(
-                f"refusing to delete foreign artifact entry: {name}"
-            )
+    with os.scandir(canonical) as entries:
+        for entry in entries:
+            name = entry.name
+            if name.endswith(".tmp"):
+                os.unlink(entry.path)
+                continue
+            if name not in ALLOWED_ARTIFACT_FILES:
+                raise ValueError(
+                    f"refusing to delete foreign artifact entry: {name}"
+                )
 
 
 def build_pages(site_root: Path, generated_dir: Path) -> None:
