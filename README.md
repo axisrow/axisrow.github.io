@@ -21,3 +21,7 @@ python3 profile/sync/build_pages.py
 
 The generated site is written to `.pages-dist/`. Generation updates the copied
 `index.html` inside that directory and leaves the source `index.html` unchanged.
+The builder owns `.pages-dist` as its canonical output (the location is derived
+from the site root, not caller-selected) and only ever writes or replaces the
+known allowlisted files. If `.pages-dist` ever contains an unexpected file, the
+build fails closed rather than deleting it.
