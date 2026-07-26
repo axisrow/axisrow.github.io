@@ -20,6 +20,17 @@ import vm from 'node:vm';
 // factory: Demoscene.<name>(canvas, descriptor) must not throw and must return a
 // controller whose start()/stop()/renderOnce() are functions. The descriptor is
 // built exactly as main.js builds it, from the skins effect-skins.js produces.
+//
+// SECURITY NOTE (accepted residual risk): node:vm is NOT a security sandbox —
+// code in the context can recover the Node `process` (e.g. via
+// `setTimeout.constructor('return process')()`), so this test executes the
+// fetched bundle with the full privileges of the `npm test` process. This is
+// acceptable here because the bundle is the project's own first-party Pages
+// deployment fetched over HTTPS, and on pull_request runs (ci.yml) the job has
+// no secrets. The post-merge publish.yml job DOES run `npm test` in the same job
+// that holds a write-capable GitHub App token; hardening that path (hash-pinned
+// local fixture, or an isolated no-secrets canary job) is tracked as a follow-up
+// rather than a blocker for this regression fix.
 
 const root = new URL('../', import.meta.url);
 const BUNDLE_BASE = 'https://axisrow.github.io/demoscene_classics/dist/';
