@@ -61,7 +61,12 @@
         motion: { speed: 0.72 },
         field: {
           pointCount: mobile ? 3 : 5,
-          fieldStrength: mobile ? 0.72 : 3.4
+          // API v3 renamed the peak field scalar from the v2 `fieldStrength` to
+          // `strength` (configDefaults). The v2 key is now an "Unknown option"
+          // and throws inside the descriptor resolver, which (because main.js
+          // mounts all effects in one unguarded pass) drops the whole site to the
+          // static fallback. Use the v3 key here.
+          strength: mobile ? 0.72 : 3.4
         }
       },
       plasma: {
