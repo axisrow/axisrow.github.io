@@ -115,10 +115,14 @@ async function loadProductionBundle() {
   return { sandbox, version: manifest.version };
 }
 
-test('production v3 bundle builds every portfolio effect from the main.js descriptor', async () => {
+test('production v3 bundle builds every portfolio effect from the main.js descriptor', async (t) => {
   const loaded = await loadProductionBundle();
   if (loaded.skipped) {
-    test.message(`skipped: could not fetch production bundle (${loaded.skipped})`);
+    // Fail open OFFLINE only: mark the test genuinely skipped (t.skip is the real
+    // API — test.message() does not exist and would throw, failing the build on
+    // any no-egress runner). The config-key contract stays covered by
+    // site-smoke.test.mjs shape assertions when this canary cannot run.
+    t.skip(`skipped: could not fetch production bundle (${loaded.skipped})`);
     return;
   }
   const { sandbox } = loaded;
@@ -161,13 +165,13 @@ test('production v3 bundle builds every portfolio effect from the main.js descri
   }
 });
 
-test('the v2 metaballs fieldStrength key is rejected by the production resolver', async () => {
+test('the v2 metaballs fieldStrength key is rejected by the production resolver', async (t) => {
   // Regression guard for the exact production failure: the v2 key
   // `metaballs.field.fieldStrength` is no longer in v3 configDefaults (the v3
   // name is `strength`), so the bundle's assertKnownKeys() must throw on it.
   const loaded = await loadProductionBundle();
   if (loaded.skipped) {
-    test.message(`skipped: could not fetch production bundle (${loaded.skipped})`);
+    t.skip(`skipped: could not fetch production bundle (${loaded.skipped})`);
     return;
   }
   const { sandbox } = loaded;
