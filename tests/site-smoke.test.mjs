@@ -210,8 +210,13 @@ test('mobile skins render a finer pattern without changing desktop composition',
 
   const desktop = sandbox.PortfolioEffectSkins.create('dark', false);
   const mobile = sandbox.PortfolioEffectSkins.create('dark', true);
-  assert.equal(desktop.metaballs.field.fieldStrength, 3.4);
-  assert.equal(mobile.metaballs.field.fieldStrength, 0.72);
+  // API v3 renamed the v2 metaballs `fieldStrength` peak scalar to `strength`
+  // (configDefaults). The v2 key is now an "Unknown option" the resolver throws
+  // on, so the skin must use `strength` — see bundle-resolver test below.
+  assert.equal(desktop.metaballs.field.strength, 3.4);
+  assert.equal(mobile.metaballs.field.strength, 0.72);
+  assert.equal(desktop.metaballs.field.fieldStrength, undefined);
+  assert.equal(mobile.metaballs.field.fieldStrength, undefined);
   assert.deepEqual(Array.from(desktop.plasma.field.frequencies), [0.04, 0.04, 0.04, 1]);
   assert.deepEqual(Array.from(mobile.plasma.field.frequencies), [0.09, 0.09, 0.09, 1.8]);
   assert.equal(desktop.mandelbrot.motion.startPhase, 0.25);
