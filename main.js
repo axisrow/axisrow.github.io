@@ -9,6 +9,7 @@
   var sectionStates = new Map();
   var scenes = [];
   var libraryReady = false;
+  var libraryApiVersion = null;
   var remountTimer = null;
 
   function applyTheme(theme, persist) {
@@ -42,18 +43,21 @@
       {
         name: "metaballs",
         selector: "#hero-metaballs",
+        surface: "fullscreen",
         staticOnly: reduced,
         options: skins.metaballs
       },
       {
         name: "plasma",
         selector: "#projects-plasma",
+        surface: "preview",
         staticOnly: reduced,
         options: skins.plasma
       },
       {
         name: "mandelbrot",
         selector: "#opensource-mandelbrot",
+        surface: "preview",
         staticOnly: reduced,
         options: skins.mandelbrot
       }
@@ -86,9 +90,21 @@
       var element = document.querySelector(definition.selector);
       var factory = window.Demoscene[definition.name];
       if (!element || typeof factory !== "function") return;
-      var controller = factory(element, definition.options);
+      var config = definition.options;
+      if (libraryApiVersion === 2 && definition.name === "metaballs") {
+        config = JSON.parse(JSON.stringify(config));
+        config.field.fieldStrength = config.field.strength;
+        delete config.field.strength;
+      }
+      var descriptor = {
+        skin: "classic",
+        surface: definition.surface,
+        device: "auto",
+        config: config
+      };
+      var controller = factory(element, libraryApiVersion === 3 ? descriptor : config);
       var cpuOnlyMandelbrot = definition.name === "mandelbrot"
-        && definition.options.render.backend !== "canvas2d"
+        && config.render.backend !== "canvas2d"
         && typeof controller.getStats === "function"
         && controller.getStats().backend === "canvas2d";
       var scene = {
@@ -216,7 +232,7 @@
       });
       if (!response.ok) throw new Error("Demoscene manifest is unavailable.");
       var manifest = await response.json();
-      if (manifest.apiVersion !== 2 || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
+      if (![2, 3].includes(manifest.apiVersion) || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
         throw new Error("Demoscene manifest is incompatible.");
       }
       var bundle = new URL(manifest.bundle, base);
@@ -226,8 +242,9 @@
       if (!window.Demoscene || requiredEffects.some(function (name) {
         return typeof window.Demoscene[name] !== "function";
       })) {
-        throw new Error("Demoscene bundle does not expose the required API v2 effects.");
+        throw new Error("Demoscene bundle does not expose the required API v3 effects.");
       }
+      libraryApiVersion = manifest.apiVersion;
       libraryReady = true;
       mountEffects();
     } catch (error) {

@@ -106,13 +106,13 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   const skins = await source('effect-skins.js');
   const html = await source('index.html');
   assert.match(script, /manifest\.json/);
-  assert.match(script, /apiVersion !== 2/);
+  assert.match(script, /\[2, 3\]\.includes\(manifest\.apiVersion\)/);
   assert.match(script, /searchParams\.set\("v", manifest\.version\)/);
   assert.match(script, /demoscene-fallback/);
   assert.match(script, /controller\.renderOnce\(0\)/);
   assert.match(script, /controller\.getStats\(\)\.backend === "canvas2d"/);
   assert.match(script, /definition\.staticOnly \|\| cpuOnlyMandelbrot/);
-  assert.match(script, /selector: "#opensource-mandelbrot",\s*staticOnly: reduced/);
+  assert.match(script, /selector: "#opensource-mandelbrot",\s*surface: "preview",\s*staticOnly: reduced/);
   assert.doesNotMatch(script, /staticOnly: reduced \|\| mobile/);
   assert.match(html, /effect-skins\.js/);
   assert.match(skins, /maxFps: 30/);
@@ -200,8 +200,8 @@ test('mobile skins render a finer pattern without changing desktop composition',
 
   const desktop = sandbox.PortfolioEffectSkins.create('dark', false);
   const mobile = sandbox.PortfolioEffectSkins.create('dark', true);
-  assert.equal(desktop.metaballs.field.fieldStrength, 3.4);
-  assert.equal(mobile.metaballs.field.fieldStrength, 0.72);
+  assert.equal(desktop.metaballs.field.strength, 3.4);
+  assert.equal(mobile.metaballs.field.strength, 0.72);
   assert.deepEqual(Array.from(desktop.plasma.field.frequencies), [0.04, 0.04, 0.04, 1]);
   assert.deepEqual(Array.from(mobile.plasma.field.frequencies), [0.09, 0.09, 0.09, 1.8]);
   assert.equal(desktop.mandelbrot.motion.startPhase, 0.25);
@@ -320,7 +320,7 @@ async function runLoader({
 
 test('manifest loader succeeds and cache-busts the bundle', async () => {
   const result = await runLoader({
-    manifest: { version: 'abc123', apiVersion: 2, bundle: 'demoscene.js' }
+    manifest: { version: 'abc123', apiVersion: 3, bundle: 'demoscene.js' }
   });
   assert.equal(result.root.classList.contains('demoscene-ready'), true);
   assert.equal(result.root.classList.contains('demoscene-fallback'), false);
@@ -347,7 +347,7 @@ test('manifest loader rejects an incompatible API version', async () => {
 
 test('manifest loader falls back when the bundle fails', async () => {
   const result = await runLoader({
-    manifest: { version: 'abc123', apiVersion: 2, bundle: 'demoscene.js' },
+    manifest: { version: 'abc123', apiVersion: 3, bundle: 'demoscene.js' },
     bundleError: true
   });
   assert.equal(result.root.classList.contains('demoscene-fallback'), true);
@@ -355,19 +355,19 @@ test('manifest loader falls back when the bundle fails', async () => {
   assert.match(result.warnings.join('\n'), /bundle failed to load/i);
 });
 
-test('manifest loader falls back when the loaded bundle lacks API v2 effects', async () => {
+test('manifest loader falls back when the loaded bundle lacks API v3 effects', async () => {
   const result = await runLoader({
-    manifest: { version: 'abc123', apiVersion: 2, bundle: 'demoscene.js' },
+    manifest: { version: 'abc123', apiVersion: 3, bundle: 'demoscene.js' },
     missingApi: true
   });
   assert.equal(result.root.classList.contains('demoscene-fallback'), true);
-  assert.match(result.warnings.join('\n'), /required API v2 effects/i);
+  assert.match(result.warnings.join('\n'), /required API v3 effects/i);
 });
 
 test('reduced motion loads the library in static mode without starting animated scenes', async () => {
   const result = await runLoader({
     reducedMotion: true,
-    manifest: { version: 'static123', apiVersion: 2, bundle: 'demoscene.js' }
+    manifest: { version: 'static123', apiVersion: 3, bundle: 'demoscene.js' }
   });
   assert.equal(result.root.classList.contains('demoscene-reduced'), true);
   assert.equal(result.root.classList.contains('demoscene-ready'), true);

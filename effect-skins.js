@@ -57,7 +57,7 @@
         motion: { speed: 0.72 },
         field: {
           pointCount: mobile ? 3 : 5,
-          fieldStrength: mobile ? 0.72 : 3.4
+          strength: mobile ? 0.72 : 3.4
         }
       },
       plasma: {
