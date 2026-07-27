@@ -96,6 +96,24 @@
         config.field.fieldStrength = config.field.strength;
         delete config.field.strength;
       }
+      if (libraryApiVersion === 3) {
+        config = JSON.parse(JSON.stringify(config));
+        if (definition.name === "plasma") {
+          config.field.frequencies = [3, 3, 2, 2.5];
+          config.field.aspectCorrection = true;
+          config.appearance.contrast = 0.85;
+          config.render.resolution = 0.2;
+          config.render.smoothing = true;
+        }
+        if (definition.name === "mandelbrot") {
+          config.appearance.colorScale = 0.06;
+          config.appearance.colorCurve = 1;
+          config.appearance.colorOffset = 0;
+          config.appearance.cycleSpeed = 0.02;
+          config.render.resolution = 0.19;
+          config.render.smoothing = true;
+        }
+      }
       var descriptor = {
         skin: "classic",
         surface: definition.surface,
