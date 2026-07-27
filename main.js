@@ -77,6 +77,38 @@
     });
   }
 
+  // Restore the tuned API v3 visuals for plasma and mandelbrot. After the
+  // library refactor the skins (effect-skins.js) only carry algorithmic
+  // identity; the execution budgets (`render.*`) and the continuous-coloring
+  // controls live here as site-level overrides on top of the skin. The skin
+  // does NOT emit a `render` group for plasma (the library owns it via a
+  // profile slot), so the group is created before it is written — without that,
+  // `config.render.resolution` throws a TypeError that aborts the unguarded
+  // mountEffects() loop and drops the whole site to the static fallback.
+  // Exposed on window so the regression test drives this exact code path
+  // instead of re-implementing it (which would silently drift out of sync).
+  function applyTunedV3Overrides(name, options) {
+    var config = JSON.parse(JSON.stringify(options));
+    if (name === "plasma") {
+      if (!config.render) config.render = {};
+      config.field.frequencies = [3, 3, 2, 2.5];
+      config.field.aspectCorrection = true;
+      config.appearance.contrast = 0.85;
+      config.render.resolution = 0.2;
+      config.render.smoothing = true;
+    } else if (name === "mandelbrot") {
+      if (!config.render) config.render = {};
+      config.appearance.colorScale = 0.06;
+      config.appearance.colorCurve = 1;
+      config.appearance.colorOffset = 0;
+      config.appearance.cycleSpeed = 0.02;
+      config.render.resolution = 0.19;
+      config.render.smoothing = true;
+    }
+    return config;
+  }
+  window.applyTunedV3Overrides = applyTunedV3Overrides;
+
   function mountEffects() {
     destroyEffects();
     if (!libraryReady || !window.Demoscene) {
@@ -100,23 +132,7 @@
         device: "auto",
         config: definition.options
       };
-      if (definition.name === "plasma") {
-        descriptor.config = JSON.parse(JSON.stringify(definition.options));
-        descriptor.config.field.frequencies = [3, 3, 2, 2.5];
-        descriptor.config.field.aspectCorrection = true;
-        descriptor.config.appearance.contrast = 0.85;
-        descriptor.config.render.resolution = 0.2;
-        descriptor.config.render.smoothing = true;
-      }
-      if (definition.name === "mandelbrot") {
-        descriptor.config = JSON.parse(JSON.stringify(definition.options));
-        descriptor.config.appearance.colorScale = 0.06;
-        descriptor.config.appearance.colorCurve = 1;
-        descriptor.config.appearance.colorOffset = 0;
-        descriptor.config.appearance.cycleSpeed = 0.02;
-        descriptor.config.render.resolution = 0.19;
-        descriptor.config.render.smoothing = true;
-      }
+      descriptor.config = applyTunedV3Overrides(definition.name, definition.options);
       var controller = factory(element, descriptor);
       var cpuOnlyMandelbrot = definition.name === "mandelbrot"
         && definition.options.render.backend !== "canvas2d"
