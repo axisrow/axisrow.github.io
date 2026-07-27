@@ -176,6 +176,101 @@ test('production v3 bundle builds every portfolio effect from the main.js descri
   }
 });
 
+// Drive main.js's own override function (window.applyTunedV3Overrides) rather
+// than re-implementing it, so the test cannot drift out of sync with the code
+// that ships. Loading main.js runs its top-level IIFE, which touches the DOM
+// and window at load time; makeMainJsSandbox() stubs just enough for the IIFE
+// to finish so the export lands.
+function makeMainJsSandbox() {
+  const noopMedia = { addEventListener() {}, removeEventListener() {} };
+  const document = {
+    documentElement: { dataset: {}, classList: { add() {}, remove() {}, toggle() {}, contains: () => false } },
+    getElementById: () => null,
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    head: { appendChild() {} },
+    createElement: () => ({ style: {}, setAttribute() {}, appendChild() {} }),
+    addEventListener() {},
+    hidden: false
+  };
+  const win = {
+    console,
+    matchMedia: () => noopMedia,
+    addEventListener() {},
+    setTimeout, clearTimeout,
+    requestAnimationFrame() { return 1; },
+    cancelAnimationFrame() {},
+    IntersectionObserver: class { observe() {} unobserve() {} disconnect() {} },
+    ResizeObserver: class { observe() {} unobserve() {} disconnect() {} },
+    // main.js's top-level IIFE also kicks off its async library bootstrap, which
+    // uses URL/fetch; we only need the applyTunedV3Overrides export, so let the
+    // bootstrap run harmlessly against stubs that resolve to nothing.
+    URL,
+    fetch: async () => ({ ok: false, json: async () => ({}) }),
+    AbortController,
+    location: { href: 'https://axisrow.github.io/' },
+    document
+  };
+  win.window = win;
+  const sandbox = vm.createContext(win);
+  return sandbox;
+}
+
+async function loadMainJsOverrides() {
+  const sandbox = makeMainJsSandbox();
+  const mainSource = await source('main.js');
+  vm.runInContext(mainSource, sandbox, { filename: 'main.js' });
+  return sandbox.window.applyTunedV3Overrides;
+}
+
+test('production v3 bundle accepts the execution-budget overrides main.js applies', async (t) => {
+  // Regression guard: main.js restores the tuned v3 visuals by mutating a deep
+  // copy of each skin (window.applyTunedV3Overrides), writing render.resolution
+  // / smoothing and appearance controls. The plasma skin has NO `render` group
+  // (the library owns it via a profile slot), so writing config.render.resolution
+  // used to throw a TypeError and abort the unguarded mountEffects() loop,
+  // dropping the whole site to the static fallback. This test drives main.js's
+  // OWN override function and feeds the result to the real factory, so a future
+  // regression in that function surfaces here instead of in production.
+  const loaded = await loadProductionBundle();
+  if (loaded.skipped) {
+    t.skip(`skipped: could not fetch production bundle (${loaded.skipped})`);
+    return;
+  }
+  const { sandbox } = loaded;
+
+  const skinSource = await source('effect-skins.js');
+  const applyOverrides = await loadMainJsOverrides();
+  assert.equal(typeof applyOverrides, 'function', 'main.js must expose window.applyTunedV3Overrides');
+
+  const skinSandbox = makeSandbox();
+  vm.runInContext(skinSource, skinSandbox, { filename: 'effect-skins.js' });
+
+  for (const theme of ['light', 'dark']) {
+    for (const mobile of [false, true]) {
+      const skins = skinSandbox.PortfolioEffectSkins.create(theme, mobile);
+      for (const name of ['plasma', 'mandelbrot']) {
+        const config = applyOverrides(name, skins[name]);
+        // The bug this guards: plasma's skin has no `render`, so a regression
+        // that drops the guard throws here (TypeError) before the factory runs.
+        assert.ok(config && config.render && typeof config.render.resolution === 'number',
+          `${name} override must produce a config with render.resolution`);
+        const descriptor = { skin: 'classic', surface: SURFACES[name], device: 'auto', config };
+        const canvas = makeCanvas();
+        const controller = (() => {
+          try {
+            return sandbox.Demoscene[name](canvas, descriptor);
+          } catch (error) {
+            assert.fail(`${name} (theme=${theme} mobile=${mobile}) override descriptor threw: ${error.message}`);
+          }
+        })();
+        assert.ok(controller && typeof controller === 'object', `${name} must return a controller`);
+        assert.doesNotThrow(() => controller.renderOnce(0), `${name} override renderOnce(0)`);
+      }
+    }
+  }
+});
+
 test('the v2 metaballs fieldStrength key is rejected by the production resolver', async (t) => {
   // Regression guard for the exact production failure: the v2 key
   // `metaballs.field.fieldStrength` is no longer in v3 configDefaults (the v3
