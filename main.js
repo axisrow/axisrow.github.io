@@ -9,7 +9,6 @@
   var sectionStates = new Map();
   var scenes = [];
   var libraryReady = false;
-  var libraryApiVersion = null;
   var remountTimer = null;
 
   function applyTheme(theme, persist) {
@@ -90,39 +89,37 @@
       var element = document.querySelector(definition.selector);
       var factory = window.Demoscene[definition.name];
       if (!element || typeof factory !== "function") return;
-      var config = definition.options;
-      if (libraryApiVersion === 2 && definition.name === "metaballs") {
-        config = JSON.parse(JSON.stringify(config));
-        config.field.fieldStrength = config.field.strength;
-        delete config.field.strength;
-      }
-      if (libraryApiVersion === 3) {
-        config = JSON.parse(JSON.stringify(config));
-        if (definition.name === "plasma") {
-          config.field.frequencies = [3, 3, 2, 2.5];
-          config.field.aspectCorrection = true;
-          config.appearance.contrast = 0.85;
-          config.render.resolution = 0.2;
-          config.render.smoothing = true;
-        }
-        if (definition.name === "mandelbrot") {
-          config.appearance.colorScale = 0.06;
-          config.appearance.colorCurve = 1;
-          config.appearance.colorOffset = 0;
-          config.appearance.cycleSpeed = 0.02;
-          config.render.resolution = 0.19;
-          config.render.smoothing = true;
-        }
-      }
+      // API v3 takes a descriptor `{ skin, surface, device, config }`. The skin
+      // carries only algorithmic identity, motion and colours (see
+      // effect-skins.js); execution budgets come from the library's matched
+      // (surface, device) profile slot. `device: "auto"` lets the library pick
+      // mobile vs desktop from the viewport itself.
       var descriptor = {
         skin: "classic",
         surface: definition.surface,
         device: "auto",
-        config: config
+        config: definition.options
       };
-      var controller = factory(element, libraryApiVersion === 3 ? descriptor : config);
+      if (definition.name === "plasma") {
+        descriptor.config = JSON.parse(JSON.stringify(definition.options));
+        descriptor.config.field.frequencies = [3, 3, 2, 2.5];
+        descriptor.config.field.aspectCorrection = true;
+        descriptor.config.appearance.contrast = 0.85;
+        descriptor.config.render.resolution = 0.2;
+        descriptor.config.render.smoothing = true;
+      }
+      if (definition.name === "mandelbrot") {
+        descriptor.config = JSON.parse(JSON.stringify(definition.options));
+        descriptor.config.appearance.colorScale = 0.06;
+        descriptor.config.appearance.colorCurve = 1;
+        descriptor.config.appearance.colorOffset = 0;
+        descriptor.config.appearance.cycleSpeed = 0.02;
+        descriptor.config.render.resolution = 0.19;
+        descriptor.config.render.smoothing = true;
+      }
+      var controller = factory(element, descriptor);
       var cpuOnlyMandelbrot = definition.name === "mandelbrot"
-        && config.render.backend !== "canvas2d"
+        && definition.options.render.backend !== "canvas2d"
         && typeof controller.getStats === "function"
         && controller.getStats().backend === "canvas2d";
       var scene = {
@@ -250,7 +247,7 @@
       });
       if (!response.ok) throw new Error("Demoscene manifest is unavailable.");
       var manifest = await response.json();
-      if (![2, 3].includes(manifest.apiVersion) || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
+      if (manifest.apiVersion !== 3 || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
         throw new Error("Demoscene manifest is incompatible.");
       }
       var bundle = new URL(manifest.bundle, base);
@@ -262,7 +259,6 @@
       })) {
         throw new Error("Demoscene bundle does not expose the required API v3 effects.");
       }
-      libraryApiVersion = manifest.apiVersion;
       libraryReady = true;
       mountEffects();
     } catch (error) {
