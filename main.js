@@ -102,7 +102,11 @@
       config.appearance.colorCurve = 1;
       config.appearance.colorOffset = 0;
       config.appearance.cycleSpeed = 0.02;
-      config.render.resolution = 0.45;
+      // Full internal resolution: the preview canvas is upscaled ~2.2x by CSS,
+      // so anything lower leaves visible stair-stepping on the set boundary.
+      // On the GPU backends a full-res frame costs <1ms; the CPU-only path is
+      // downgraded at mount time instead (see cpuOnlyMandelbrot).
+      config.render.resolution = 1;
       config.render.smoothing = true;
     }
     return config;
@@ -138,6 +142,15 @@
         && definition.options.render.backend !== "canvas2d"
         && typeof controller.getStats === "function"
         && controller.getStats().backend === "canvas2d";
+      if (cpuOnlyMandelbrot) {
+        // The CPU fallback paints its one static frame on the main thread and
+        // its cost scales with render.resolution (~130ms at 0.45 vs ~640ms at
+        // full res on a fast machine). Mounting is cheap — nothing is rendered
+        // until renderOnce below — so remount at a reduced resolution first.
+        controller.destroy();
+        descriptor.config.render.resolution = 0.45;
+        controller = factory(element, descriptor);
+      }
       var scene = {
         controller: controller,
         element: element,
