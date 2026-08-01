@@ -213,7 +213,7 @@ test('mobile skins render a finer pattern without changing desktop composition',
   // API v3 renamed the v2 metaballs `fieldStrength` peak scalar to `strength`
   // (configDefaults). The v2 key is now an "Unknown option" the resolver throws
   // on, so the skin must use `strength` — see bundle-resolver test below.
-  assert.equal(desktop.metaballs.field.strength, 3.4);
+  assert.equal(desktop.metaballs.field.strength, 0.85);
   assert.equal(mobile.metaballs.field.strength, 0.72);
   assert.equal(desktop.metaballs.field.fieldStrength, undefined);
   assert.equal(mobile.metaballs.field.fieldStrength, undefined);

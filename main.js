@@ -94,7 +94,7 @@
       config.field.frequencies = [3, 3, 2, 2.5];
       config.field.aspectCorrection = true;
       config.appearance.contrast = 0.85;
-      config.render.resolution = 0.2;
+      config.render.resolution = 0.3;
       config.render.smoothing = true;
     } else if (name === "mandelbrot") {
       if (!config.render) config.render = {};
@@ -102,7 +102,7 @@
       config.appearance.colorCurve = 1;
       config.appearance.colorOffset = 0;
       config.appearance.cycleSpeed = 0.02;
-      config.render.resolution = 0.19;
+      config.render.resolution = 0.45;
       config.render.smoothing = true;
     }
     return config;
