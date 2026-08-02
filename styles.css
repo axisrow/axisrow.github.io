@@ -1615,6 +1615,13 @@ main {
     backdrop-filter: none;
   }
 
+  /* Only the panels that actually sit over a live canvas are worth the blur;
+     the rest have nothing behind them to show through. */
+  .projects-field-copy {
+    background: color-mix(in srgb, var(--veil-solid) 82%, transparent);
+    backdrop-filter: blur(12px) saturate(1.1);
+  }
+
   .visual-field {
     width: calc(100vw - 24px);
   }
@@ -1704,7 +1711,11 @@ main {
     width: calc(100% - 16px);
     height: auto;
     margin: 8px;
-    background: color-mix(in srgb, var(--veil-solid) 97%, transparent);
+    /* Let the field read through the panel. 0.82 is the floor: the PR rows are
+       the smallest text on the page and hold 4.6:1 over the darkest palette
+       tone, just clear of the 4.5:1 AA threshold. */
+    background: color-mix(in srgb, var(--veil-solid) 82%, transparent);
+    backdrop-filter: blur(12px) saturate(1.1);
   }
 
   .proof-field-visual {
