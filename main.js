@@ -98,7 +98,12 @@
       config.render.smoothing = true;
     } else if (name === "mandelbrot") {
       if (!config.render) config.render = {};
-      config.appearance.colorScale = 0.06;
+      // Dense continuous colouring: at 0.06 the palette is stretched into a few
+      // broad washes and the boundary loses its swirling filigree. 0.35 wraps
+      // the palette often enough that ribbons hug the set like the classic
+      // demoscene renders, in both themes, without turning the far field into
+      // stripes.
+      config.appearance.colorScale = 0.35;
       config.appearance.colorCurve = 1;
       config.appearance.colorOffset = 0;
       config.appearance.cycleSpeed = 0.02;
