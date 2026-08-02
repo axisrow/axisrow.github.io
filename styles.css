@@ -1451,7 +1451,7 @@ main {
      body text falls to 3.8:1 at 45%. Holding it at 50% on a near-black tint
      (rather than --veil-solid) buys back 4.6:1, just clear of AA. */
   :root[data-theme="dark"] {
-    --panel-veil: color-mix(in srgb, #090b0f 50%, transparent);
+    --panel-veil: color-mix(in srgb, var(--page) 50%, transparent);
   }
 
   /* The secondary tones were picked for a near-opaque panel. Over a live field
@@ -1564,8 +1564,8 @@ main {
     width: 100%;
     margin-top: 24px;
     padding: 18px;
-    /* 62% is the floor that still clears WCAG AA (4.5:1) for the smallest text
-       over the brightest palette colour; the blur carries the rest. */
+    /* Alpha comes from --panel-veil (55% light / 50% dark); the blur carries
+       the rest of the legibility. */
     background: var(--panel-veil);
     backdrop-filter: blur(4px) saturate(1.05);
   }
@@ -1656,15 +1656,6 @@ main {
     backdrop-filter: none;
   }
 
-  /* Only the panels that actually sit over a live canvas are worth the blur;
-     the rest have nothing behind them to show through. 0.62 is the floor that
-     still clears WCAG AA (4.5:1) for the smallest text over the brightest
-     palette tone; the blur carries the rest of the legibility. */
-  .projects-field-copy {
-    background: var(--panel-veil);
-    backdrop-filter: blur(4px) saturate(1.05);
-  }
-
   /* The horizontal washes fade the field out towards the right, which is where
      the desktop copy sits. On a full-width mobile column they cover the whole
      panel instead, so the field never reaches it. Drop them here. */
@@ -1683,12 +1674,18 @@ main {
     padding: 8px;
   }
 
+  /* Only the panels that actually sit over a live canvas are worth the blur;
+     the rest have nothing behind them to show through. Must stay after the
+     .veil-panel rule above: same specificity (0,1,0), so source order decides
+     which background wins on the elements carrying both classes. */
   .projects-field-copy {
     width: 100%;
     height: auto;
     min-height: 0;
     margin: 0;
     padding: var(--panel-space);
+    background: var(--panel-veil);
+    backdrop-filter: blur(4px) saturate(1.05);
   }
 
   .projects-field-copy .section-title {
@@ -1764,9 +1761,9 @@ main {
     width: calc(100% - 16px);
     height: auto;
     margin: 8px;
-    /* Let the field read through the panel. 0.62 is the floor: the PR rows are
-       the smallest text on the page and hold 4.6:1 over the darkest palette
-       tone, just clear of the 4.5:1 AA threshold. */
+    /* Let the field read through the panel. The PR rows are the smallest text
+       on the page, so they set the floor for --panel-veil (55% light / 50%
+       dark) — 4.6:1 over the worst-case tone, just clear of the AA threshold. */
     background: var(--panel-veil);
     backdrop-filter: blur(4px) saturate(1.05);
   }
