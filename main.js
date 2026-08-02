@@ -94,16 +94,36 @@
       config.field.frequencies = [3, 3, 2, 2.5];
       config.field.aspectCorrection = true;
       config.appearance.contrast = 0.85;
-      config.render.resolution = 0.2;
+      config.render.resolution = 0.3;
       config.render.smoothing = true;
     } else if (name === "mandelbrot") {
       if (!config.render) config.render = {};
-      config.appearance.colorScale = 0.06;
+      // Dense continuous colouring: at 0.06 the palette is stretched into a few
+      // broad washes and the boundary loses its swirling filigree. 0.35 wraps
+      // the palette often enough that ribbons hug the set like the classic
+      // demoscene renders, in both themes, without turning the far field into
+      // stripes.
+      config.appearance.colorScale = 0.35;
       config.appearance.colorCurve = 1;
       config.appearance.colorOffset = 0;
       config.appearance.cycleSpeed = 0.02;
-      config.render.resolution = 0.19;
+      // Full internal resolution: the preview canvas is upscaled ~2.2x by CSS,
+      // so anything lower leaves visible stair-stepping on the set boundary.
+      // On the GPU backends a full-res frame costs <1ms; the CPU-only path is
+      // downgraded at mount time instead (see cpuOnlyMandelbrot).
+      config.render.resolution = 1;
       config.render.smoothing = true;
+      if (root.dataset.theme !== "dark" && config.appearance.palette) {
+        // Light theme only: the shared palette ramps light-to-dark, which
+        // wraps a broad cream band right against the ink interior — a white
+        // halo on an already-light page. Re-anchor the ramp on slate at both
+        // wrap ends (slate, teal, cream, orange, slate) so the boundary melts
+        // into the interior, and shift the cycle phase so the far field stays
+        // pale. The dark theme already melts into its ink background.
+        var palette = config.appearance.palette;
+        config.appearance.palette = [palette[4], palette[2], palette[0], palette[3], palette[4]];
+        config.appearance.colorOffset = 0.35;
+      }
     }
     return config;
   }
@@ -138,6 +158,15 @@
         && definition.options.render.backend !== "canvas2d"
         && typeof controller.getStats === "function"
         && controller.getStats().backend === "canvas2d";
+      if (cpuOnlyMandelbrot) {
+        // The CPU fallback paints its one static frame on the main thread and
+        // its cost scales with render.resolution (~130ms at 0.45 vs ~640ms at
+        // full res on a fast machine). Mounting is cheap — nothing is rendered
+        // until renderOnce below — so remount at a reduced resolution first.
+        controller.destroy();
+        descriptor.config.render.resolution = 0.45;
+        controller = factory(element, descriptor);
+      }
       var scene = {
         controller: controller,
         element: element,
