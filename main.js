@@ -108,6 +108,17 @@
       // downgraded at mount time instead (see cpuOnlyMandelbrot).
       config.render.resolution = 1;
       config.render.smoothing = true;
+      if (root.dataset.theme !== "dark" && config.appearance.palette) {
+        // Light theme only: the shared palette ramps light-to-dark, which
+        // wraps a broad cream band right against the ink interior — a white
+        // halo on an already-light page. Re-anchor the ramp on slate at both
+        // wrap ends (slate, teal, cream, orange, slate) so the boundary melts
+        // into the interior, and shift the cycle phase so the far field stays
+        // pale. The dark theme already melts into its ink background.
+        var palette = config.appearance.palette;
+        config.appearance.palette = [palette[4], palette[2], palette[0], palette[3], palette[4]];
+        config.appearance.colorOffset = 0.35;
+      }
     }
     return config;
   }
