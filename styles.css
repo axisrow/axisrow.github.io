@@ -1436,30 +1436,27 @@ main {
     --panel-space: 24px;
     /* Alpha for the panels that sit over a live canvas. The light palette can
        go this low because its worst-case backdrop is a warm mid-tone; the dark
-       theme cannot (see below), so it overrides both the alpha and the tint. */
-    --panel-veil: color-mix(in srgb, var(--veil-solid) 42%, transparent);
+       theme cannot (see below), so it overrides both the alpha and the tint.
+       Keep the blur light: a strong one smears the field into muddy blotches
+       and costs the crisp text edges, which reads worse than an opaque panel. */
+    --panel-veil: color-mix(in srgb, var(--veil-solid) 55%, transparent);
   }
 
   /* Dark theme runs out of contrast first: over the brightest palette tone the
      body text falls to 3.8:1 at 45%. Holding it at 50% on a near-black tint
      (rather than --veil-solid) buys back 4.6:1, just clear of AA. */
   :root[data-theme="dark"] {
-    --panel-veil: color-mix(in srgb, #090b0f 38%, transparent);
+    --panel-veil: color-mix(in srgb, #090b0f 50%, transparent);
   }
 
   /* The secondary tones were picked for a near-opaque panel. Over a live field
-     at these alphas they drop under AA, so step them towards the body colour
-     inside the three panels that now show the canvas through. The text-shadow
-     is what actually holds the floor here: at 42/38% the panel alone no longer
-     guarantees AA over the brightest palette tones, and a contrasting halo
-     keeps the glyph edges readable whatever the field does underneath. */
+     they drop under AA, so step them towards the body colour inside the three
+     panels that now show the canvas through. */
   .hero-copy-plane,
   .projects-field-copy,
   .proof-field-copy {
     --ink-soft: #3f423f;
     --ink-faint: #4a4d4a;
-    text-shadow: 0 1px 2px color-mix(in srgb, var(--veil-solid) 92%, transparent),
-      0 0 10px color-mix(in srgb, var(--veil-solid) 78%, transparent);
   }
 
   :root[data-theme="dark"] .hero-copy-plane,
@@ -1467,7 +1464,6 @@ main {
   :root[data-theme="dark"] .proof-field-copy {
     --ink-soft: #d5d8d9;
     --ink-faint: #c3c7c8;
-    text-shadow: 0 1px 2px rgba(9, 11, 15, 0.92), 0 0 10px rgba(9, 11, 15, 0.8);
   }
 
   html {
@@ -1566,7 +1562,7 @@ main {
     /* 62% is the floor that still clears WCAG AA (4.5:1) for the smallest text
        over the brightest palette colour; the blur carries the rest. */
     background: var(--panel-veil);
-    backdrop-filter: blur(22px) saturate(1.25);
+    backdrop-filter: blur(4px) saturate(1.05);
   }
 
   .hero-actions {
@@ -1657,7 +1653,7 @@ main {
      palette tone; the blur carries the rest of the legibility. */
   .projects-field-copy {
     background: var(--panel-veil);
-    backdrop-filter: blur(22px) saturate(1.25);
+    backdrop-filter: blur(4px) saturate(1.05);
   }
 
   /* The horizontal washes fade the field out towards the right, which is where
@@ -1763,7 +1759,7 @@ main {
        the smallest text on the page and hold 4.6:1 over the darkest palette
        tone, just clear of the 4.5:1 AA threshold. */
     background: var(--panel-veil);
-    backdrop-filter: blur(22px) saturate(1.25);
+    backdrop-filter: blur(4px) saturate(1.05);
   }
 
   .proof-field-visual {
