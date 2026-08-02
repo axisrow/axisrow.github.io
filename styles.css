@@ -64,6 +64,11 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 88px;
+  /* overflow-x on <body> alone does not stop sideways scrolling: when only the
+     body carries it, the viewport propagation rules hand the overflow back to
+     <html>. Clip here too. `clip` rather than `hidden` so this does not turn
+     the root into a scroll container and break position: sticky. */
+  overflow-x: clip;
   background: var(--page);
 }
 
@@ -1604,7 +1609,11 @@ main {
     top: 42%;
     right: auto;
     left: 50%;
-    width: 115vw;
+    /* Not 115vw: vw includes the classic scrollbar gutter, so on any engine
+       that reserves one the canvas ends up wider than the viewport it is
+       measured against and pushes the document sideways. Percent resolves
+       against .hero, which is already exactly the viewport width. */
+    width: 115%;
     transform: translate(-50%, -50%);
     opacity: 1;
   }
@@ -1665,7 +1674,7 @@ main {
   }
 
   .visual-field {
-    width: calc(100vw - 24px);
+    width: calc(100% - 24px);
   }
 
   .projects-field {
@@ -1797,12 +1806,12 @@ main {
   .experience-field,
   .about-field {
     left: 50%;
-    width: calc(100vw - 24px);
+    width: calc(100% - 24px);
     padding: var(--panel-space);
   }
 
   .contact-field {
-    width: calc(100vw - 24px);
+    width: calc(100% - 24px);
     padding: 12px;
   }
 
