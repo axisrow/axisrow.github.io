@@ -1568,7 +1568,7 @@ main {
     top: 28%;
     right: -145px;
     width: 390px;
-    opacity: 0.56;
+    opacity: 0.82;
   }
 
   .hero-visual::after {
@@ -1586,7 +1586,7 @@ main {
   }
 
   .section {
-    width: min(calc(100% - 36px), var(--max-width));
+    width: min(calc(100% - 48px), var(--max-width));
     padding: 82px 0;
   }
 
@@ -1634,7 +1634,7 @@ main {
     inset: 34% -12px 0;
     width: auto;
     height: auto;
-    opacity: 0.68;
+    opacity: 0.9;
     -webkit-mask-image: linear-gradient(180deg, transparent, #000 28%, #000 82%, transparent);
     mask-image: linear-gradient(180deg, transparent, #000 28%, #000 82%, transparent);
   }
@@ -1704,7 +1704,7 @@ main {
     inset: 24% -12px 0 18%;
     width: auto;
     height: auto;
-    opacity: 0.72;
+    opacity: 0.92;
     -webkit-mask-image: linear-gradient(180deg, transparent, #000 24%, #000 88%, transparent);
     mask-image: linear-gradient(180deg, transparent, #000 24%, #000 88%, transparent);
   }
