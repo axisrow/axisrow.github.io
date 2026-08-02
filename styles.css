@@ -64,6 +64,11 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 88px;
+  /* overflow-x on <body> alone does not stop sideways scrolling: when only the
+     body carries it, the viewport propagation rules hand the overflow back to
+     <html>. Clip here too. `clip` rather than `hidden` so this does not turn
+     the root into a scroll container and break position: sticky. */
+  overflow-x: clip;
   background: var(--page);
 }
 
@@ -1434,6 +1439,36 @@ main {
 @media (max-width: 720px) {
   :root {
     --panel-space: 24px;
+    /* Alpha for the panels that sit over a live canvas. The light palette can
+       go this low because its worst-case backdrop is a warm mid-tone; the dark
+       theme cannot (see below), so it overrides both the alpha and the tint.
+       Keep the blur light: a strong one smears the field into muddy blotches
+       and costs the crisp text edges, which reads worse than an opaque panel. */
+    --panel-veil: color-mix(in srgb, var(--veil-solid) 55%, transparent);
+  }
+
+  /* Dark theme runs out of contrast first: over the brightest palette tone the
+     body text falls to 3.8:1 at 45%. Holding it at 50% on a near-black tint
+     (rather than --veil-solid) buys back 4.6:1, just clear of AA. */
+  :root[data-theme="dark"] {
+    --panel-veil: color-mix(in srgb, var(--page) 50%, transparent);
+  }
+
+  /* The secondary tones were picked for a near-opaque panel. Over a live field
+     they drop under AA, so step them towards the body colour inside the three
+     panels that now show the canvas through. */
+  .hero-copy-plane,
+  .projects-field-copy,
+  .proof-field-copy {
+    --ink-soft: #3f423f;
+    --ink-faint: #4a4d4a;
+  }
+
+  :root[data-theme="dark"] .hero-copy-plane,
+  :root[data-theme="dark"] .projects-field-copy,
+  :root[data-theme="dark"] .proof-field-copy {
+    --ink-soft: #d5d8d9;
+    --ink-faint: #c3c7c8;
   }
 
   html {
@@ -1529,8 +1564,10 @@ main {
     width: 100%;
     margin-top: 24px;
     padding: 18px;
-    background: color-mix(in srgb, var(--veil-solid) 96%, transparent);
-    backdrop-filter: none;
+    /* Alpha comes from --panel-veil (55% light / 50% dark); the blur carries
+       the rest of the legibility. */
+    background: var(--panel-veil);
+    backdrop-filter: blur(4px) saturate(1.05);
   }
 
   .hero-actions {
@@ -1564,15 +1601,27 @@ main {
     font-size: 8px;
   }
 
+  /* The desktop composition puts the copy left of the visual, so the field is
+     pushed off the right edge. There is no room for that beside a full-width
+     mobile column: the canvas ends up 37% off-screen with the rest washed out.
+     Centre it instead and let the copy sit on top of the field. */
   .hero-visual {
-    top: 28%;
-    right: -145px;
-    width: 390px;
-    opacity: 0.56;
+    top: 42%;
+    right: auto;
+    left: 50%;
+    /* Not 115vw: vw includes the classic scrollbar gutter, so on any engine
+       that reserves one the canvas ends up wider than the viewport it is
+       measured against and pushes the document sideways. Percent resolves
+       against .hero, which is already exactly the viewport width. */
+    width: 115%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
   }
 
+  /* The blurred copy plane now carries the contrast on its own, so the wash
+     only needs to soften the very bottom edge instead of half the field. */
   .hero-visual::after {
-    background: linear-gradient(90deg, var(--hero-shade), transparent 46%);
+    background: linear-gradient(to bottom, transparent 74%, var(--hero-shade));
   }
 
   .hero-foot {
@@ -1586,7 +1635,7 @@ main {
   }
 
   .section {
-    width: min(calc(100% - 36px), var(--max-width));
+    width: min(calc(100% - 48px), var(--max-width));
     padding: 82px 0;
   }
 
@@ -1607,8 +1656,16 @@ main {
     backdrop-filter: none;
   }
 
+  /* The horizontal washes fade the field out towards the right, which is where
+     the desktop copy sits. On a full-width mobile column they cover the whole
+     panel instead, so the field never reaches it. Drop them here. */
+  .projects-field-visual::after,
+  .section-open-source .section-heading::before {
+    background: none;
+  }
+
   .visual-field {
-    width: calc(100vw - 24px);
+    width: calc(100% - 24px);
   }
 
   .projects-field {
@@ -1617,12 +1674,18 @@ main {
     padding: 8px;
   }
 
+  /* Only the panels that actually sit over a live canvas are worth the blur;
+     the rest have nothing behind them to show through. Must stay after the
+     .veil-panel rule above: same specificity (0,1,0), so source order decides
+     which background wins on the elements carrying both classes. */
   .projects-field-copy {
     width: 100%;
     height: auto;
     min-height: 0;
     margin: 0;
     padding: var(--panel-space);
+    background: var(--panel-veil);
+    backdrop-filter: blur(4px) saturate(1.05);
   }
 
   .projects-field-copy .section-title {
@@ -1634,9 +1697,11 @@ main {
     inset: 34% -12px 0;
     width: auto;
     height: auto;
-    opacity: 0.68;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 28%, #000 82%, transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 28%, #000 82%, transparent);
+    opacity: 1;
+    /* Tighter fade stops: at 28%/82% the mask was still ramping up across the
+       band the panel covers. Start the solid run earlier and end it later. */
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 92%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 14%, #000 92%, transparent);
   }
 
   .field-caption {
@@ -1696,7 +1761,11 @@ main {
     width: calc(100% - 16px);
     height: auto;
     margin: 8px;
-    background: color-mix(in srgb, var(--veil-solid) 97%, transparent);
+    /* Let the field read through the panel. The PR rows are the smallest text
+       on the page, so they set the floor for --panel-veil (55% light / 50%
+       dark) — 4.6:1 over the worst-case tone, just clear of the AA threshold. */
+    background: var(--panel-veil);
+    backdrop-filter: blur(4px) saturate(1.05);
   }
 
   .proof-field-visual {
@@ -1704,9 +1773,9 @@ main {
     inset: 24% -12px 0 18%;
     width: auto;
     height: auto;
-    opacity: 0.72;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 24%, #000 88%, transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 24%, #000 88%, transparent);
+    opacity: 1;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 94%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 12%, #000 94%, transparent);
   }
 
   .proof-summary {
@@ -1734,12 +1803,12 @@ main {
   .experience-field,
   .about-field {
     left: 50%;
-    width: calc(100vw - 24px);
+    width: calc(100% - 24px);
     padding: var(--panel-space);
   }
 
   .contact-field {
-    width: calc(100vw - 24px);
+    width: calc(100% - 24px);
     padding: 12px;
   }
 

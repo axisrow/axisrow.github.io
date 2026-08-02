@@ -65,7 +65,11 @@
       metaballs: {
         motion: { speed: 0.72 },
         field: {
-          pointCount: mobile ? 3 : 5,
+          // Metaballs only read as a field when neighbouring blobs merge. Three
+          // points on a phone-sized canvas stay isolated: measured ink coverage
+          // was 18% against 46.7% for the desktop five, which is why the mobile
+          // hero looked empty (issue #23). Keep both at five.
+          pointCount: 5,
           // API v3 renamed the peak field scalar from the v2 `fieldStrength` to
           // `strength` (configDefaults). The v2 key is now an "Unknown option"
           // and throws inside the descriptor resolver, which (because main.js

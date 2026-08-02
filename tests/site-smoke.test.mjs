@@ -217,6 +217,11 @@ test('mobile skins render a finer pattern without changing desktop composition',
   assert.equal(mobile.metaballs.field.strength, 0.72);
   assert.equal(desktop.metaballs.field.fieldStrength, undefined);
   assert.equal(mobile.metaballs.field.fieldStrength, undefined);
+  // Metaballs only read as a field when neighbouring blobs merge; three points
+  // on a phone-sized canvas stay isolated and the hero looks empty (issue #23).
+  // Pin both surfaces at five so the mobile count cannot silently regress.
+  assert.equal(desktop.metaballs.field.pointCount, 5);
+  assert.equal(mobile.metaballs.field.pointCount, 5);
   assert.deepEqual(Array.from(desktop.plasma.field.frequencies), [0.04, 0.04, 0.04, 1]);
   assert.deepEqual(Array.from(mobile.plasma.field.frequencies), [0.09, 0.09, 0.09, 1.8]);
   assert.equal(desktop.mandelbrot.motion.startPhase, 0.25);
