@@ -1529,10 +1529,10 @@ main {
     width: 100%;
     margin-top: 24px;
     padding: 18px;
-    /* 80% is the floor that still clears WCAG AA (4.5:1) for the smallest text
+    /* 62% is the floor that still clears WCAG AA (4.5:1) for the smallest text
        over the brightest palette colour; the blur carries the rest. */
-    background: color-mix(in srgb, var(--veil-solid) 80%, transparent);
-    backdrop-filter: blur(12px) saturate(1.1);
+    background: color-mix(in srgb, var(--veil-solid) 62%, transparent);
+    backdrop-filter: blur(14px) saturate(1.15);
   }
 
   .hero-actions {
@@ -1576,11 +1576,13 @@ main {
     left: 50%;
     width: 115vw;
     transform: translate(-50%, -50%);
-    opacity: 0.9;
+    opacity: 1;
   }
 
+  /* The blurred copy plane now carries the contrast on its own, so the wash
+     only needs to soften the very bottom edge instead of half the field. */
   .hero-visual::after {
-    background: linear-gradient(to bottom, transparent 55%, var(--hero-shade));
+    background: linear-gradient(to bottom, transparent 74%, var(--hero-shade));
   }
 
   .hero-foot {
@@ -1616,10 +1618,20 @@ main {
   }
 
   /* Only the panels that actually sit over a live canvas are worth the blur;
-     the rest have nothing behind them to show through. */
+     the rest have nothing behind them to show through. 0.62 is the floor that
+     still clears WCAG AA (4.5:1) for the smallest text over the brightest
+     palette tone; the blur carries the rest of the legibility. */
   .projects-field-copy {
-    background: color-mix(in srgb, var(--veil-solid) 82%, transparent);
-    backdrop-filter: blur(12px) saturate(1.1);
+    background: color-mix(in srgb, var(--veil-solid) 62%, transparent);
+    backdrop-filter: blur(14px) saturate(1.15);
+  }
+
+  /* The horizontal washes fade the field out towards the right, which is where
+     the desktop copy sits. On a full-width mobile column they cover the whole
+     panel instead, so the field never reaches it. Drop them here. */
+  .projects-field-visual::after,
+  .section-open-source .section-heading::before {
+    background: none;
   }
 
   .visual-field {
@@ -1649,9 +1661,11 @@ main {
     inset: 34% -12px 0;
     width: auto;
     height: auto;
-    opacity: 0.9;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 28%, #000 82%, transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 28%, #000 82%, transparent);
+    opacity: 1;
+    /* Tighter fade stops: at 28%/82% the mask was still ramping up across the
+       band the panel covers. Start the solid run earlier and end it later. */
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 92%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 14%, #000 92%, transparent);
   }
 
   .field-caption {
@@ -1711,11 +1725,11 @@ main {
     width: calc(100% - 16px);
     height: auto;
     margin: 8px;
-    /* Let the field read through the panel. 0.82 is the floor: the PR rows are
+    /* Let the field read through the panel. 0.62 is the floor: the PR rows are
        the smallest text on the page and hold 4.6:1 over the darkest palette
        tone, just clear of the 4.5:1 AA threshold. */
-    background: color-mix(in srgb, var(--veil-solid) 82%, transparent);
-    backdrop-filter: blur(12px) saturate(1.1);
+    background: color-mix(in srgb, var(--veil-solid) 62%, transparent);
+    backdrop-filter: blur(14px) saturate(1.15);
   }
 
   .proof-field-visual {
@@ -1723,9 +1737,9 @@ main {
     inset: 24% -12px 0 18%;
     width: auto;
     height: auto;
-    opacity: 0.92;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 24%, #000 88%, transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 24%, #000 88%, transparent);
+    opacity: 1;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 94%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 12%, #000 94%, transparent);
   }
 
   .proof-summary {
