@@ -40,12 +40,17 @@
     };
   }
 
+  // The site's ink black: dark-theme background and, for mandelbrot, the
+  // interior fill in BOTH themes — a light interior reads as a washed-out
+  // hole against the light page, the set body must stay dark.
+  var ink = "#090b0f";
+
   var themes = deepFreeze({
     light: {
       colors: colors(["#f7f1e6", "#cad8dc", "#79a7ad", "#d49368", "#526b75"])
     },
     dark: {
-      colors: colors(["#090b0f", "#17405f", "#2e7180", "#dc8d67", "#f0c36d"])
+      colors: colors([ink, "#17405f", "#2e7180", "#dc8d67", "#f0c36d"])
     }
   });
 
@@ -121,7 +126,7 @@
       colorCount: colors.colorCount,
       backgroundColor: colors.backgroundColor
     };
-    if (includeInterior) shared.interiorColor = colors.backgroundColor;
+    if (includeInterior) shared.interiorColor = ink;
     return deepFreeze(shared);
   }
 

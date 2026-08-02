@@ -153,7 +153,7 @@ test('all three effects use one exact palette in each theme', async () => {
       assert.equal(skins[name].appearance.colorCount, 256, `${theme} ${name} colorCount`);
       assert.equal(skins[name].appearance.backgroundColor, expected[theme][0]);
     }
-    assert.equal(skins.mandelbrot.appearance.interiorColor, expected[theme][0]);
+    assert.equal(skins.mandelbrot.appearance.interiorColor, expected.dark[0]);
     assert.equal(skins.metaballs.appearance, skins.plasma.appearance);
     assert.equal(skins.metaballs.appearance.palette, skins.mandelbrot.appearance.palette);
     assert.ok(Object.isFrozen(skins.metaballs.appearance));
