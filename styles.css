@@ -1529,8 +1529,10 @@ main {
     width: 100%;
     margin-top: 24px;
     padding: 18px;
-    background: color-mix(in srgb, var(--veil-solid) 96%, transparent);
-    backdrop-filter: none;
+    /* 80% is the floor that still clears WCAG AA (4.5:1) for the smallest text
+       over the brightest palette colour; the blur carries the rest. */
+    background: color-mix(in srgb, var(--veil-solid) 80%, transparent);
+    backdrop-filter: blur(12px) saturate(1.1);
   }
 
   .hero-actions {
@@ -1564,15 +1566,21 @@ main {
     font-size: 8px;
   }
 
+  /* The desktop composition puts the copy left of the visual, so the field is
+     pushed off the right edge. There is no room for that beside a full-width
+     mobile column: the canvas ends up 37% off-screen with the rest washed out.
+     Centre it instead and let the copy sit on top of the field. */
   .hero-visual {
-    top: 28%;
-    right: -145px;
-    width: 390px;
-    opacity: 0.82;
+    top: 42%;
+    right: auto;
+    left: 50%;
+    width: 115vw;
+    transform: translate(-50%, -50%);
+    opacity: 0.9;
   }
 
   .hero-visual::after {
-    background: linear-gradient(90deg, var(--hero-shade), transparent 46%);
+    background: linear-gradient(to bottom, transparent 55%, var(--hero-shade));
   }
 
   .hero-foot {
