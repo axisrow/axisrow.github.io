@@ -1736,11 +1736,14 @@ main {
     z-index: 1;
     order: 2;
     inset: auto;
-    width: 100%;
+    /* The effect is scenery, not another card: it deliberately runs edge to
+       edge while the copy above remains aligned to the reading grid. */
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
     height: 168px;
     opacity: 1;
-    border: 1px solid var(--veil-border);
-    border-radius: 14px;
+    border-block: 1px solid var(--veil-border);
+    border-radius: 0;
     -webkit-mask-image: none;
     mask-image: none;
   }
@@ -1815,11 +1818,12 @@ main {
     z-index: 1;
     order: 2;
     inset: auto;
-    width: 100%;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
     height: 180px;
     opacity: 1;
-    border: 1px solid var(--veil-border);
-    border-radius: 14px;
+    border-block: 1px solid var(--veil-border);
+    border-radius: 0;
     -webkit-mask-image: none;
     mask-image: none;
   }
