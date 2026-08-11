@@ -1443,6 +1443,7 @@ main {
 @media (max-width: 720px) {
   :root {
     --panel-space: 24px;
+    --effect-field-gutter: 24px;
     /* Preserve the desktop "field behind a card" composition on a narrow
        screen. The card needs more opacity than desktop, but must not become a
        separate illustration or let the live canvas blur its text. */
@@ -1703,15 +1704,15 @@ main {
   .projects-field {
     height: auto;
     min-height: 0;
-    padding: 8px;
+    padding: 0;
   }
 
   /* Keep the desktop layering: the panel stays above a live canvas. */
   .projects-field-copy {
-    width: calc(100% - 16px);
+    width: calc(100% - (var(--effect-field-gutter) * 2));
     height: auto;
     min-height: 0;
-    margin: 8px;
+    margin: var(--effect-field-gutter);
     padding: var(--panel-space);
     background: var(--panel-veil);
     backdrop-filter: none;
@@ -1785,9 +1786,9 @@ main {
   }
 
   .proof-field-copy {
-    width: calc(100% - 16px);
+    width: calc(100% - (var(--effect-field-gutter) * 2));
     height: auto;
-    margin: 8px;
+    margin: var(--effect-field-gutter);
     background: var(--panel-veil);
     backdrop-filter: none;
   }

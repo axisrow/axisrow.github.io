@@ -42,6 +42,7 @@ test('content surfaces share one spacing and radius system', async () => {
   assert.match(css, /\.projects-field\s*\{[^}]*display:\s*flex[^}]*padding:/s);
   assert.match(css, /\.projects-field-copy \.section-title\s*\{[^}]*font-size:\s*clamp\(42px,\s*5vw,\s*64px\)/s);
   assert.match(css, /@media \(max-width: 720px\)\s*\{\s*:root\s*\{[^}]*--panel-space:\s*24px/s);
+  assert.match(css, /@media \(max-width: 720px\)\s*\{\s*:root\s*\{[^}]*--effect-field-gutter:\s*24px/s);
   assert.doesNotMatch(css, /height:\s*clamp\(330px,\s*30vw,\s*(?:390|410)px\)/);
 });
 
@@ -50,9 +51,10 @@ test('animated fields remain behind readable mobile cards', async () => {
   assert.match(css, /\.projects-field-visual\s*\{[^}]*inset:\s*0 calc\(50% - 50vw\);/s);
   assert.match(css, /\.proof-field-visual\s*\{[^}]*inset:\s*0 calc\(50% - 50vw\);/s);
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.visual-field\s*\{[^}]*width:\s*100vw;/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-copy\s*\{[^}]*width:\s*calc\(100% - 16px\)[^}]*background:\s*var\(--panel-veil\)[^}]*backdrop-filter:\s*none;/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)[^}]*background:\s*var\(--panel-veil\)[^}]*backdrop-filter:\s*none;/s);
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none;/s);
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.proof-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none;/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.proof-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)/s);
   assert.doesNotMatch(css, /\.projects-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
   assert.doesNotMatch(css, /\.proof-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
 });
