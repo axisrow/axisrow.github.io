@@ -1443,19 +1443,15 @@ main {
 @media (max-width: 720px) {
   :root {
     --panel-space: 24px;
-    /* Alpha for the panels that sit over a live canvas. The light palette can
-       go this low because its worst-case backdrop is a warm mid-tone; the dark
-       theme cannot (see below), so it overrides both the alpha and the tint.
-       Keep the blur light: a strong one smears the field into muddy blotches
-       and costs the crisp text edges, which reads worse than an opaque panel. */
-    --panel-veil: color-mix(in srgb, var(--veil-solid) 55%, transparent);
+    /* Preserve the desktop "field behind a card" composition on a narrow
+       screen. The card needs more opacity than desktop, but must not become a
+       separate illustration or let the live canvas blur its text. */
+    --panel-veil: color-mix(in srgb, var(--veil-solid) 88%, transparent);
   }
 
-  /* Dark theme runs out of contrast first: over the brightest palette tone the
-     body text falls to 3.8:1 at 45%. Holding it at 50% on a near-black tint
-     (rather than --veil-solid) buys back 4.6:1, just clear of AA. */
+  /* The dark palette needs a near-opaque tint over the brightest field tone. */
   :root[data-theme="dark"] {
-    --panel-veil: color-mix(in srgb, var(--page) 50%, transparent);
+    --panel-veil: color-mix(in srgb, var(--page) 86%, transparent);
   }
 
   /* The secondary tones were picked for a near-opaque panel. Over a live field
@@ -1701,29 +1697,23 @@ main {
   }
 
   .visual-field {
-    width: calc(100% - 24px);
+    width: 100vw;
   }
 
   .projects-field {
     height: auto;
     min-height: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
     padding: 8px;
   }
 
-  /* A live field behind copy makes the small mobile text look muddy even at a
-     conservative alpha. Keep reading surfaces solid and show the effect in a
-     separate, bounded strip instead. */
+  /* Keep the desktop layering: the panel stays above a live canvas. */
   .projects-field-copy {
-    order: 1;
-    width: 100%;
+    width: calc(100% - 16px);
     height: auto;
     min-height: 0;
-    margin: 0;
+    margin: 8px;
     padding: var(--panel-space);
-    background: var(--veil-solid);
+    background: var(--panel-veil);
     backdrop-filter: none;
   }
 
@@ -1732,18 +1722,11 @@ main {
   }
 
   .projects-field-visual {
-    position: relative;
-    z-index: 1;
-    order: 2;
-    inset: auto;
-    /* The effect is scenery, not another card: it deliberately runs edge to
-       edge while the copy above remains aligned to the reading grid. */
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    height: 168px;
-    opacity: 1;
-    border-block: 1px solid var(--veil-border);
-    border-radius: 0;
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0.9;
     -webkit-mask-image: none;
     mask-image: none;
   }
@@ -1797,33 +1780,24 @@ main {
   .proof-field {
     display: flex;
     height: auto;
-    min-height: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    padding: 8px;
+    min-height: 510px;
+    align-items: flex-start;
   }
 
   .proof-field-copy {
-    order: 1;
-    width: 100%;
+    width: calc(100% - 16px);
     height: auto;
-    margin: 0;
-    background: var(--veil-solid);
+    margin: 8px;
+    background: var(--panel-veil);
     backdrop-filter: none;
   }
 
   .proof-field-visual {
-    position: relative;
-    z-index: 1;
-    order: 2;
-    inset: auto;
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    height: 180px;
-    opacity: 1;
-    border-block: 1px solid var(--veil-border);
-    border-radius: 0;
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0.9;
     -webkit-mask-image: none;
     mask-image: none;
   }
