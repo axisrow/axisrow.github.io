@@ -221,6 +221,10 @@ a {
   width: 38px;
 }
 
+.menu-toggle {
+  display: none;
+}
+
 .topbar-link {
   padding: 0 13px;
 }
@@ -1472,7 +1476,7 @@ main {
   }
 
   html {
-    scroll-padding-top: 112px;
+    scroll-padding-top: 84px;
   }
 
   body {
@@ -1485,39 +1489,72 @@ main {
   }
 
   .topbar-inner {
+    position: relative;
     display: grid;
-    min-height: 84px;
-    grid-template-columns: 34px minmax(0, 1fr) 34px;
-    gap: 6px;
+    min-height: 58px;
+    grid-template-columns: 44px 44px minmax(0, 1fr) 44px;
+    gap: 8px;
     padding: 7px;
     border-radius: 14px;
   }
 
   .brand {
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
   }
 
-  .section-nav a {
-    padding: 6px 3px;
-    font-size: clamp(8px, 2.45vw, 10px);
+  .menu-toggle {
+    display: inline-flex;
+    grid-column: 2;
   }
 
   .section-nav {
-    grid-row: 2;
-    grid-column: 1 / -1;
-    justify-content: space-between;
-    gap: 0;
-    width: 100%;
-    padding-top: 4px;
-    overflow: visible;
-    border-top: 1px solid var(--line);
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: 0;
+    display: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    padding: 8px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface-solid) 96%, transparent);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px) saturate(1.15);
+  }
+
+  .section-nav.is-open {
+    display: grid;
+  }
+
+  .section-nav a {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-size: 13px;
+  }
+
+  .section-nav a:hover,
+  .section-nav a.is-active {
+    background: color-mix(in srgb, var(--page-soft) 86%, transparent);
   }
 
   .section-nav a::after {
-    right: 3px;
-    bottom: 2px;
-    left: 3px;
+    right: 12px;
+    bottom: 7px;
+    left: 12px;
+  }
+
+  .section-note a,
+  .site-footer a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    vertical-align: middle;
   }
 
   .topbar-link {
@@ -1525,13 +1562,12 @@ main {
   }
 
   .topbar-actions {
-    grid-row: 1;
-    grid-column: 3;
+    grid-column: 4;
   }
 
   .icon-button {
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
   }
 
   .hero {

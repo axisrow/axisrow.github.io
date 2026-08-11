@@ -35,11 +35,22 @@ PUBLIC_FILES = (
     "mandelbrot-proof-fallback.jpg",
 )
 
+VENDORED_DEMOSCENE_FILES = (
+    "assets/demoscene/manifest.json",
+    "assets/demoscene/demoscene.js",
+)
+
 # The single generated file that is not a public site source. Together with the
-# public sources this is the complete, fixed set of files the artifact may hold.
+# public sources and the explicitly vendored Demoscene runtime this is the
+# complete fixed set of files the artifact may hold.
 CANONICAL_OUTPUT_NAME = ".pages-dist"
 
-ALLOWED_ARTIFACT_FILES = (*PUBLIC_FILES, "stars-history.json")
+ALLOWED_ARTIFACT_FILES = (
+    *PUBLIC_FILES,
+    "stars-history.json",
+    *VENDORED_DEMOSCENE_FILES,
+)
+ALLOWED_ARTIFACT_DIRS = ("assets", "assets/demoscene")
 
 
 def _resolve_canonical(site_root: Path) -> Path:
@@ -82,6 +93,12 @@ def _write_artifact_files(
             raise FileNotFoundError(f"missing public source file: {relative}")
         _atomic_copy(source, canonical / relative)
 
+    for relative in VENDORED_DEMOSCENE_FILES:
+        source = site_root / relative
+        if not source.is_file():
+            raise FileNotFoundError(f"missing vendored Demoscene file: {relative}")
+        _atomic_copy(source, canonical / relative)
+
     index_html = apply_site_fragments(
         (site_root / "index.html").read_text(),
         (generated_site / "projects.html").read_text(),
@@ -109,38 +126,48 @@ def _atomic_copy(source: Path, target: Path) -> None:
     Preserves bytes for binary assets (favicons, images) and never leaves a
     half-written file at the canonical target.
     """
+    target.parent.mkdir(parents=True, exist_ok=True)
     tmp = target.with_name(target.name + ".tmp")
     tmp.write_bytes(source.read_bytes())
     os.replace(tmp, target)
 
 
-def _validate_artifact(canonical: Path) -> None:
-    """Mandatory self-validation gate: assert the artifact is exactly the
-    allowlisted flat set of regular files.
+def _walk_artifact(directory: Path, relative: Path = Path("")) -> set[str]:
+    """Validate the fixed artifact tree and return its regular-file paths."""
+    seen: set[str] = set()
+    with os.scandir(directory) as entries:
+        for entry in entries:
+            entry_relative = relative / entry.name
+            normalized = entry_relative.as_posix()
+            if entry.is_symlink():
+                raise ValueError(f"artifact entry must not be a symlink: {normalized}")
+            if entry.is_dir():
+                if normalized not in ALLOWED_ARTIFACT_DIRS:
+                    raise ValueError(f"artifact contains unexpected directory: {normalized}")
+                seen.update(_walk_artifact(Path(entry.path), entry_relative))
+                continue
+            if not entry.is_file():
+                raise ValueError(f"artifact entry must be a regular file: {normalized}")
+            if normalized not in ALLOWED_ARTIFACT_FILES:
+                raise ValueError(f"artifact contains unexpected entry: {normalized}")
+            if normalized.endswith(".py") or "test" in normalized or normalized.endswith(".pem"):
+                raise ValueError(f"artifact entry must not be source material: {normalized}")
+            seen.add(normalized)
+    return seen
 
-    Any deviation — an extra/foreign entry, a symlink, a subdirectory, an entry
-    whose name looks like source material, a missing allowlisted file, or
-    malformed ``stars-history.json`` — raises and fails the build closed. The
-    foreign or dangerous state is never deleted by this builder.
+
+def _validate_artifact(canonical: Path) -> None:
+    """Mandatory self-validation gate for the exact allowlisted artifact tree.
+
+    Any deviation — an extra/foreign entry, a symlink, an unapproved directory,
+    a missing allowlisted file, or malformed ``stars-history.json`` — raises and
+    fails the build closed. The foreign or dangerous state is never deleted by
+    this builder.
     """
     if not canonical.is_dir():
         raise ValueError(f"artifact directory missing: {canonical}")
 
-    seen: set[str] = set()
-    with os.scandir(canonical) as entries:
-        for entry in entries:
-            if entry.name.endswith(".tmp"):
-                continue
-            name = entry.name
-            if name not in ALLOWED_ARTIFACT_FILES:
-                raise ValueError(f"artifact contains unexpected entry: {name}")
-            if entry.is_symlink():
-                raise ValueError(f"artifact entry must not be a symlink: {name}")
-            if not entry.is_file():
-                raise ValueError(f"artifact entry must be a regular file: {name}")
-            if name.endswith(".py") or "test" in name or name.endswith(".pem"):
-                raise ValueError(f"artifact entry must not be source material: {name}")
-            seen.add(name)
+    seen = _walk_artifact(canonical)
 
     missing = set(ALLOWED_ARTIFACT_FILES) - seen
     if missing:
@@ -151,7 +178,7 @@ def _validate_artifact(canonical: Path) -> None:
     json.loads((canonical / "stars-history.json").read_text())
 
 
-def _retire_stale(canonical: Path) -> None:
+def _retire_stale(canonical: Path, relative: Path = Path("")) -> None:
     """Clean stale ``.tmp`` siblings and fail closed on any foreign entry.
 
     Unlinks leftover ``<name>.tmp`` files from a previously interrupted atomic
@@ -165,13 +192,25 @@ def _retire_stale(canonical: Path) -> None:
         return
     with os.scandir(canonical) as entries:
         for entry in entries:
-            name = entry.name
-            if name.endswith(".tmp"):
+            entry_relative = relative / entry.name
+            normalized = entry_relative.as_posix()
+            if entry.name.endswith(".tmp"):
+                if entry.is_dir() or entry.is_symlink():
+                    raise ValueError(f"refusing to remove non-file temp entry: {normalized}")
                 os.unlink(entry.path)
                 continue
-            if name not in ALLOWED_ARTIFACT_FILES:
+            if entry.is_symlink():
+                raise ValueError(f"artifact entry must not be a symlink: {normalized}")
+            if entry.is_dir():
+                if normalized not in ALLOWED_ARTIFACT_DIRS:
+                    raise ValueError(
+                        f"refusing to delete foreign artifact entry: {normalized}"
+                    )
+                _retire_stale(Path(entry.path), entry_relative)
+                continue
+            if normalized not in ALLOWED_ARTIFACT_FILES:
                 raise ValueError(
-                    f"refusing to delete foreign artifact entry: {name}"
+                    f"refusing to delete foreign artifact entry: {normalized}"
                 )
 
 

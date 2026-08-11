@@ -9,6 +9,7 @@ from profile.sync.build_pages import (
     ALLOWED_ARTIFACT_FILES,
     CANONICAL_OUTPUT_NAME,
     PUBLIC_FILES,
+    VENDORED_DEMOSCENE_FILES,
     build_pages,
 )
 from profile.sync import build_pages as build_pages_module
@@ -27,6 +28,11 @@ def _seed_site_root(temp: Path) -> Path:
         source = REPO / relative
         if source.is_file():
             (temp / relative).write_bytes(source.read_bytes())
+    for relative in VENDORED_DEMOSCENE_FILES:
+        source = REPO / relative
+        target = temp / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
     # index.html must contain the markers/values apply_site_fragments expects.
     (temp / "index.html").write_text((REPO / "index.html").read_text())
 
@@ -49,6 +55,14 @@ def _seed_site_root(temp: Path) -> Path:
 
 
 class BuildPagesTests(unittest.TestCase):
+    @staticmethod
+    def artifact_files(canonical: Path) -> set[str]:
+        return {
+            path.relative_to(canonical).as_posix()
+            for path in canonical.rglob("*")
+            if path.is_file()
+        }
+
     def test_artifact_is_allowlisted_and_source_is_unchanged(self) -> None:
         with TemporaryDirectory() as tmp:
             site_root = _seed_site_root(Path(tmp))
@@ -60,7 +74,7 @@ class BuildPagesTests(unittest.TestCase):
             # Source index.html is never modified by the builder.
             self.assertEqual((site_root / "index.html").read_text(), source_index)
             self.assertEqual(
-                {path.name for path in canonical.iterdir()},
+                self.artifact_files(canonical),
                 set(ALLOWED_ARTIFACT_FILES),
             )
             self.assertFalse((canonical / "profile").exists())
@@ -68,6 +82,8 @@ class BuildPagesTests(unittest.TestCase):
                 "generated projects", (canonical / "index.html").read_text()
             )
             self.assertIn("generated stars", (canonical / "index.html").read_text())
+            self.assertTrue((canonical / "assets/demoscene/manifest.json").is_file())
+            self.assertTrue((canonical / "assets/demoscene/demoscene.js").is_file())
 
     def test_rejects_symlinked_site_root(self) -> None:
         with TemporaryDirectory() as tmp:
@@ -181,7 +197,9 @@ class BuildPagesTests(unittest.TestCase):
             # all regular files, no symlinks, no extras. The old validator
             # accepted this; the fixed one must reject it.
             for name in ALLOWED_ARTIFACT_FILES:
-                (canonical / name).write_text("ok" if name != "stars-history.json" else "{}")
+                target = canonical / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text("ok" if name != "stars-history.json" else "{}")
             # Remove one allowlisted file to make the set incomplete.
             (canonical / "index.html").unlink()
             with self.assertRaises(ValueError):
@@ -216,19 +234,16 @@ class BuildPagesTests(unittest.TestCase):
         with TemporaryDirectory() as tmp:
             site_root = _seed_site_root(Path(tmp))
             build_pages(site_root, site_root / "generated")
-            first = sorted(
-                p.name for p in (site_root / CANONICAL_OUTPUT_NAME).iterdir()
-            )
+            first = sorted(self.artifact_files(site_root / CANONICAL_OUTPUT_NAME))
             build_pages(site_root, site_root / "generated")
-            second = sorted(
-                p.name for p in (site_root / CANONICAL_OUTPUT_NAME).iterdir()
-            )
+            second = sorted(self.artifact_files(site_root / CANONICAL_OUTPUT_NAME))
             self.assertEqual(first, second)
             self.assertEqual(set(first), set(ALLOWED_ARTIFACT_FILES))
 
     def test_allowlist_contract(self) -> None:
         self.assertEqual(
-            set(ALLOWED_ARTIFACT_FILES), set(PUBLIC_FILES) | {"stars-history.json"}
+            set(ALLOWED_ARTIFACT_FILES),
+            set(PUBLIC_FILES) | {"stars-history.json"} | set(VENDORED_DEMOSCENE_FILES),
         )
 
 

@@ -6,7 +6,7 @@
   <title>axisrow — Python engineer</title>
   <meta name="description" content="Python engineer building AI agent tooling, automation, and data systems. 37 merged upstream PRs · 106 stars · 7 starred projects." />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <meta name="demoscene-base" content="/demoscene_classics/dist" />
+  <meta name="demoscene-base" content="assets/demoscene" />
 
   <meta property="og:title" content="axisrow — Python engineer" />
   <meta property="og:description" content="AI agent tooling, automation, and data systems. 37 merged upstream PRs · 106 stars · 7 starred projects." />
@@ -36,7 +36,10 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="#hero" aria-label="axisrow — back to top">AX</a>
-      <nav class="section-nav" aria-label="Section navigation">
+      <button id="menu-toggle" class="icon-button menu-toggle" type="button" aria-label="Open section navigation" aria-controls="section-navigation" aria-expanded="false">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <nav id="section-navigation" class="section-nav" aria-label="Section navigation">
         <a href="#stars" data-nav="stars">Stars</a>
         <a href="#projects" data-nav="projects">Projects</a>
         <a href="#opensource" data-nav="opensource">Open Source</a>
