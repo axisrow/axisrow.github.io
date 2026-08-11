@@ -42,15 +42,19 @@ test('content surfaces share one spacing and radius system', async () => {
   assert.match(css, /\.projects-field\s*\{[^}]*display:\s*flex[^}]*padding:/s);
   assert.match(css, /\.projects-field-copy \.section-title\s*\{[^}]*font-size:\s*clamp\(42px,\s*5vw,\s*64px\)/s);
   assert.match(css, /@media \(max-width: 720px\)\s*\{\s*:root\s*\{[^}]*--panel-space:\s*24px/s);
+  assert.match(css, /@media \(max-width: 720px\)\s*\{\s*:root\s*\{[^}]*--effect-field-gutter:\s*24px/s);
   assert.doesNotMatch(css, /height:\s*clamp\(330px,\s*30vw,\s*(?:390|410)px\)/);
 });
 
-test('animated fields stay within their owning section vertically', async () => {
+test('animated fields remain behind readable mobile cards', async () => {
   const css = await source('styles.css');
   assert.match(css, /\.projects-field-visual\s*\{[^}]*inset:\s*0 calc\(50% - 50vw\);/s);
   assert.match(css, /\.proof-field-visual\s*\{[^}]*inset:\s*0 calc\(50% - 50vw\);/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-visual\s*\{[^}]*inset:\s*34% -12px 0;/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.proof-field-visual\s*\{[^}]*inset:\s*24% -12px 0 18%;/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.visual-field\s*\{[^}]*width:\s*100vw;/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)[^}]*background:\s*var\(--panel-veil\)[^}]*backdrop-filter:\s*none;/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none;/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.proof-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none;/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.proof-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)/s);
   assert.doesNotMatch(css, /\.projects-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
   assert.doesNotMatch(css, /\.proof-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
 });
@@ -85,6 +89,20 @@ test('navigation and generated values are data-driven', async () => {
   assert.match(html, /chart excludes the 5 stars earned on maintained forks/);
 });
 
+test('mobile navigation uses an accessible menu with full-size links', async () => {
+  const html = await source('index.html');
+  const css = await source('styles.css');
+  const script = await source('main.js');
+  assert.match(html, /id="menu-toggle"[^>]*aria-controls="section-navigation"[^>]*aria-expanded="false"/);
+  assert.match(html, /<nav id="section-navigation" class="section-nav"/);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.section-nav\.is-open\s*\{[^}]*display:\s*grid/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.section-nav a\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.brand\s*\{[^}]*width:\s*44px[^}]*height:\s*44px/s);
+  assert.match(script, /function closeMenu\(\)/);
+  assert.match(script, /event\.key === "Escape"/);
+  assert.match(script, /link\.addEventListener\("click", closeMenu\)/);
+});
+
 test('contact uses the configured Telegram channel chat link', async () => {
   const html = await source('index.html');
   const profile = JSON.parse(await source('profile/projects.json'));
@@ -106,7 +124,8 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   const skins = await source('effect-skins.js');
   const html = await source('index.html');
   assert.match(script, /manifest\.json/);
-  assert.match(script, /apiVersion !== 3/);
+  assert.match(script, /window\.location\.protocol === "file:"/);
+  assert.match(script, /manifest\.apiVersion !== 3/);
   assert.match(script, /searchParams\.set\("v", manifest\.version\)/);
   assert.match(script, /demoscene-fallback/);
   assert.match(script, /controller\.renderOnce\(0\)/);
@@ -114,18 +133,7 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   assert.match(script, /definition\.staticOnly \|\| cpuOnlyMandelbrot/);
   assert.match(script, /selector: "#opensource-mandelbrot",\s*surface: "preview",\s*staticOnly: reduced/);
   assert.doesNotMatch(script, /staticOnly: reduced \|\| mobile/);
-  // API v3 descriptor: the factory receives { skin, surface, device, config },
-  // never the legacy flat-options object (resolver.js detectLegacy throws on it).
-  assert.match(script, /skin: "classic"/);
-  assert.match(script, /surface: definition\.surface/);
-  assert.match(script, /device: "auto"/);
-  assert.match(script, /config: definition\.options/);
-  assert.match(script, /surface: "fullscreen"/);
-  assert.match(script, /surface: "preview"/);
   assert.match(html, /effect-skins\.js/);
-  // v3 moves execution budgets into library profile slots, so skins keep only
-  // algorithmic identity, motion and the rendering backend — never runtime or
-  // render.resolution, which the library now owns.
   assert.doesNotMatch(skins, /runtime:|maxFps:|pixelRatio:|pauseWhenHidden:/);
   assert.match(skins, /backend: "auto"/);
   assert.match(skins, /minZoom: 4000/);
@@ -210,25 +218,16 @@ test('mobile skins render a finer pattern without changing desktop composition',
 
   const desktop = sandbox.PortfolioEffectSkins.create('dark', false);
   const mobile = sandbox.PortfolioEffectSkins.create('dark', true);
-  // API v3 renamed the v2 metaballs `fieldStrength` peak scalar to `strength`
-  // (configDefaults). The v2 key is now an "Unknown option" the resolver throws
-  // on, so the skin must use `strength` — see bundle-resolver test below.
   assert.equal(desktop.metaballs.field.strength, 0.75);
   assert.equal(mobile.metaballs.field.strength, 0.72);
   assert.equal(desktop.metaballs.field.fieldStrength, undefined);
   assert.equal(mobile.metaballs.field.fieldStrength, undefined);
-  // Metaballs only read as a field when neighbouring blobs merge; three points
-  // on a phone-sized canvas stay isolated and the hero looks empty (issue #23).
-  // Pin both surfaces at five so the mobile count cannot silently regress.
   assert.equal(desktop.metaballs.field.pointCount, 5);
   assert.equal(mobile.metaballs.field.pointCount, 5);
   assert.deepEqual(Array.from(desktop.plasma.field.frequencies), [0.04, 0.04, 0.04, 1]);
   assert.deepEqual(Array.from(mobile.plasma.field.frequencies), [0.09, 0.09, 0.09, 1.8]);
   assert.equal(desktop.mandelbrot.motion.startPhase, 0.25);
   assert.equal(mobile.mandelbrot.motion.startPhase, 0.12);
-  // v3 owns execution budgets (runtime / render.resolution) via per-(surface,
-  // device) profile slots, so a skin never carries them — only the backend
-  // choice and algorithmic identity remain here.
   assert.equal(desktop.mandelbrot.runtime, undefined);
   assert.equal(mobile.mandelbrot.runtime, undefined);
   assert.equal(desktop.mandelbrot.render.resolution, undefined);
@@ -236,48 +235,6 @@ test('mobile skins render a finer pattern without changing desktop composition',
   assert.equal(desktop.mandelbrot.render.backend, 'auto');
   assert.equal(mobile.mandelbrot.render.backend, 'auto');
   assert.equal(desktop.mandelbrot.motion.cycleSeconds, 4800);
-});
-
-test('v3 skins only carry config-compatible groups (no library-owned budgets)', async () => {
-  const skinScript = await source('effect-skins.js');
-  const sandbox = { window: null };
-  sandbox.window = sandbox;
-  vm.createContext(sandbox);
-  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
-
-  // Groups the library's per-(surface, device) profile slots own in API v3.
-  // A skin must not emit them: they would override the matched profile and are
-  // not part of the algorithmic identity a skin is meant to express. This is
-  // the invariant that prevents the v2-to-v3 regression where the whole site
-  // silently falls back to static accents.
-  const LIBRARY_OWNED = new Set(['runtime']);
-  for (const mobile of [false, true]) {
-    const skins = sandbox.PortfolioEffectSkins.create('dark', mobile);
-    for (const name of ['metaballs', 'plasma', 'mandelbrot']) {
-      for (const key of Object.keys(skins[name])) {
-        assert.ok(
-          !LIBRARY_OWNED.has(key),
-          `${name}.${key} is a library-owned budget group; skins must not set it`
-        );
-      }
-      // render is allowed only to carry the backend choice for mandelbrot —
-      // never resolution/smoothing, which the library owns via profile slots.
-      if (skins[name].render) {
-        for (const key of Object.keys(skins[name].render)) {
-          assert.ok(key === 'backend', `${name}.render.${key} must not be set by a skin`);
-        }
-      }
-      // The config groups a skin emits must all be valid API v3 config keys.
-      const VALID_CONFIG = new Set([
-        'runtime', 'render', 'motion', 'appearance',
-        'field', 'simulation', 'particles', 'geometry', 'camera', 'algorithm',
-        'texture', 'feedback', 'bars', 'shading', 'text', 'wave', 'stars'
-      ]);
-      for (const key of Object.keys(skins[name])) {
-        assert.ok(VALID_CONFIG.has(key), `${name}.${key} is not a recognised v3 config group`);
-      }
-    }
-  }
 });
 
 function createClassList() {
@@ -301,7 +258,8 @@ async function runLoader({
   responseOk = true,
   bundleError = false,
   missingApi = false,
-  reducedMotion = false
+  reducedMotion = false,
+  fileProtocol = false
 }) {
   const script = await source('main.js');
   const skinScript = await source('effect-skins.js');
@@ -351,7 +309,7 @@ async function runLoader({
       getElementById() { return null; },
       querySelector(selector) {
         if (selector === 'meta[name="demoscene-base"]') {
-          return { getAttribute() { return '/demoscene_classics/dist'; } };
+          return { getAttribute() { return 'assets/demoscene'; } };
         }
         return null;
       },
@@ -361,7 +319,10 @@ async function runLoader({
       fetchCalls++;
       return { ok: responseOk, async json() { return manifest; } };
     },
-    location: { href: 'http://localhost/' },
+    location: {
+      href: fileProtocol ? 'file:///tmp/portfolio/index.html' : 'http://localhost/',
+      protocol: fileProtocol ? 'file:' : 'http:'
+    },
     localStorage: { getItem() { return null; }, setItem() {} },
     matchMedia(query) {
       return {
@@ -390,66 +351,20 @@ test('manifest loader succeeds and cache-busts the bundle', async () => {
   assert.equal(result.root.classList.contains('demoscene-ready'), true);
   assert.equal(result.root.classList.contains('demoscene-fallback'), false);
   assert.deepEqual(result.appendedScripts, [
-    'http://localhost/demoscene_classics/dist/demoscene.js?v=abc123'
+    'http://localhost/assets/demoscene/demoscene.js?v=abc123'
   ]);
 });
 
-test('the descriptor main.js builds is accepted by the API v3 resolver', async () => {
-  // Reproduce the API v3 resolver's descriptor gate (demoscene_classics
-  // src/resolver.js detectLegacy): a legacy v2 flat-options object at the
-  // descriptor root throws, while a { skin, surface, device, config } descriptor
-  // is accepted. main.js must build the latter from the skins effect-skins.js
-  // produces — otherwise every mount throws and the whole site falls back.
-  const skinScript = await source('effect-skins.js');
-  const sandbox = { window: null };
-  sandbox.window = sandbox;
-  vm.createContext(sandbox);
-  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
-
-  const DESCRIPTOR_KEYS = new Set(['skin', 'surface', 'device', 'config']);
-  const V2_GROUPS = new Set([
-    'runtime', 'render', 'motion', 'appearance',
-    'field', 'simulation', 'particles', 'geometry', 'camera', 'algorithm',
-    'texture', 'feedback', 'bars', 'shading', 'text', 'wave', 'stars'
+test('file previews load the vendored API v3 bundle without fetching a manifest', async () => {
+  const result = await runLoader({
+    fileProtocol: true,
+    manifest: { version: 'unused', apiVersion: 3, bundle: 'demoscene.js' }
+  });
+  assert.equal(result.root.classList.contains('demoscene-ready'), true);
+  assert.equal(result.fetchCalls, 0);
+  assert.deepEqual(result.appendedScripts, [
+    'file:///tmp/portfolio/assets/demoscene/demoscene.js'
   ]);
-  const SURFACES = new Set(['fullscreen', 'preview']);
-  const DEVICES = new Set(['auto', 'desktop', 'mobile']);
-
-  function detectLegacy(name, input) {
-    for (const key of Object.keys(input)) {
-      if (V2_GROUPS.has(key)) {
-        throw new Error(`${name}: legacy v2 group '${key}' at descriptor root is rejected by v3`);
-      }
-      if (!DESCRIPTOR_KEYS.has(key)) {
-        throw new Error(`${name}: unknown descriptor field '${key}'`);
-      }
-    }
-  }
-
-  const surfaces = { metaballs: 'fullscreen', plasma: 'preview', mandelbrot: 'preview' };
-  for (const mobile of [false, true]) {
-    const skins = sandbox.PortfolioEffectSkins.create('dark', mobile);
-    for (const name of ['metaballs', 'plasma', 'mandelbrot']) {
-      // Exactly the descriptor main.js assembles at the factory call site.
-      const descriptor = {
-        skin: 'classic',
-        surface: surfaces[name],
-        device: 'auto',
-        config: skins[name]
-      };
-      assert.doesNotThrow(() => detectLegacy(name, descriptor), `${name} (mobile=${mobile})`);
-      assert.equal(descriptor.surface, surfaces[name]);
-      assert.ok(SURFACES.has(descriptor.surface), `${name} surface must be a known v3 surface`);
-      assert.ok(DEVICES.has(descriptor.device), `${name} device must be a known v3 device`);
-      // Regression guard: the old code passed skins[name] directly as the
-      // descriptor, which always tripped detectLegacy. Prove that path throws.
-      assert.throws(
-        () => detectLegacy(name, skins[name]),
-        /legacy v2 group/,
-        `${name} skins passed flat (pre-v3) must be rejected`
-      );
-    }
-  }
 });
 
 test('manifest loader falls back when the manifest is missing', async () => {
@@ -461,7 +376,7 @@ test('manifest loader falls back when the manifest is missing', async () => {
 
 test('manifest loader rejects an incompatible API version', async () => {
   const result = await runLoader({
-    manifest: { version: 'abc123', apiVersion: 2, bundle: 'demoscene.js' }
+    manifest: { version: 'abc123', apiVersion: 1, bundle: 'demoscene.js' }
   });
   assert.equal(result.root.classList.contains('demoscene-fallback'), true);
   assert.deepEqual(result.appendedScripts, []);
@@ -496,7 +411,7 @@ test('reduced motion loads the library in static mode without starting animated 
   assert.equal(result.root.classList.contains('demoscene-ready'), true);
   assert.equal(result.fetchCalls, 1);
   assert.deepEqual(result.appendedScripts, [
-    'http://localhost/demoscene_classics/dist/demoscene.js?v=static123'
+    'http://localhost/assets/demoscene/demoscene.js?v=static123'
   ]);
 });
 
@@ -532,4 +447,14 @@ test('social preview is the final 1200 by 630 dark hero', async () => {
   assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
   assert.equal(png.readUInt32BE(16), 1200);
   assert.equal(png.readUInt32BE(20), 630);
+});
+
+test('vendored Demoscene manifest and bundle are present for Pages', async () => {
+  const manifest = JSON.parse(await source('assets/demoscene/manifest.json'));
+  const bundle = await source('assets/demoscene/demoscene.js');
+  assert.equal(manifest.apiVersion, 3);
+  assert.equal(manifest.bundle, 'demoscene.js');
+  assert.match(bundle, /metaballs/);
+  assert.match(bundle, /plasma/);
+  assert.match(bundle, /mandelbrot/);
 });

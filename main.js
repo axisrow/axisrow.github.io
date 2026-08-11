@@ -3,6 +3,8 @@
 
   var root = document.documentElement;
   var themeToggle = document.getElementById("theme-toggle");
+  var menuToggle = document.getElementById("menu-toggle");
+  var sectionNavigation = document.getElementById("section-navigation");
   var reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   var mobileQuery = window.matchMedia("(max-width: 720px)");
   var navLinks = Array.prototype.slice.call(document.querySelectorAll(".section-nav a[data-nav]"));
@@ -24,6 +26,21 @@
   }
 
   applyTheme(root.dataset.theme || "light", false);
+
+  function closeMenu() {
+    if (!menuToggle || !sectionNavigation) return;
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Open section navigation");
+    sectionNavigation.classList.remove("is-open");
+  }
+
+  function toggleMenu() {
+    if (!menuToggle || !sectionNavigation) return;
+    var open = menuToggle.getAttribute("aria-expanded") !== "true";
+    menuToggle.setAttribute("aria-expanded", String(open));
+    menuToggle.setAttribute("aria-label", open ? "Close section navigation" : "Open section navigation");
+    sectionNavigation.classList.toggle("is-open", open);
+  }
 
   function destroyEffects() {
     scenes.forEach(function (scene) {
@@ -212,6 +229,12 @@
     });
   }
 
+  if (menuToggle) {
+    menuToggle.addEventListener("click", function () {
+      toggleMenu();
+    });
+  }
+
   function updateActiveNavigation() {
     var activeId = null;
     var activeRatio = 0;
@@ -262,11 +285,21 @@
     if (!section) return;
     sectionStates.set(section.id, 0);
     observer.observe(section);
+    link.addEventListener("click", closeMenu);
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") closeMenu();
+  });
+
+  document.addEventListener("click", function (event) {
+    if (!mobileQuery.matches || !sectionNavigation || !menuToggle) return;
+    if (!sectionNavigation.contains(event.target) && !menuToggle.contains(event.target)) closeMenu();
   });
 
   function assetBaseUrl() {
     var meta = document.querySelector('meta[name="demoscene-base"]');
-    var configured = meta ? meta.getAttribute("content") : "/demoscene_classics/dist";
+    var configured = meta ? meta.getAttribute("content") : "assets/demoscene";
     return new URL(configured.replace(/\/?$/, "/"), window.location.href);
   }
 
@@ -283,20 +316,30 @@
 
   async function loadDemoscene() {
     var base = assetBaseUrl();
+    var localFile = window.location.protocol === "file:";
     var controller = new AbortController();
     var timeout = window.setTimeout(function () { controller.abort(); }, 4000);
     try {
-      var response = await fetch(new URL("manifest.json", base), {
-        cache: "no-store",
-        signal: controller.signal
-      });
-      if (!response.ok) throw new Error("Demoscene manifest is unavailable.");
-      var manifest = await response.json();
-      if (manifest.apiVersion !== 3 || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
-        throw new Error("Demoscene manifest is incompatible.");
+      var manifest;
+      var bundle;
+      if (localFile) {
+        // Browsers do not allow fetch() of a file:// manifest. The vendored
+        // bundle is API v3 and can be loaded directly for local previews.
+        manifest = { apiVersion: 3 };
+        bundle = new URL("demoscene.js", base);
+      } else {
+        var response = await fetch(new URL("manifest.json", base), {
+          cache: "no-store",
+          signal: controller.signal
+        });
+        if (!response.ok) throw new Error("Demoscene manifest is unavailable.");
+        manifest = await response.json();
+        if (manifest.apiVersion !== 3 || typeof manifest.version !== "string" || typeof manifest.bundle !== "string") {
+          throw new Error("Demoscene manifest is incompatible.");
+        }
+        bundle = new URL(manifest.bundle, base);
+        bundle.searchParams.set("v", manifest.version);
       }
-      var bundle = new URL(manifest.bundle, base);
-      bundle.searchParams.set("v", manifest.version);
       await loadScript(bundle.href);
       var requiredEffects = ["metaballs", "plasma", "mandelbrot"];
       if (!window.Demoscene || requiredEffects.some(function (name) {
@@ -316,7 +359,10 @@
   }
 
   document.addEventListener("visibilitychange", syncEffectPlayback);
-  mobileQuery.addEventListener("change", remountEffects);
+  mobileQuery.addEventListener("change", function () {
+    if (!mobileQuery.matches) closeMenu();
+    remountEffects();
+  });
   reduceMotionQuery.addEventListener("change", function () {
     document.querySelectorAll(".reveal").forEach(function (element) {
       element.classList.add("is-visible");
