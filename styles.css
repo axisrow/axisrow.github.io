@@ -1707,21 +1707,24 @@ main {
   .projects-field {
     height: auto;
     min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
     padding: 8px;
   }
 
-  /* Only the panels that actually sit over a live canvas are worth the blur;
-     the rest have nothing behind them to show through. Must stay after the
-     .veil-panel rule above: same specificity (0,1,0), so source order decides
-     which background wins on the elements carrying both classes. */
+  /* A live field behind copy makes the small mobile text look muddy even at a
+     conservative alpha. Keep reading surfaces solid and show the effect in a
+     separate, bounded strip instead. */
   .projects-field-copy {
+    order: 1;
     width: 100%;
     height: auto;
     min-height: 0;
     margin: 0;
     padding: var(--panel-space);
-    background: var(--panel-veil);
-    backdrop-filter: blur(4px) saturate(1.05);
+    background: var(--veil-solid);
+    backdrop-filter: none;
   }
 
   .projects-field-copy .section-title {
@@ -1729,15 +1732,17 @@ main {
   }
 
   .projects-field-visual {
-    position: absolute;
-    inset: 34% -12px 0;
-    width: auto;
-    height: auto;
+    position: relative;
+    z-index: 1;
+    order: 2;
+    inset: auto;
+    width: 100%;
+    height: 168px;
     opacity: 1;
-    /* Tighter fade stops: at 28%/82% the mask was still ramping up across the
-       band the panel covers. Start the solid run earlier and end it later. */
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 92%, transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 14%, #000 92%, transparent);
+    border: 1px solid var(--veil-border);
+    border-radius: 14px;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .field-caption {
@@ -1789,29 +1794,34 @@ main {
   .proof-field {
     display: flex;
     height: auto;
-    min-height: 510px;
-    align-items: flex-start;
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 8px;
   }
 
   .proof-field-copy {
-    width: calc(100% - 16px);
+    order: 1;
+    width: 100%;
     height: auto;
-    margin: 8px;
-    /* Let the field read through the panel. The PR rows are the smallest text
-       on the page, so they set the floor for --panel-veil (55% light / 50%
-       dark) — 4.6:1 over the worst-case tone, just clear of the AA threshold. */
-    background: var(--panel-veil);
-    backdrop-filter: blur(4px) saturate(1.05);
+    margin: 0;
+    background: var(--veil-solid);
+    backdrop-filter: none;
   }
 
   .proof-field-visual {
-    position: absolute;
-    inset: 24% -12px 0 18%;
-    width: auto;
-    height: auto;
+    position: relative;
+    z-index: 1;
+    order: 2;
+    inset: auto;
+    width: 100%;
+    height: 180px;
     opacity: 1;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 94%, transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 12%, #000 94%, transparent);
+    border: 1px solid var(--veil-border);
+    border-radius: 14px;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .proof-summary {
