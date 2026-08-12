@@ -254,6 +254,7 @@
         } catch (error) {
           controller.destroy();
           scene.controller = null;
+          scenes.splice(scenes.indexOf(scene), 1);
           throw error;
         }
       }

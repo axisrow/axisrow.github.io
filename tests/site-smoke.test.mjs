@@ -424,7 +424,7 @@ async function runLoader({
   return { root, appendedScripts, warnings, fetchCalls };
 }
 
-async function runEffectRuntime({ reducedMotion = false, mobile = false, throwingEffect = null } = {}) {
+async function runEffectRuntime({ reducedMotion = false, mobile = false, throwingEffect = null, renderOnceThrows = null } = {}) {
   const script = await source('main.js');
   const skinScript = await source('effect-skins.js');
   const root = { dataset: { theme: 'dark' }, classList: createClassList() };
@@ -475,7 +475,10 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
       start() { this.running = true; },
       stop() { this.running = false; },
       destroy() { this.destroyed = true; this.running = false; },
-      renderOnce(time) { this.renderTimes.push(time); },
+      renderOnce(time) {
+        this.renderTimes.push(time);
+        if (name === renderOnceThrows) throw new Error(`${name} renderOnce failed`);
+      },
       getStats() { return { backend: 'webgl2' }; }
     };
     controllers.push(controller);
@@ -615,6 +618,22 @@ test('reduced-motion effects lazy-render once and leave both effect observers', 
   assert.deepEqual(runtime.factoryCalls, ['starfield']);
   assert.deepEqual(runtime.controllers[0].renderTimes, [0]);
   assert.equal(runtime.controllers[0].running, false);
+  assert.equal(runtime.observers.some((observer) => observer.observed.has(stars)), false);
+});
+
+test('a reduced-motion renderOnce failure activates the static fallback without a stale scene', async () => {
+  const runtime = await runEffectRuntime({ reducedMotion: true, renderOnceThrows: 'starfield' });
+  const stars = runtime.elements.get('#stars-starfield');
+
+  runtime.mountObserver.deliver([{ target: stars, isIntersecting: true, intersectionRatio: 0.01 }]);
+
+  assert.equal(runtime.root.classList.contains('demoscene-ready'), false);
+  assert.equal(runtime.root.classList.contains('demoscene-fallback'), true);
+  assert.match(runtime.warnings.join('\n'), /starfield renderOnce failed/);
+  assert.equal(runtime.controllers[0].destroyed, true);
+
+  // The fallback resets every mount observer; a leftover scene entry from the
+  // failed renderOnce path would otherwise leave this element still observed.
   assert.equal(runtime.observers.some((observer) => observer.observed.has(stars)), false);
 });
 
