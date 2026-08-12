@@ -22,7 +22,7 @@ There is no dev server, lint, or build. To view locally, open `index.html` direc
 `tests/site-smoke.test.mjs` is the guardrail for this repo. It runs `main.js`/`effect-skins.js` inside a `vm` sandbox with mocked DOM and **asserts on the source text of `index.html`, `main.js`, `effect-skins.js`, and `styles.css` via regex**. Many tests pin exact substrings — when editing those files, expect to need test updates in lockstep. Key invariants enforced:
 
 - **Section order is fixed**: `hero → stars → projects → opensource → experience → about → contact`. Don't reorder.
-- **Exactly seven** `data-effect` canvases exist, pinned in document order: `metaballs` (hero), `starfield` (stars), `plasma` (projects), `mandelbrot` (opensource), `copperBars` (experience), `feedback` (about), `tunnel` (contact). Forbidden: GSAP, ScrollTrigger, vendor bundles.
+- **Exactly seven** `data-effect` canvases exist, pinned in document order: `metaballs` (hero), `starfield` (stars), `plasma` (projects), `mandelbrot` (opensource), `tunnel` (experience), `rotozoom` (about), `copperBars` (contact). Forbidden: GSAP, ScrollTrigger, vendor bundles.
 - **Open Source proof field**: asymmetric R1 grid (`minmax(360px,0.38fr) minmax(0,0.62fr)`), exactly 4 `proof-row` entries. The `mandelbrot-proof-fallback.jpg` must be a real JPEG > 40 KB (rendered fallback). `og.png` must be 1200×630.
 - **Effect-skins palettes are single-source-of-truth**: each theme color hex may appear exactly once; all three effects share one frozen `appearance`. Overriding `appearance` per-effect throws at runtime (`assertNoLocalAppearance`). Theme + exact palette + field/runtime constants are pinned.
 
@@ -32,9 +32,9 @@ There is no dev server, lint, or build. To view locally, open `index.html` direc
 
 The visual accents (metaballs hero, plasma projects, mandelbrot open-source) are **not** self-contained. `main.js` is a loader/orchestrator that dynamically fetches an external library:
 
-1. Reads the base URL from `<meta name="demoscene-base">` (default `/demoscene_classics/dist`, pointing at a sibling GitHub Pages repo `axisrow/demoscene_classics`).
+1. Reads the base URL from `<meta name="demoscene-base">` (currently `assets/demoscene`).
 2. `fetch`es `manifest.json`, validates `apiVersion === 3`, then injects the versioned bundle (`?v=manifest.version`) via a `<script>` tag.
-3. Verifies `window.Demoscene.{metaballs,plasma,mandelbrot}` are functions (API v2 contract); otherwise falls back.
+3. Verifies the three core `window.Demoscene` factories are functions (API v3 contract); missing section accents degrade individually during mounting.
 4. `mountEffects()` wires each `<canvas data-effect>` to its factory plus per-effect options from `effect-skins.js`.
 
 `effect-skins.js` exposes `window.PortfolioEffectSkins.create(theme, mobile, overrides?)` — a pure, deeply-frozen config factory. **All appearance (colors) is derived from a shared theme palette; per-effect `appearance` is forbidden.** Motion/render/field tuning differs by effect and by mobile vs desktop. This file is imported before `main.js`.

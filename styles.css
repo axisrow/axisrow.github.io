@@ -1171,7 +1171,7 @@ main {
 }
 
 .timeline {
-  /* Lifted above the copper-bars layer that now sits inside the panel. */
+  /* Lifted above the tunnel layer that now sits inside the panel. */
   position: relative;
   z-index: 1;
   border-top: 1px solid var(--line);
@@ -1236,7 +1236,7 @@ main {
 }
 
 .about-grid {
-  /* Lifted above the feedback layer that now sits inside the panel. */
+  /* Lifted above the rotozoom layer that now sits inside the panel. */
   position: relative;
   z-index: 1;
   display: grid;
@@ -1368,7 +1368,7 @@ main {
 
 .contact-card {
   /* The other copy panels already carried this; contact did not, and now needs
-     it to stay above the tunnel layer. */
+     it to stay above the copper-bars layer. */
   position: relative;
   z-index: 2;
   width: min(940px, 82%);

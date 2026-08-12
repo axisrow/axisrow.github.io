@@ -108,25 +108,25 @@
         options: skins.starfield
       },
       {
-        name: "copperBars",
-        selector: "#experience-copper",
-        surface: "preview",
-        staticOnly: reduced,
-        options: skins.copperBars
-      },
-      {
-        name: "feedback",
-        selector: "#about-feedback",
-        surface: "preview",
-        staticOnly: reduced,
-        options: skins.feedback
-      },
-      {
         name: "tunnel",
-        selector: "#contact-tunnel",
+        selector: "#experience-tunnel",
         surface: "preview",
         staticOnly: reduced,
         options: skins.tunnel
+      },
+      {
+        name: "rotozoom",
+        selector: "#about-rotozoom",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.rotozoom
+      },
+      {
+        name: "copperBars",
+        selector: "#contact-copper-bars",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.copperBars
       }
     ];
   }
@@ -413,6 +413,7 @@
       libraryReady = true;
       mountEffects();
     } catch (error) {
+      destroyEffects();
       root.classList.remove("demoscene-ready");
       root.classList.add("demoscene-fallback");
       console.warn("Animated accents are using their static fallback.", error.message);
