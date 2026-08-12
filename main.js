@@ -95,6 +95,38 @@
         surface: "preview",
         staticOnly: reduced,
         options: skins.mandelbrot
+      },
+      // The four section accents below are all banded panels rather than
+      // viewports, so they take the "preview" profile slot: the "fullscreen"
+      // slot would request a 60fps, full-resolution budget for a strip a few
+      // hundred pixels tall.
+      {
+        name: "starfield",
+        selector: "#stars-starfield",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.starfield
+      },
+      {
+        name: "copperBars",
+        selector: "#experience-copper",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.copperBars
+      },
+      {
+        name: "feedback",
+        selector: "#about-feedback",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.feedback
+      },
+      {
+        name: "tunnel",
+        selector: "#contact-tunnel",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.tunnel
       }
     ];
   }
@@ -366,6 +398,12 @@
         bundle.searchParams.set("v", manifest.version);
       }
       await loadScript(bundle.href);
+      // Deliberately only the three original accents, not all seven. The four
+      // section effects are inherently optional: mountEffects() already skips a
+      // definition whose factory is missing, so a partial bundle costs those
+      // accents and nothing else. Listing them here would instead turn "four
+      // accents missing" into "entire site in the static fallback" — strictly
+      // worse than the degradation this check exists to prevent.
       var requiredEffects = ["metaballs", "plasma", "mandelbrot"];
       if (!window.Demoscene || requiredEffects.some(function (name) {
         return typeof window.Demoscene[name] !== "function";

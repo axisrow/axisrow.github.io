@@ -64,6 +64,18 @@ class SiteSyncTests(unittest.TestCase):
         self.assertIn('<span>01</span> Momentum', stars)
         self.assertIn('<span>02</span> Selected Work', projects)
 
+    def test_generated_sections_keep_their_effect_canvases(self) -> None:
+        # The bot rewrites everything between the PROFILE markers from these
+        # templates, so a canvas that lives only in index.html is destroyed on
+        # the next sync. Both marker-managed sections carry one, and the site's
+        # smoke test asserts the same canvases in index.html — this pins the
+        # source of truth so a template edit cannot silently drop them.
+        project_root = Path(__file__).resolve().parents[1]
+        projects = (project_root / "sync/templates/projects.html.j2").read_text()
+        stars = (project_root / "sync/templates/stars.html.j2").read_text()
+        self.assertIn('data-effect="starfield"', stars)
+        self.assertIn('data-effect="plasma"', projects)
+
     def test_summary_format_is_single_source_of_truth(self) -> None:
         # The rendered summary and its matcher must derive from SUMMARY_FORMAT,
         # and every counter must be a placeholder so adding a key can't drift them.

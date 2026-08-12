@@ -34,8 +34,18 @@ import vm from 'node:vm';
 
 const root = new URL('../', import.meta.url);
 const BUNDLE_BASE = 'https://axisrow.github.io/demoscene_classics/dist/';
-const EFFECTS = ['metaballs', 'plasma', 'mandelbrot'];
-const SURFACES = { metaballs: 'fullscreen', plasma: 'preview', mandelbrot: 'preview' };
+const EFFECTS = [
+  'metaballs', 'plasma', 'mandelbrot', 'starfield', 'copperBars', 'feedback', 'tunnel'
+];
+const SURFACES = {
+  metaballs: 'fullscreen',
+  plasma: 'preview',
+  mandelbrot: 'preview',
+  starfield: 'preview',
+  copperBars: 'preview',
+  feedback: 'preview',
+  tunnel: 'preview'
+};
 
 async function source(filename) {
   return readFile(new URL(filename, root), 'utf8');
