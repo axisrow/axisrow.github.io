@@ -109,6 +109,30 @@
           maxIterations: 140,
           escapeRadius: 16
         }
+      },
+      starfield: {
+        motion: { speed: 0.6 }
+        // particles.* is projection identity and the profile slot already sizes
+        // the population per (surface, device); leaving it alone keeps the seed
+        // sequence — and therefore the composition — stable across breakpoints.
+      },
+      tunnel: {
+        // The library defaults (forwardSpeed 0.9 / rotationSpeed 0.25) are demo
+        // pace. Behind the contact CTA that reads as motion sickness, so the
+        // corridor is slowed to a drift.
+        motion: { speed: 1, forwardSpeed: mobile ? 0.45 : 0.55, rotationSpeed: mobile ? 0.08 : 0.12, colorCycleSpeed: 0.05 }
+      },
+      feedback: {
+        motion: { speed: 0.8, colorCycleSpeed: 0.08 },
+        geometry: { sides: 6, passes: mobile ? 2 : 3 },
+        feedback: { decayPerSecond: 0.35 }
+      },
+      copperBars: {
+        motion: { speed: 1, colorCycleSpeed: 0.03 },
+        // `bars` is deliberately not set: the library ships distinct desktop
+        // (5 bars) and mobile (4 bars) layouts per profile slot, and overriding
+        // here would discard that responsive tuning.
+        shading: { barAlphaScale: mobile ? 0.5 : 0.55 }
       }
     };
   }
@@ -124,13 +148,45 @@
     });
   }
 
-  function appearance(colors, includeInterior) {
+  // Appearance is split in two. The COLOUR CORE (palette / colorCount /
+  // backgroundColor) is identical for all seven effects — the single source of
+  // truth. On top of it an effect may carry non-colour appearance MODIFIERS,
+  // but only the ones its own configDefaults declares: the library's
+  // assertKnownKeys throws RangeError on any foreign key, and main.js mounts
+  // every effect in one unguarded pass, so a single stray key would drop the
+  // WHOLE site to the static fallback. This table is the site-side guard.
+  //
+  // The right home for this is the library itself (either let a caller pass a
+  // shared appearance and ignore inapplicable keys, or expose the per-effect
+  // modifier set for introspection) so this hand-maintained table can be
+  // deleted rather than re-checked against every bundle bump. Tracked upstream.
+  var APPEARANCE_MODIFIERS = deepFreeze({
+    metaballs: [],
+    plasma: [],
+    copperBars: [],
+    mandelbrot: ["interiorColor", "colorScale", "colorCurve", "colorOffset", "cycleSpeed"],
+    starfield: ["trailFade", "minAlpha", "maxAlpha", "minLineWidth", "maxLineWidth"],
+    tunnel: ["fogColor"],
+    feedback: ["strokeAlpha"]
+  });
+
+  function appearance(colors, name, modifiers) {
+    var allowed = APPEARANCE_MODIFIERS[name];
+    if (!allowed) throw new RangeError("Unknown portfolio effect: " + name);
     var shared = {
       palette: colors.palette,
       colorCount: colors.colorCount,
       backgroundColor: colors.backgroundColor
     };
-    if (includeInterior) shared.interiorColor = ink;
+    Object.keys(modifiers || {}).forEach(function (key) {
+      if (allowed.indexOf(key) === -1) {
+        throw new RangeError(
+          "PortfolioEffectSkins." + name + ".appearance." + key
+          + " is not an allowed modifier for this effect."
+        );
+      }
+      shared[key] = modifiers[key];
+    });
     return deepFreeze(shared);
   }
 
@@ -149,10 +205,30 @@
     });
     assertNoLocalAppearance(effects);
 
-    var commonAppearance = appearance(selectedTheme.colors, false);
-    effects.metaballs.appearance = commonAppearance;
-    effects.plasma.appearance = commonAppearance;
-    effects.mandelbrot.appearance = appearance(selectedTheme.colors, true);
+    var themeColors = selectedTheme.colors;
+    // Colour-typed modifiers reference the shared palette by index rather than
+    // repeating a literal, so the palette stays the only place a hex is written.
+    var backdrop = themeColors.palette[0];
+    effects.metaballs.appearance = appearance(themeColors, "metaballs", null);
+    effects.plasma.appearance = appearance(themeColors, "plasma", null);
+    effects.copperBars.appearance = appearance(themeColors, "copperBars", null);
+    effects.mandelbrot.appearance = appearance(themeColors, "mandelbrot", { interiorColor: ink });
+    effects.starfield.appearance = appearance(themeColors, "starfield", {
+      // Shorter streaks on the smaller canvas: at the desktop fade a mobile
+      // trail smears across the panel instead of reading as a star.
+      trailFade: mobile ? 0.5 : 0.42,
+      // Well under the library's 0.95 ceiling so the field stays a texture
+      // behind the copy rather than competing with it.
+      minAlpha: 0.18,
+      maxAlpha: mobile ? 0.62 : 0.72,
+      minLineWidth: 1,
+      maxLineWidth: mobile ? 1.6 : 2.2
+    });
+    // The corridor recedes into the page background rather than a foreign navy.
+    effects.tunnel.appearance = appearance(themeColors, "tunnel", { fogColor: backdrop });
+    effects.feedback.appearance = appearance(themeColors, "feedback", {
+      strokeAlpha: mobile ? 0.45 : 0.55
+    });
     return deepFreeze(effects);
   }
 

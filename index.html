@@ -43,7 +43,7 @@
       document.documentElement.classList.add("js");
     }());
   </script>
-  <link rel="stylesheet" href="styles.css?v=mobile-veil-comments-2" />
+  <link rel="stylesheet" href="styles.css?v=section-accents-1" />
 </head>
 <body>
   <header class="topbar">
@@ -116,6 +116,9 @@
     <!-- PROFILE:STARS:START -->
     <section id="stars" class="section section-stars">
       <div class="visual-field stars-field reveal">
+        <div class="stars-field-visual" aria-hidden="true">
+          <canvas id="stars-starfield" class="effect-canvas" data-effect="starfield"></canvas>
+        </div>
         <div class="stars-field-copy veil-panel">
           <p class="eyebrow"><span>01</span> Momentum</p>
           <h2 class="section-title">Stars over time.</h2>
@@ -240,6 +243,9 @@
         <h2 class="section-title">Engineering through shipped work.</h2>
       </div>
       <div class="experience-field veil-panel">
+      <div class="experience-field-visual" aria-hidden="true">
+        <canvas id="experience-copper" class="effect-canvas" data-effect="copperBars"></canvas>
+      </div>
       <div class="timeline">
         <article class="timeline-item reveal">
           <span class="timeline-index">01</span>
@@ -281,6 +287,9 @@
         <h2 class="section-title">Calm systems for complicated work.</h2>
       </div>
       <div class="about-field veil-panel">
+      <div class="about-field-visual" aria-hidden="true">
+        <canvas id="about-feedback" class="effect-canvas" data-effect="feedback"></canvas>
+      </div>
       <div class="about-grid">
         <div class="about-copy reveal">
           <p>I build AI agent tooling, Telegram automation, and data systems with a bias toward explicit behaviour, observable failures, and boring operations.</p>
@@ -300,6 +309,9 @@
 
     <section id="contact" class="section section-contact">
       <div class="contact-field reveal">
+      <div class="contact-field-visual" aria-hidden="true">
+        <canvas id="contact-tunnel" class="effect-canvas" data-effect="tunnel"></canvas>
+      </div>
       <div class="contact-card veil-panel">
         <p class="availability"><span></span> Open to contributions, tooling, and selected contract work</p>
         <h2>Need a system that should keep working?</h2>
@@ -318,7 +330,7 @@
     </section>
   </main>
 
-  <script src="effect-skins.js?v=mobile-hero-center-1"></script>
-  <script src="main.js?v=api-v3-visual-fix-6"></script>
+  <script src="effect-skins.js?v=section-accents-1"></script>
+  <script src="main.js?v=section-accents-1"></script>
 </body>
 </html>

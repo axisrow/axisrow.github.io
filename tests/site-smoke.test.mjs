@@ -59,11 +59,31 @@ test('animated fields remain behind readable mobile cards', async () => {
   assert.doesNotMatch(css, /\.proof-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
 });
 
-test('only the three restrained Demoscene accents are mounted', async () => {
+test('every section accent is mounted in document order and nothing else is', async () => {
   const html = await source('index.html');
   const effects = Array.from(html.matchAll(/data-effect="([^"]+)"/g), (match) => match[1]);
-  assert.deepEqual(effects, ['metaballs', 'plasma', 'mandelbrot']);
-  assert.doesNotMatch(html, /gsap|ScrollTrigger|vendor\/demoscene|copper-bars|feedback|starfield/i);
+  // Document order, which is NOT the effectDefinitions() order in main.js —
+  // that one is asserted separately below.
+  assert.deepEqual(effects, [
+    'metaballs', 'starfield', 'plasma', 'mandelbrot', 'copperBars', 'feedback', 'tunnel'
+  ]);
+  // The point of this guard was always to keep animation libraries and vendored
+  // bundles out of the page; copper-bars/feedback/starfield are now first-party
+  // effect names rather than forbidden substrings.
+  assert.doesNotMatch(html, /gsap|ScrollTrigger|vendor\/demoscene/i);
+});
+
+test('the starfield canvas lives in the bot-managed template, not just index.html', async () => {
+  // Everything between the PROFILE:STARS markers is regenerated from the Jinja
+  // template on every bot sync, so a canvas added only to index.html silently
+  // disappears the next day. profile/tests/test_site_sync.py pins the template
+  // side; this pins the rendered side.
+  const html = await source('index.html');
+  const template = await source('profile/sync/templates/stars.html.j2');
+  for (const markup of ['data-effect="starfield"', 'id="stars-starfield"', 'class="stars-field-visual"']) {
+    assert.ok(html.includes(markup), `index.html must contain ${markup}`);
+    assert.ok(template.includes(markup), `stars.html.j2 must contain ${markup}`);
+  }
 });
 
 test('Open Source uses the asymmetric R1 field without duplicated cards', async () => {
@@ -133,6 +153,13 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   assert.match(script, /definition\.staticOnly \|\| cpuOnlyMandelbrot/);
   assert.match(script, /selector: "#opensource-mandelbrot",\s*surface: "preview",\s*staticOnly: reduced/);
   assert.doesNotMatch(script, /staticOnly: reduced \|\| mobile/);
+  // The four section accents are optional by design: mountEffects() skips a
+  // missing factory, so requiring them here would turn a partial bundle into a
+  // whole-site fallback instead of four missing accents.
+  assert.match(script, /var requiredEffects = \["metaballs", "plasma", "mandelbrot"\];/);
+  for (const name of ['starfield', 'copperBars', 'feedback', 'tunnel']) {
+    assert.match(script, new RegExp(`name: "${name}",\\s*selector: "#[a-z-]+",\\s*surface: "preview",\\s*staticOnly: reduced`));
+  }
   assert.match(html, /effect-skins\.js/);
   assert.doesNotMatch(skins, /runtime:|maxFps:|pixelRatio:|pauseWhenHidden:/);
   assert.match(skins, /backend: "auto"/);
@@ -143,7 +170,11 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   assert.doesNotMatch(script, /palette:|fieldStrength:|renderResolution:/);
 });
 
-test('all three effects use one exact palette in each theme', async () => {
+const EFFECT_NAMES = [
+  'metaballs', 'plasma', 'mandelbrot', 'starfield', 'copperBars', 'feedback', 'tunnel'
+];
+
+test('all seven effects use one exact palette in each theme', async () => {
   const skinScript = await source('effect-skins.js');
   const sandbox = { window: null };
   sandbox.window = sandbox;
@@ -156,21 +187,62 @@ test('all three effects use one exact palette in each theme', async () => {
   };
   for (const theme of ['light', 'dark']) {
     const skins = sandbox.PortfolioEffectSkins.create(theme, false);
-    for (const name of ['metaballs', 'plasma', 'mandelbrot']) {
+    for (const name of EFFECT_NAMES) {
       assert.deepEqual(Array.from(skins[name].appearance.palette), expected[theme], `${theme} ${name}`);
       assert.equal(skins[name].appearance.colorCount, 256, `${theme} ${name} colorCount`);
       assert.equal(skins[name].appearance.backgroundColor, expected[theme][0]);
+      // Each effect now gets its own frozen appearance object (it may carry
+      // effect-specific modifiers), but the palette ARRAY is still one shared
+      // reference — that is the single-source-of-truth invariant.
+      assert.equal(skins[name].appearance.palette, skins.metaballs.appearance.palette, `${theme} ${name} palette`);
+      assert.ok(Object.isFrozen(skins[name].appearance), `${theme} ${name} frozen`);
     }
     assert.equal(skins.mandelbrot.appearance.interiorColor, expected.dark[0]);
-    assert.equal(skins.metaballs.appearance, skins.plasma.appearance);
-    assert.equal(skins.metaballs.appearance.palette, skins.mandelbrot.appearance.palette);
-    assert.ok(Object.isFrozen(skins.metaballs.appearance));
+    // Colour-typed modifiers must reference the palette, never a fresh literal.
+    assert.equal(skins.tunnel.appearance.fogColor, expected[theme][0]);
     assert.ok(Object.isFrozen(skins.metaballs.appearance.palette));
-    assert.ok(Object.isFrozen(skins.mandelbrot.appearance));
   }
   for (const color of [...expected.light, ...expected.dark]) {
     assert.equal(skinScript.split(color).length - 1, 1, `${color} must have one source of truth`);
   }
+});
+
+test('no effect carries an appearance key its library defaults would reject', async () => {
+  // The library's assertKnownKeys throws RangeError on any config key absent
+  // from that effect's configDefaults, and main.js mounts every effect in one
+  // unguarded pass — so a single foreign key drops the whole site to the static
+  // fallback. This pins the shared core plus each effect's allowed modifiers.
+  const skinScript = await source('effect-skins.js');
+  const sandbox = { window: null };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+
+  const core = ['palette', 'colorCount', 'backgroundColor'];
+  const allowed = {
+    metaballs: [],
+    plasma: [],
+    copperBars: [],
+    mandelbrot: ['interiorColor', 'colorScale', 'colorCurve', 'colorOffset', 'cycleSpeed'],
+    starfield: ['trailFade', 'minAlpha', 'maxAlpha', 'minLineWidth', 'maxLineWidth'],
+    tunnel: ['fogColor'],
+    feedback: ['strokeAlpha']
+  };
+  for (const mobile of [false, true]) {
+    const skins = sandbox.PortfolioEffectSkins.create('dark', mobile);
+    for (const name of EFFECT_NAMES) {
+      const permitted = new Set([...core, ...allowed[name]]);
+      for (const key of Object.keys(skins[name].appearance)) {
+        assert.ok(permitted.has(key), `${name}.appearance.${key} is not permitted (mobile=${mobile})`);
+      }
+    }
+  }
+  assert.throws(
+    () => sandbox.PortfolioEffectSkins.create('dark', false, {
+      starfield: { appearance: { trailFade: 0.9 } }
+    }),
+    /PortfolioEffectSkins\.effects\.starfield\.appearance is forbidden/
+  );
 });
 
 test('shared colors cannot be overridden from an individual effect', async () => {
@@ -206,7 +278,9 @@ test('individual non-color settings remain independently configurable', async ()
   assert.equal(customized.plasma.field.radialCenterX, 0.3);
   assert.equal(customized.metaballs.motion.speed, baseline.metaballs.motion.speed);
   assert.equal(customized.mandelbrot.motion.speed, baseline.mandelbrot.motion.speed);
-  assert.equal(customized.plasma.appearance, customized.metaballs.appearance);
+  // Each effect owns its appearance object now, but the palette array behind
+  // them stays one shared reference.
+  assert.equal(customized.plasma.appearance.palette, customized.metaballs.appearance.palette);
 });
 
 test('mobile skins render a finer pattern without changing desktop composition', async () => {
@@ -294,7 +368,11 @@ async function runLoader({
               sandbox.Demoscene = {
                 metaballs() {},
                 plasma() {},
-                mandelbrot() {}
+                mandelbrot() {},
+                starfield() {},
+                copperBars() {},
+                feedback() {},
+                tunnel() {}
               };
             }
             element.onload();
@@ -454,7 +532,7 @@ test('vendored Demoscene manifest and bundle are present for Pages', async () =>
   const bundle = await source('assets/demoscene/demoscene.js');
   assert.equal(manifest.apiVersion, 3);
   assert.equal(manifest.bundle, 'demoscene.js');
-  assert.match(bundle, /metaballs/);
-  assert.match(bundle, /plasma/);
-  assert.match(bundle, /mandelbrot/);
+  for (const name of EFFECT_NAMES) {
+    assert.match(bundle, new RegExp(name), `bundle must expose ${name}`);
+  }
 });

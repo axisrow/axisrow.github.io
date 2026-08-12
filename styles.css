@@ -504,6 +504,63 @@ main {
   opacity: 0.64;
 }
 
+/* Section accent layers. Each sits behind its panel's content and carries its
+   own background: .effect-canvas starts at opacity 0 and is only raised by
+   .demoscene-ready, so this background IS the graceful-degradation state —
+   it shows through for reduced motion, a failed bundle, and mid-remount alike.
+   border-radius: inherit keeps the canvas inside the rounded panels. */
+.stars-field-visual,
+.experience-field-visual,
+.about-field-visual,
+.contact-field-visual {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--field-solid);
+  pointer-events: none;
+}
+
+.stars-field-visual {
+  opacity: 0.78;
+  -webkit-mask-image: radial-gradient(ellipse at 74% 50%, #000 0 32%, rgba(0, 0, 0, 0.72) 48%, transparent 74%);
+  mask-image: radial-gradient(ellipse at 74% 50%, #000 0 32%, rgba(0, 0, 0, 0.72) 48%, transparent 74%);
+  background:
+    radial-gradient(circle at 74% 44%, color-mix(in srgb, var(--accent-cool) 26%, transparent), transparent 46%),
+    var(--field-solid);
+}
+
+/* Experience and About are text-heavy, so their fields stay dimmer than the
+   chart and contact panels. The masks pull each field away from its copy:
+   right for the timeline, left for the about grid. */
+.experience-field-visual {
+  opacity: 0.62;
+  -webkit-mask-image: radial-gradient(ellipse at 88% 50%, #000 0 26%, rgba(0, 0, 0, 0.66) 44%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 88% 50%, #000 0 26%, rgba(0, 0, 0, 0.66) 44%, transparent 72%);
+  background:
+    radial-gradient(circle at 86% 50%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 44%),
+    var(--field-solid);
+}
+
+.about-field-visual {
+  opacity: 0.62;
+  -webkit-mask-image: radial-gradient(ellipse at 12% 50%, #000 0 26%, rgba(0, 0, 0, 0.66) 44%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 12% 50%, #000 0 26%, rgba(0, 0, 0, 0.66) 44%, transparent 72%);
+  background:
+    radial-gradient(circle at 14% 50%, color-mix(in srgb, var(--accent-cool) 24%, transparent), transparent 44%),
+    var(--field-solid);
+}
+
+.contact-field-visual {
+  opacity: 0.7;
+  -webkit-mask-image: radial-gradient(ellipse at 78% 72%, #000 0 30%, rgba(0, 0, 0, 0.7) 46%, transparent 74%);
+  mask-image: radial-gradient(ellipse at 78% 72%, #000 0 30%, rgba(0, 0, 0, 0.7) 46%, transparent 74%);
+  background:
+    radial-gradient(circle at 78% 70%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 44%),
+    var(--field-solid);
+}
+
 .demoscene-ready .effect-canvas {
   opacity: 1;
 }
@@ -892,22 +949,28 @@ main {
   padding: var(--panel-space);
   border: 1px solid var(--veil-border);
   border-radius: var(--surface-radius);
+  /* Both now host an accent canvas: clip it to the rounded box and give each
+     panel its own stacking context so the layer cannot escape upwards. */
+  overflow: hidden;
+  isolation: isolate;
 }
 
+/* The panel tint fades out towards the side its canvas is masked to, so the
+   accent reads through there while the copy keeps a near-opaque backing. Both
+   gradients stop at `transparent` rather than a second --veil layer: an opaque
+   base would paint over the canvas layer entirely. */
 .experience-field {
   left: calc(50% - min(4vw, calc((100vw - 1364px) / 2)));
   transform: translateX(-50%);
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, var(--veil)), var(--veil) 42%),
-    var(--veil);
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, var(--veil)), var(--veil) 46%, transparent 100%);
 }
 
 .about-field {
   left: calc(50% + min(4vw, calc((100vw - 1364px) / 2)));
   transform: translateX(-50%);
   background:
-    linear-gradient(270deg, color-mix(in srgb, var(--accent-cool) 8%, var(--veil)), var(--veil) 46%),
-    var(--veil);
+    linear-gradient(270deg, color-mix(in srgb, var(--accent-cool) 8%, var(--veil)), var(--veil) 50%, transparent 100%);
 }
 
 @media (min-width: 981px) and (max-width: 1364px) {
@@ -922,11 +985,15 @@ main {
   left: 50%;
   width: min(1440px, calc(100vw - 24px));
   padding: clamp(24px, 5vw, 70px);
+  overflow: hidden;
+  isolation: isolate;
   border-block: 1px solid var(--veil-border);
+  /* The decorative radials stay, but the --field wash underneath them is gone:
+     it sat between the page and the tunnel canvas and muted it. The canvas
+     layer carries --field-solid itself, which also covers the fallback state. */
   background:
     radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--accent-cool) 24%, transparent), transparent 31%),
-    radial-gradient(circle at 10% 86%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 34%),
-    var(--field);
+    radial-gradient(circle at 10% 86%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 34%);
   transform: translateX(-50%);
 }
 
@@ -1104,6 +1171,9 @@ main {
 }
 
 .timeline {
+  /* Lifted above the copper-bars layer that now sits inside the panel. */
+  position: relative;
+  z-index: 1;
   border-top: 1px solid var(--line);
 }
 
@@ -1166,6 +1236,9 @@ main {
 }
 
 .about-grid {
+  /* Lifted above the feedback layer that now sits inside the panel. */
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
   gap: clamp(40px, 8vw, 110px);
@@ -1294,6 +1367,10 @@ main {
 }
 
 .contact-card {
+  /* The other copy panels already carried this; contact did not, and now needs
+     it to stay above the tunnel layer. */
+  position: relative;
+  z-index: 2;
   width: min(940px, 82%);
   padding: var(--panel-space);
   margin-left: 4%;
@@ -1501,18 +1578,26 @@ main {
   }
 
   /* The secondary tones were picked for a near-opaque panel. Over a live field
-     they drop under AA, so step them towards the body colour inside the three
-     panels that now show the canvas through. */
+     they drop under AA, so step them towards the body colour inside every
+     panel that now shows a canvas through. */
   .hero-copy-plane,
   .projects-field-copy,
-  .proof-field-copy {
+  .proof-field-copy,
+  .stars-field-copy,
+  .experience-field,
+  .about-field,
+  .contact-card {
     --ink-soft: #3f423f;
     --ink-faint: #4a4d4a;
   }
 
   :root[data-theme="dark"] .hero-copy-plane,
   :root[data-theme="dark"] .projects-field-copy,
-  :root[data-theme="dark"] .proof-field-copy {
+  :root[data-theme="dark"] .proof-field-copy,
+  :root[data-theme="dark"] .stars-field-copy,
+  :root[data-theme="dark"] .experience-field,
+  :root[data-theme="dark"] .about-field,
+  :root[data-theme="dark"] .contact-card {
     --ink-soft: #d5d8d9;
     --ink-faint: #c3c7c8;
   }
@@ -1804,11 +1889,25 @@ main {
     padding: 0;
   }
 
+  /* Now that a starfield runs behind it, this panel joins the other
+     canvas-backed panels: same gutter variable, same translucent veil. */
   .stars-field-copy {
-    width: calc(100% - 16px);
+    width: calc(100% - (var(--effect-field-gutter) * 2));
     min-height: 350px;
-    margin: 8px;
+    margin: var(--effect-field-gutter);
     padding: var(--panel-space);
+    background: var(--panel-veil);
+    backdrop-filter: none;
+  }
+
+  .stars-field-visual,
+  .experience-field-visual,
+  .about-field-visual,
+  .contact-field-visual {
+    inset: 0;
+    opacity: 0.9;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .stars-field .stars-chart {
