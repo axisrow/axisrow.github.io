@@ -148,7 +148,8 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   assert.match(script, /manifest\.apiVersion !== 3/);
   assert.match(script, /searchParams\.set\("v", manifest\.version\)/);
   assert.match(script, /demoscene-fallback/);
-  assert.match(script, /catch \(error\) \{\s*destroyEffects\(\);\s*root\.classList\.remove\("demoscene-ready"\);\s*root\.classList\.add\("demoscene-fallback"\);/);
+  assert.match(script, /function useStaticFallback\(error\) \{\s*destroyEffects\(\);\s*root\.classList\.remove\("demoscene-ready"\);\s*root\.classList\.add\("demoscene-fallback"\);/);
+  assert.match(script, /catch \(error\) \{\s*useStaticFallback\(error\);/);
   assert.match(script, /controller\.renderOnce\(0\)/);
   assert.match(script, /controller\.getStats\(\)\.backend === "canvas2d"/);
   assert.match(script, /definition\.staticOnly \|\| cpuOnlyMandelbrot/);
@@ -422,6 +423,211 @@ async function runLoader({
   await new Promise((resolve) => setTimeout(resolve, 5));
   return { root, appendedScripts, warnings, fetchCalls };
 }
+
+async function runEffectRuntime({ reducedMotion = false, mobile = false, throwingEffect = null } = {}) {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const warnings = [];
+  const factoryCalls = [];
+  const controllers = [];
+  const effectEntries = [
+    ['metaballs', '#hero-metaballs'],
+    ['plasma', '#projects-plasma'],
+    ['mandelbrot', '#opensource-mandelbrot'],
+    ['starfield', '#stars-starfield'],
+    ['tunnel', '#experience-tunnel'],
+    ['rotozoom', '#about-rotozoom'],
+    ['copperBars', '#contact-copper-bars']
+  ];
+  const elements = new Map(effectEntries.map(([name, selector]) => [selector, {
+    id: selector.slice(1),
+    dataset: { effect: name },
+    classList: createClassList()
+  }]));
+  const observers = [];
+
+  class MockIntersectionObserver {
+    constructor(callback, options = {}) {
+      this.callback = callback;
+      this.options = options;
+      this.observed = new Set();
+      observers.push(this);
+    }
+
+    observe(element) { this.observed.add(element); }
+    unobserve(element) { this.observed.delete(element); }
+    deliver(entries) {
+      const observedEntries = entries.filter((entry) => this.observed.has(entry.target));
+      if (observedEntries.length) this.callback(observedEntries);
+    }
+  }
+
+  const factories = Object.fromEntries(effectEntries.map(([name]) => [name, (element) => {
+    factoryCalls.push(name);
+    if (name === throwingEffect) throw new Error(`${name} mount failed`);
+    const controller = {
+      name,
+      element,
+      destroyed: false,
+      running: false,
+      renderTimes: [],
+      start() { this.running = true; },
+      stop() { this.running = false; },
+      destroy() { this.destroyed = true; this.running = false; },
+      renderOnce(time) { this.renderTimes.push(time); },
+      getStats() { return { backend: 'webgl2' }; }
+    };
+    controllers.push(controller);
+    return controller;
+  }]));
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: MockIntersectionObserver,
+    console: { warn(...args) { warnings.push(args.join(' ')); } },
+    document: {
+      hidden: false,
+      documentElement: root,
+      head: {
+        appendChild(element) {
+          queueMicrotask(() => {
+            sandbox.Demoscene = factories;
+            element.onload();
+          });
+        }
+      },
+      addEventListener() {},
+      createElement(tag) {
+        assert.equal(tag, 'script');
+        return {};
+      },
+      getElementById() { return null; },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') {
+          return { getAttribute() { return 'assets/demoscene'; } };
+        }
+        return elements.get(selector) || null;
+      },
+      querySelectorAll() { return []; }
+    },
+    fetch: async () => ({
+      ok: true,
+      async json() { return { version: 'lazy123', apiVersion: 3, bundle: 'demoscene.js' }; }
+    }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia(query) {
+      return {
+        matches: (reducedMotion && query.includes('prefers-reduced-motion'))
+          || (mobile && query.includes('max-width')),
+        addEventListener() {}
+      };
+    },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  return {
+    root,
+    warnings,
+    factoryCalls,
+    controllers,
+    elements,
+    observers,
+    mountObserver: observers.find((observer) => observer.options.threshold === 0),
+    playbackObserver: observers.find((observer) => observer.options.rootMargin && observer !== observers.at(-1))
+  };
+}
+
+test('effect controllers mount only on their first viewport intersection', async () => {
+  const runtime = await runEffectRuntime();
+  const hero = runtime.elements.get('#hero-metaballs');
+
+  assert.deepEqual(runtime.factoryCalls, []);
+  assert.equal(runtime.mountObserver.observed.size, 7);
+
+  runtime.mountObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.1 }]);
+  assert.deepEqual(runtime.factoryCalls, ['metaballs']);
+  assert.equal(runtime.mountObserver.observed.has(hero), false);
+  assert.equal(runtime.playbackObserver.observed.has(hero), true);
+
+  runtime.mountObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 1 }]);
+  assert.deepEqual(runtime.factoryCalls, ['metaballs'], 'an effect must mount at most once before a remount');
+});
+
+test('lazy-mounted effects retain the desktop playback ratio budget', async () => {
+  const runtime = await runEffectRuntime();
+  const hero = runtime.elements.get('#hero-metaballs');
+  const projects = runtime.elements.get('#projects-plasma');
+  const opensource = runtime.elements.get('#opensource-mandelbrot');
+
+  runtime.mountObserver.deliver([
+    { target: hero, isIntersecting: true, intersectionRatio: 0.1 },
+    { target: projects, isIntersecting: true, intersectionRatio: 0.1 },
+    { target: opensource, isIntersecting: true, intersectionRatio: 0.1 }
+  ]);
+  runtime.playbackObserver.deliver([
+    { target: hero, isIntersecting: true, intersectionRatio: 0.4 },
+    { target: projects, isIntersecting: true, intersectionRatio: 0.8 },
+    { target: opensource, isIntersecting: true, intersectionRatio: 0.6 }
+  ]);
+
+  const running = runtime.controllers.filter((controller) => controller.running).map((controller) => controller.name);
+  assert.deepEqual(running, ['plasma', 'mandelbrot']);
+});
+
+test('lazy-mounted effects retain the one-scene mobile playback budget', async () => {
+  const runtime = await runEffectRuntime({ mobile: true });
+  const hero = runtime.elements.get('#hero-metaballs');
+  const projects = runtime.elements.get('#projects-plasma');
+
+  runtime.mountObserver.deliver([
+    { target: hero, isIntersecting: true, intersectionRatio: 0.1 },
+    { target: projects, isIntersecting: true, intersectionRatio: 0.1 }
+  ]);
+  runtime.playbackObserver.deliver([
+    { target: hero, isIntersecting: true, intersectionRatio: 0.4 },
+    { target: projects, isIntersecting: true, intersectionRatio: 0.8 }
+  ]);
+
+  const running = runtime.controllers.filter((controller) => controller.running).map((controller) => controller.name);
+  assert.deepEqual(running, ['plasma']);
+});
+
+test('reduced-motion effects lazy-render once and leave both effect observers', async () => {
+  const runtime = await runEffectRuntime({ reducedMotion: true });
+  const stars = runtime.elements.get('#stars-starfield');
+
+  assert.deepEqual(runtime.factoryCalls, []);
+  runtime.mountObserver.deliver([{ target: stars, isIntersecting: true, intersectionRatio: 0.01 }]);
+
+  assert.deepEqual(runtime.factoryCalls, ['starfield']);
+  assert.deepEqual(runtime.controllers[0].renderTimes, [0]);
+  assert.equal(runtime.controllers[0].running, false);
+  assert.equal(runtime.observers.some((observer) => observer.observed.has(stars)), false);
+});
+
+test('a lazy mount failure activates the static fallback', async () => {
+  const runtime = await runEffectRuntime({ throwingEffect: 'plasma' });
+  const projects = runtime.elements.get('#projects-plasma');
+
+  runtime.mountObserver.deliver([{ target: projects, isIntersecting: true, intersectionRatio: 0.2 }]);
+
+  assert.equal(runtime.root.classList.contains('demoscene-ready'), false);
+  assert.equal(runtime.root.classList.contains('demoscene-fallback'), true);
+  assert.match(runtime.warnings.join('\n'), /plasma mount failed/);
+});
 
 test('manifest loader succeeds and cache-busts the bundle', async () => {
   const result = await runLoader({
