@@ -23,14 +23,27 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script>
     (function () {
-      var stored = null;
-      try { stored = localStorage.getItem("theme"); } catch (error) {}
-      var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.dataset.theme = stored || (dark ? "dark" : "light");
+      var choice = null;
+      try {
+        choice = localStorage.getItem("theme-choice");
+        if (!choice) {
+          var legacy = localStorage.getItem("theme");
+          if (legacy === "light" || legacy === "dark") {
+            choice = legacy;
+            localStorage.setItem("theme-choice", choice);
+            localStorage.removeItem("theme");
+          }
+        }
+      } catch (error) {}
+      if (choice !== "light" && choice !== "dark") choice = "system";
+      var dark = choice === "dark" ||
+        (choice === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      document.documentElement.dataset.themeChoice = choice;
       document.documentElement.classList.add("js");
     }());
   </script>
-  <link rel="stylesheet" href="styles.css?v=mobile-veil-comments-1" />
+  <link rel="stylesheet" href="styles.css?v=mobile-veil-comments-2" />
 </head>
 <body>
   <header class="topbar">
@@ -48,9 +61,14 @@
         <a href="#contact" data-nav="contact">Contact</a>
       </nav>
       <div class="topbar-actions">
-        <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch colour theme" aria-pressed="false">
-          <span aria-hidden="true">◐</span>
-        </button>
+        <label class="theme-select-label" for="theme-select">
+          <span class="visually-hidden">Цветовая тема</span>
+          <select id="theme-select" class="theme-select">
+            <option value="system">Системная</option>
+            <option value="light">Светлая</option>
+            <option value="dark">Тёмная</option>
+          </select>
+        </label>
         <a class="topbar-link" href="https://github.com/axisrow" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
     </div>
@@ -301,6 +319,6 @@
   </main>
 
   <script src="effect-skins.js?v=mobile-hero-center-1"></script>
-  <script src="main.js?v=api-v3-visual-fix-3"></script>
+  <script src="main.js?v=api-v3-visual-fix-6"></script>
 </body>
 </html>

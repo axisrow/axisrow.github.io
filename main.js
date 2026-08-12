@@ -2,7 +2,8 @@
   "use strict";
 
   var root = document.documentElement;
-  var themeToggle = document.getElementById("theme-toggle");
+  var themeSelect = document.getElementById("theme-select");
+  var systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
   var menuToggle = document.getElementById("menu-toggle");
   var sectionNavigation = document.getElementById("section-navigation");
   var reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -13,19 +14,37 @@
   var libraryReady = false;
   var remountTimer = null;
 
-  function applyTheme(theme, persist) {
-    var nextTheme = theme === "dark" ? "dark" : "light";
-    root.dataset.theme = nextTheme;
-    if (themeToggle) {
-      themeToggle.setAttribute("aria-pressed", String(nextTheme === "dark"));
-      themeToggle.setAttribute("title", nextTheme === "dark" ? "Switch to light theme" : "Switch to dark theme");
-    }
+  function readStoredThemeChoice() {
+    // The <head> bootstrap script already resolved this (and migrated the
+    // legacy "theme" key) before main.js loaded; reuse it instead of
+    // re-reading localStorage. Fall back to a fresh read only if that
+    // bootstrap didn't run (e.g. it errored, or this is a test sandbox).
+    var stashed = root.dataset.themeChoice;
+    if (stashed === "light" || stashed === "dark" || stashed === "system") return stashed;
+    try {
+      var saved = localStorage.getItem("theme-choice");
+      if (saved === "light" || saved === "dark" || saved === "system") return saved;
+    } catch (error) {}
+    return "system";
+  }
+
+  function resolveTheme(choice) {
+    if (choice === "dark") return "dark";
+    if (choice === "light") return "light";
+    return systemThemeQuery.matches ? "dark" : "light";
+  }
+
+  function applyTheme(choice, persist) {
+    var next = choice === "dark" || choice === "light" ? choice : "system";
+    root.dataset.themeChoice = next;
+    root.dataset.theme = resolveTheme(next);
+    if (themeSelect) themeSelect.value = next;
     if (persist) {
-      try { localStorage.setItem("theme", nextTheme); } catch (error) {}
+      try { localStorage.setItem("theme-choice", next); } catch (error) {}
     }
   }
 
-  applyTheme(root.dataset.theme || "light", false);
+  applyTheme(readStoredThemeChoice(), false);
 
   function closeMenu() {
     if (!menuToggle || !sectionNavigation) return;
@@ -222,12 +241,18 @@
     }, 180);
   }
 
-  if (themeToggle) {
-    themeToggle.addEventListener("click", function () {
-      applyTheme(root.dataset.theme === "dark" ? "light" : "dark", true);
+  if (themeSelect) {
+    themeSelect.addEventListener("change", function () {
+      applyTheme(themeSelect.value, true);
       remountEffects();
     });
   }
+
+  systemThemeQuery.addEventListener("change", function () {
+    if (root.dataset.themeChoice !== "system") return;
+    applyTheme("system", false);
+    remountEffects();
+  });
 
   if (menuToggle) {
     menuToggle.addEventListener("click", function () {
