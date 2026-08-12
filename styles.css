@@ -988,6 +988,35 @@ main {
   color: rgba(246, 241, 232, 0.7);
 }
 
+/* Compact accent panels for the four fill-in Demoscene effects (fire, tunnel,
+   rotozoom, sineScroller). Each reuses .effect-frame / .effect-frame-shade /
+   .effect-caption so the caption legibility rules stay in one place; only
+   height and spacing vary per section. */
+.stars-effect-frame,
+.experience-effect-frame,
+.about-effect-frame,
+.contact-effect-frame {
+  height: clamp(120px, 16vw, 200px);
+  margin-bottom: var(--card-space);
+}
+
+.contact-effect-frame {
+  margin-bottom: var(--panel-space);
+}
+
+.stars-effect-frame .effect-caption,
+.experience-effect-frame .effect-caption,
+.about-effect-frame .effect-caption {
+  top: 50%;
+  left: clamp(20px, 4vw, 40px);
+}
+
+.stars-effect-frame .effect-caption span,
+.experience-effect-frame .effect-caption span,
+.about-effect-frame .effect-caption span {
+  margin-bottom: 0;
+}
+
 .plasma-frame {
   height: clamp(250px, 32vw, 380px);
   margin-bottom: 54px;

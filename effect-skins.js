@@ -109,6 +109,40 @@
           maxIterations: 140,
           escapeRadius: 16
         }
+      },
+      fire: {
+        motion: { speed: mobile ? 0.85 : 1 },
+        simulation: {
+          sourceWidthFrac: mobile ? 0.9 : 0.82,
+          sourceIntensity: mobile ? 0.85 : 1,
+          cooling: 0.27
+        }
+      },
+      tunnel: {
+        motion: { speed: 1, forwardSpeed: mobile ? 0.7 : 0.9, rotationSpeed: 0.22, colorCycleSpeed: 0.1 },
+        geometry: {
+          wallFrequency: 2.4,
+          angularFrequency: 3
+        }
+      },
+      rotozoom: {
+        motion: {
+          speed: 1,
+          rotationSpeed: 0.1,
+          zoomAmplitude: mobile ? 0.35 : 0.5,
+          zoomSpeed: 0.24
+        },
+        texture: {
+          tiles: mobile ? 4 : 5,
+          frequencyU: 3,
+          frequencyV: 2
+        }
+      },
+      sineScroller: {
+        motion: { speed: 1, scrollSpeed: mobile ? 0.14 : 0.18, phaseSpeed: 2.6, colorCycleSpeed: 0.28 },
+        text: { content: "AXISROW // PYTHON ENGINEER // OPEN SOURCE" },
+        wave: { baseline: 0.58, amplitude: mobile ? 0.05 : 0.06, cycles: 2.5 },
+        stars: { count: mobile ? 140 : 220 }
       }
     };
   }
@@ -124,13 +158,13 @@
     });
   }
 
-  function appearance(colors, includeInterior) {
+  function appearance(colors, extra) {
     var shared = {
       palette: colors.palette,
       colorCount: colors.colorCount,
       backgroundColor: colors.backgroundColor
     };
-    if (includeInterior) shared.interiorColor = ink;
+    if (extra) Object.keys(extra).forEach(function (key) { shared[key] = extra[key]; });
     return deepFreeze(shared);
   }
 
@@ -149,10 +183,27 @@
     });
     assertNoLocalAppearance(effects);
 
-    var commonAppearance = appearance(selectedTheme.colors, false);
+    var themeColors = selectedTheme.colors;
+    var commonAppearance = appearance(themeColors, null);
     effects.metaballs.appearance = commonAppearance;
     effects.plasma.appearance = commonAppearance;
-    effects.mandelbrot.appearance = appearance(selectedTheme.colors, true);
+    effects.mandelbrot.appearance = appearance(themeColors, { interiorColor: ink });
+    effects.fire.appearance = commonAppearance;
+    // Tunnel's vanishing point recedes into shadow: reuse the shared ink black
+    // instead of introducing a second dark colour, keeping one fog source.
+    effects.tunnel.appearance = appearance(themeColors, { fogColor: ink });
+    // Rotozoom's texture lattice needs a touch more shadow contrast to stay
+    // readable while rotating; still derived, no new palette hex.
+    effects.rotozoom.appearance = appearance(themeColors, { contrast: 0.82 });
+    // Sine scroller reuses the palette's warmest accent for the drop shadow and
+    // its coolest accent for the starfield behind the banner text.
+    effects.sineScroller.appearance = appearance(themeColors, {
+      shadowColor: ink,
+      shadowAlpha: 0.6,
+      starColor: themeColors.palette[2],
+      fontFamily: "IBM Plex Mono, monospace",
+      fontWeight: 700
+    });
     return deepFreeze(effects);
   }
 

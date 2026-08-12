@@ -43,7 +43,7 @@
       document.documentElement.classList.add("js");
     }());
   </script>
-  <link rel="stylesheet" href="styles.css?v=mobile-veil-comments-2" />
+  <link rel="stylesheet" href="styles.css?v=demoscene-quad-1" />
 </head>
 <body>
   <header class="topbar">
@@ -143,8 +143,15 @@
         </svg>
         </div>
       </div>
+      <!-- PROFILE:STARS:END -->
+      <div class="effect-frame stars-effect-frame reveal" aria-hidden="true">
+        <canvas id="stars-fire" class="effect-canvas" data-effect="fire"></canvas>
+        <div class="effect-frame-shade"></div>
+        <div class="effect-caption">
+          <span>Canvas 2D / Fire</span>
+        </div>
+      </div>
     </section>
-    <!-- PROFILE:STARS:END -->
 
     <!-- PROFILE:PROJECTS:START -->
     <section id="projects" class="section section-projects">
@@ -240,6 +247,13 @@
         <h2 class="section-title">Engineering through shipped work.</h2>
       </div>
       <div class="experience-field veil-panel">
+      <div class="effect-frame experience-effect-frame reveal" aria-hidden="true">
+        <canvas id="experience-tunnel" class="effect-canvas" data-effect="tunnel"></canvas>
+        <div class="effect-frame-shade"></div>
+        <div class="effect-caption">
+          <span>Canvas 2D / Tunnel</span>
+        </div>
+      </div>
       <div class="timeline">
         <article class="timeline-item reveal">
           <span class="timeline-index">01</span>
@@ -281,6 +295,13 @@
         <h2 class="section-title">Calm systems for complicated work.</h2>
       </div>
       <div class="about-field veil-panel">
+      <div class="effect-frame about-effect-frame reveal" aria-hidden="true">
+        <canvas id="about-rotozoom" class="effect-canvas" data-effect="rotozoom"></canvas>
+        <div class="effect-frame-shade"></div>
+        <div class="effect-caption">
+          <span>Canvas 2D / Rotozoom</span>
+        </div>
+      </div>
       <div class="about-grid">
         <div class="about-copy reveal">
           <p>I build AI agent tooling, Telegram automation, and data systems with a bias toward explicit behaviour, observable failures, and boring operations.</p>
@@ -300,6 +321,10 @@
 
     <section id="contact" class="section section-contact">
       <div class="contact-field reveal">
+      <div class="effect-frame contact-effect-frame" aria-hidden="true">
+        <canvas id="contact-scroller" class="effect-canvas" data-effect="sineScroller"></canvas>
+        <div class="effect-frame-shade"></div>
+      </div>
       <div class="contact-card veil-panel">
         <p class="availability"><span></span> Open to contributions, tooling, and selected contract work</p>
         <h2>Need a system that should keep working?</h2>
@@ -318,7 +343,7 @@
     </section>
   </main>
 
-  <script src="effect-skins.js?v=mobile-hero-center-1"></script>
-  <script src="main.js?v=api-v3-visual-fix-6"></script>
+  <script src="effect-skins.js?v=demoscene-quad-1"></script>
+  <script src="main.js?v=demoscene-quad-1"></script>
 </body>
 </html>

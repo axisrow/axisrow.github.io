@@ -59,10 +59,10 @@ test('animated fields remain behind readable mobile cards', async () => {
   assert.doesNotMatch(css, /\.proof-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
 });
 
-test('only the three restrained Demoscene accents are mounted', async () => {
+test('exactly the seven approved Demoscene accents are mounted, one per section', async () => {
   const html = await source('index.html');
   const effects = Array.from(html.matchAll(/data-effect="([^"]+)"/g), (match) => match[1]);
-  assert.deepEqual(effects, ['metaballs', 'plasma', 'mandelbrot']);
+  assert.deepEqual(effects, ['metaballs', 'fire', 'plasma', 'mandelbrot', 'tunnel', 'rotozoom', 'sineScroller']);
   assert.doesNotMatch(html, /gsap|ScrollTrigger|vendor\/demoscene|copper-bars|feedback|starfield/i);
 });
 
@@ -143,7 +143,7 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   assert.doesNotMatch(script, /palette:|fieldStrength:|renderResolution:/);
 });
 
-test('all three effects use one exact palette in each theme', async () => {
+test('all seven effects use one exact palette in each theme', async () => {
   const skinScript = await source('effect-skins.js');
   const sandbox = { window: null };
   sandbox.window = sandbox;
@@ -154,19 +154,29 @@ test('all three effects use one exact palette in each theme', async () => {
     light: ['#f7f1e6', '#cad8dc', '#79a7ad', '#d49368', '#526b75'],
     dark: ['#090b0f', '#17405f', '#2e7180', '#dc8d67', '#f0c36d']
   };
+  const allEffects = ['metaballs', 'plasma', 'mandelbrot', 'fire', 'tunnel', 'rotozoom', 'sineScroller'];
   for (const theme of ['light', 'dark']) {
     const skins = sandbox.PortfolioEffectSkins.create(theme, false);
-    for (const name of ['metaballs', 'plasma', 'mandelbrot']) {
+    for (const name of allEffects) {
       assert.deepEqual(Array.from(skins[name].appearance.palette), expected[theme], `${theme} ${name}`);
       assert.equal(skins[name].appearance.colorCount, 256, `${theme} ${name} colorCount`);
       assert.equal(skins[name].appearance.backgroundColor, expected[theme][0]);
     }
     assert.equal(skins.mandelbrot.appearance.interiorColor, expected.dark[0]);
+    // Fog/shadow accents on tunnel and sineScroller must reuse the shared ink
+    // black, not introduce a second dark colour.
+    assert.equal(skins.tunnel.appearance.fogColor, expected.dark[0]);
+    assert.equal(skins.sineScroller.appearance.shadowColor, expected.dark[0]);
     assert.equal(skins.metaballs.appearance, skins.plasma.appearance);
+    assert.equal(skins.metaballs.appearance, skins.fire.appearance);
     assert.equal(skins.metaballs.appearance.palette, skins.mandelbrot.appearance.palette);
+    assert.equal(skins.metaballs.appearance.palette, skins.tunnel.appearance.palette);
+    assert.equal(skins.metaballs.appearance.palette, skins.rotozoom.appearance.palette);
+    assert.equal(skins.metaballs.appearance.palette, skins.sineScroller.appearance.palette);
     assert.ok(Object.isFrozen(skins.metaballs.appearance));
     assert.ok(Object.isFrozen(skins.metaballs.appearance.palette));
     assert.ok(Object.isFrozen(skins.mandelbrot.appearance));
+    for (const name of allEffects) assert.ok(Object.isFrozen(skins[name].appearance));
   }
   for (const color of [...expected.light, ...expected.dark]) {
     assert.equal(skinScript.split(color).length - 1, 1, `${color} must have one source of truth`);
@@ -185,6 +195,12 @@ test('shared colors cannot be overridden from an individual effect', async () =>
       metaballs: { appearance: { palette: ['#000000', '#ffffff'] } }
     }),
     /PortfolioEffectSkins\.effects\.metaballs\.appearance is forbidden/
+  );
+  assert.throws(
+    () => sandbox.PortfolioEffectSkins.create('dark', false, {
+      sineScroller: { appearance: { starColor: '#ffffff' } }
+    }),
+    /PortfolioEffectSkins\.effects\.sineScroller\.appearance is forbidden/
   );
   const skins = sandbox.PortfolioEffectSkins.create('dark', false);
   assert.throws(() => { skins.metaballs.appearance.palette[0] = '#ffffff'; }, TypeError);

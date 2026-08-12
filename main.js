@@ -95,6 +95,34 @@
         surface: "preview",
         staticOnly: reduced,
         options: skins.mandelbrot
+      },
+      {
+        name: "fire",
+        selector: "#stars-fire",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.fire
+      },
+      {
+        name: "tunnel",
+        selector: "#experience-tunnel",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.tunnel
+      },
+      {
+        name: "rotozoom",
+        selector: "#about-rotozoom",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.rotozoom
+      },
+      {
+        name: "sineScroller",
+        selector: "#contact-scroller",
+        surface: "preview",
+        staticOnly: reduced,
+        options: skins.sineScroller
       }
     ];
   }
