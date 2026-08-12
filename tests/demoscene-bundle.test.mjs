@@ -162,7 +162,14 @@ test('vendored v3 bundle builds every portfolio effect from the main.js descript
 function makeMainJsSandbox(theme = 'light') {
   const noopMedia = { addEventListener() {}, removeEventListener() {} };
   const document = {
-    documentElement: { dataset: { theme }, classList: { add() {}, remove() {}, toggle() {}, contains: () => false } },
+    // main.js's IIFE calls applyTheme(readStoredThemeChoice(), false) at load
+    // time, which re-resolves root.dataset.theme from root.dataset.themeChoice
+    // (falling back to "system" + matchMedia() when themeChoice is absent). Our
+    // stubbed matchMedia() always reports { matches: false }, so without an
+    // explicit themeChoice matching `theme`, a requested "dark" sandbox gets
+    // silently reset to "light" before applyTunedV3Overrides ever runs — which
+    // would make the dark-theme test iteration a no-op duplicate of light.
+    documentElement: { dataset: { theme, themeChoice: theme }, classList: { add() {}, remove() {}, toggle() {}, contains: () => false } },
     getElementById: () => null,
     querySelector: () => null,
     querySelectorAll: () => [],
@@ -191,13 +198,20 @@ function makeMainJsSandbox(theme = 'light') {
   };
   win.window = win;
   const sandbox = vm.createContext(win);
-  return sandbox;
+  return { sandbox, document };
 }
 
 async function loadMainJsOverrides(theme) {
-  const sandbox = makeMainJsSandbox(theme);
+  const { sandbox, document } = makeMainJsSandbox(theme);
   const mainSource = await source('main.js');
   vm.runInContext(mainSource, sandbox, { filename: 'main.js' });
+  // Guard against the sandbox's own theme drifting away from what we asked
+  // for (main.js's load-time applyTheme() call can silently override it —
+  // see the comment in makeMainJsSandbox). If this fails, applyTunedV3Overrides
+  // below would be exercised under the wrong theme and the test would give
+  // false confidence about dark/light coverage.
+  assert.equal(document.documentElement.dataset.theme, theme,
+    `test sandbox theme drifted: requested ${theme}, main.js resolved ${document.documentElement.dataset.theme}`);
   return sandbox.window.applyTunedV3Overrides;
 }
 
