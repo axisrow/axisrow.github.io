@@ -11,6 +11,7 @@
   var navLinks = Array.prototype.slice.call(document.querySelectorAll(".section-nav a[data-nav]"));
   var sectionStates = new Map();
   var scenes = [];
+  var activatedEffectSelectors = new Set();
   var libraryReady = false;
   var remountTimer = null;
 
@@ -63,8 +64,9 @@
 
   function destroyEffects() {
     scenes.forEach(function (scene) {
-      scene.controller.destroy();
-      observer.unobserve(scene.element);
+      effectMountObserver.unobserve(scene.element);
+      effectPlaybackObserver.unobserve(scene.element);
+      if (scene.controller) scene.controller.destroy();
     });
     scenes = [];
   }
@@ -134,12 +136,12 @@
   function syncEffectPlayback() {
     var allowed = mobileQuery.matches ? 1 : 2;
     var active = document.hidden ? [] : scenes
-      .filter(function (scene) { return !scene.staticOnly && scene.visible; })
+      .filter(function (scene) { return scene.controller && !scene.staticOnly && scene.visible; })
       .sort(function (left, right) { return right.ratio - left.ratio; })
       .slice(0, allowed);
 
     scenes.forEach(function (scene) {
-      if (scene.staticOnly) return;
+      if (!scene.controller || scene.staticOnly) return;
       if (active.indexOf(scene) !== -1) scene.controller.start();
       else scene.controller.stop();
     });
@@ -151,8 +153,8 @@
   // controls live here as site-level overrides on top of the skin. The skin
   // does NOT emit a `render` group for plasma (the library owns it via a
   // profile slot), so the group is created before it is written — without that,
-  // `config.render.resolution` throws a TypeError that aborts the unguarded
-  // mountEffects() loop and drops the whole site to the static fallback.
+  // `config.render.resolution` throws a TypeError that aborts an effect mount
+  // and drops the whole site to the static fallback.
   // Exposed on window so the regression test drives this exact code path
   // instead of re-implementing it (which would silently drift out of sync).
   function applyTunedV3Overrides(name, options) {
@@ -197,6 +199,110 @@
   }
   window.applyTunedV3Overrides = applyTunedV3Overrides;
 
+  function mountEffectScene(scene) {
+    if (scene.controller) return;
+
+    var definition = scene.definition;
+    var element = scene.element;
+    var factory = window.Demoscene[definition.name];
+    activatedEffectSelectors.add(definition.selector);
+    effectMountObserver.unobserve(element);
+    // API v3 takes a descriptor `{ skin, surface, device, config }`. The skin
+    // carries only algorithmic identity, motion and colours (see
+    // effect-skins.js); execution budgets come from the library's matched
+    // (surface, device) profile slot. `device: "auto"` lets the library pick
+    // mobile vs desktop from the viewport itself.
+    var descriptor = {
+      skin: "classic",
+      surface: definition.surface,
+      device: "auto",
+      config: definition.options
+    };
+    descriptor.config = applyTunedV3Overrides(definition.name, definition.options);
+    var controller = factory(element, descriptor);
+    var cpuOnlyMandelbrot = definition.name === "mandelbrot"
+      && definition.options.render.backend !== "canvas2d"
+      && typeof controller.getStats === "function"
+      && controller.getStats().backend === "canvas2d";
+    if (cpuOnlyMandelbrot) {
+      // The CPU fallback paints its one static frame on the main thread and
+      // its cost scales with render.resolution (~130ms at 0.45 vs ~640ms at
+      // full res on a fast machine). Mounting is cheap — nothing is rendered
+      // until renderOnce below — so remount at a reduced resolution first.
+      controller.destroy();
+      controller = null;
+      try {
+        descriptor.config.render.resolution = 0.45;
+        controller = factory(element, descriptor);
+      } catch (error) {
+        // The first controller has already been released; leave no partial
+        // scene behind when the lower-resolution retry also fails.
+        throw error;
+      }
+    }
+
+    scene.controller = controller;
+    // A full-resolution CPU fallback is kept as the correctness path, but
+    // the portfolio presents one static frame so an old/no-WebGL browser
+    // cannot turn that fallback into a scroll-blocking animation.
+    scene.staticOnly = Boolean(definition.staticOnly || cpuOnlyMandelbrot);
+
+    if (scene.staticOnly) {
+      if (typeof controller.renderOnce === "function") {
+        try {
+          controller.renderOnce(0);
+        } catch (error) {
+          controller.destroy();
+          scene.controller = null;
+          scenes.splice(scenes.indexOf(scene), 1);
+          throw error;
+        }
+      }
+      else {
+        controller.destroy();
+        scene.controller = null;
+        scenes.splice(scenes.indexOf(scene), 1);
+      }
+    } else {
+      effectPlaybackObserver.observe(element);
+    }
+  }
+
+  function useStaticFallback(error) {
+    destroyEffects();
+    root.classList.remove("demoscene-ready");
+    root.classList.add("demoscene-fallback");
+    console.warn("Animated accents are using their static fallback.", error.message);
+  }
+
+  var effectMountObserver = new IntersectionObserver(function (entries) {
+    try {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        scenes.forEach(function (scene) {
+          if (scene.element === entry.target && !scene.controller) mountEffectScene(scene);
+        });
+      });
+    } catch (error) {
+      useStaticFallback(error);
+    }
+  }, { threshold: 0 });
+
+  // Keep playback visibility and intersectionRatio accounting separate from
+  // the one-shot mount observer so the existing 2-desktop / 1-mobile budget
+  // keeps its original thresholds and viewport margins.
+  var effectPlaybackObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      scenes.forEach(function (scene) {
+        if (scene.element === entry.target) {
+          scene.visible = entry.isIntersecting;
+          scene.ratio = entry.intersectionRatio;
+        }
+      });
+    });
+    syncEffectPlayback();
+  }, { threshold: [0, 0.08, 0.2, 0.4, 0.6, 0.8], rootMargin: "-8% 0px -12% 0px" });
+
   function mountEffects() {
     destroyEffects();
     if (!libraryReady || !window.Demoscene) {
@@ -209,50 +315,24 @@
       var element = document.querySelector(definition.selector);
       var factory = window.Demoscene[definition.name];
       if (!element || typeof factory !== "function") return;
-      // API v3 takes a descriptor `{ skin, surface, device, config }`. The skin
-      // carries only algorithmic identity, motion and colours (see
-      // effect-skins.js); execution budgets come from the library's matched
-      // (surface, device) profile slot. `device: "auto"` lets the library pick
-      // mobile vs desktop from the viewport itself.
-      var descriptor = {
-        skin: "classic",
-        surface: definition.surface,
-        device: "auto",
-        config: definition.options
-      };
-      descriptor.config = applyTunedV3Overrides(definition.name, definition.options);
-      var controller = factory(element, descriptor);
-      var cpuOnlyMandelbrot = definition.name === "mandelbrot"
-        && definition.options.render.backend !== "canvas2d"
-        && typeof controller.getStats === "function"
-        && controller.getStats().backend === "canvas2d";
-      if (cpuOnlyMandelbrot) {
-        // The CPU fallback paints its one static frame on the main thread and
-        // its cost scales with render.resolution (~130ms at 0.45 vs ~640ms at
-        // full res on a fast machine). Mounting is cheap — nothing is rendered
-        // until renderOnce below — so remount at a reduced resolution first.
-        controller.destroy();
-        descriptor.config.render.resolution = 0.45;
-        controller = factory(element, descriptor);
-      }
       var scene = {
-        controller: controller,
+        controller: null,
+        definition: definition,
         element: element,
-        // A full-resolution CPU fallback is kept as the correctness path, but
-        // the portfolio presents one static frame so an old/no-WebGL browser
-        // cannot turn that fallback into a scroll-blocking animation.
-        staticOnly: Boolean(definition.staticOnly || cpuOnlyMandelbrot),
+        staticOnly: Boolean(definition.staticOnly),
         visible: false,
         ratio: 0
       };
       scenes.push(scene);
-      if (scene.staticOnly) {
-        if (typeof controller.renderOnce === "function") controller.renderOnce(0);
-        else {
-          controller.destroy();
-          scenes.pop();
-        }
-      } else observer.observe(element);
+
+      if (activatedEffectSelectors.has(definition.selector)) {
+        mountEffectScene(scene);
+      } else {
+        // Observe only until the canvas first meets the viewport. Reduced-
+        // motion scenes also take this path, renderOnce(0) immediately on that
+        // first intersection, then unsubscribe without entering playback.
+        effectMountObserver.observe(element);
+      }
     });
 
     root.classList.remove("demoscene-fallback");
@@ -266,7 +346,11 @@
     root.classList.add("effects-changing");
     window.clearTimeout(remountTimer);
     remountTimer = window.setTimeout(function () {
-      mountEffects();
+      try {
+        mountEffects();
+      } catch (error) {
+        useStaticFallback(error);
+      }
       window.requestAnimationFrame(function () {
         root.classList.remove("effects-changing");
       });
@@ -313,15 +397,6 @@
       if (target.classList.contains("reveal") && entry.isIntersecting) {
         target.classList.add("is-visible");
         observer.unobserve(target);
-      }
-
-      if (target.dataset.effect) {
-        scenes.forEach(function (scene) {
-          if (scene.element === target) {
-            scene.visible = entry.isIntersecting;
-            scene.ratio = entry.intersectionRatio;
-          }
-        });
       }
 
       if (target.id && sectionStates.has(target.id)) {
@@ -413,10 +488,7 @@
       libraryReady = true;
       mountEffects();
     } catch (error) {
-      destroyEffects();
-      root.classList.remove("demoscene-ready");
-      root.classList.add("demoscene-fallback");
-      console.warn("Animated accents are using their static fallback.", error.message);
+      useStaticFallback(error);
     } finally {
       window.clearTimeout(timeout);
     }
