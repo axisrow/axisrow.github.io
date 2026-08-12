@@ -118,14 +118,20 @@
       },
       tunnel: {
         // The library defaults (forwardSpeed 0.9 / rotationSpeed 0.25) are demo
-        // pace. Behind the contact CTA that reads as motion sickness, so the
-        // corridor is slowed to a drift.
+        // pace. Behind the experience timeline the corridor is slowed to a
+        // drift so the copy remains the focus.
         motion: { speed: 1, forwardSpeed: mobile ? 0.45 : 0.55, rotationSpeed: mobile ? 0.08 : 0.12, colorCycleSpeed: 0.05 }
       },
-      feedback: {
-        motion: { speed: 0.8, colorCycleSpeed: 0.08 },
-        geometry: { sides: 6, passes: mobile ? 2 : 3 },
-        feedback: { decayPerSecond: 0.35 }
+      rotozoom: {
+        motion: {
+          speed: 0.42,
+          rotationSpeed: 0.07,
+          zoomBase: 1,
+          zoomAmplitude: 0.35,
+          zoomSpeed: 0.18,
+          zoomMin: 0.4
+        },
+        texture: { tiles: mobile ? 4 : 5 }
       },
       copperBars: {
         motion: { speed: 1, colorCycleSpeed: 0.03 },
@@ -167,7 +173,7 @@
     mandelbrot: ["interiorColor", "colorScale", "colorCurve", "colorOffset", "cycleSpeed"],
     starfield: ["trailFade", "minAlpha", "maxAlpha", "minLineWidth", "maxLineWidth"],
     tunnel: ["fogColor"],
-    feedback: ["strokeAlpha"]
+    rotozoom: ["contrast"]
   });
 
   function appearance(colors, name, modifiers) {
@@ -226,9 +232,7 @@
     });
     // The corridor recedes into the page background rather than a foreign navy.
     effects.tunnel.appearance = appearance(themeColors, "tunnel", { fogColor: backdrop });
-    effects.feedback.appearance = appearance(themeColors, "feedback", {
-      strokeAlpha: mobile ? 0.45 : 0.55
-    });
+    effects.rotozoom.appearance = appearance(themeColors, "rotozoom", null);
     return deepFreeze(effects);
   }
 

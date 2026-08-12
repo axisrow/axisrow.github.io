@@ -22,7 +22,7 @@ There is no dev server, lint, or build. To view locally, open `index.html` direc
 `tests/site-smoke.test.mjs` is the guardrail for this repo. It runs `main.js`/`effect-skins.js` inside a `vm` sandbox with mocked DOM and **asserts on the source text of `index.html`, `main.js`, `effect-skins.js`, and `styles.css` via regex**. Many tests pin exact substrings — when editing those files, expect to need test updates in lockstep. Key invariants enforced:
 
 - **Section order is fixed**: `hero → stars → projects → opensource → experience → about → contact`. Don't reorder.
-- **Exactly seven** `data-effect` canvases exist, pinned in document order: `metaballs` (hero), `starfield` (stars), `plasma` (projects), `mandelbrot` (opensource), `copperBars` (experience), `feedback` (about), `tunnel` (contact). Forbidden: GSAP, ScrollTrigger, vendor bundles.
+- **Exactly seven** `data-effect` canvases exist, pinned in document order: `metaballs` (hero), `starfield` (stars), `plasma` (projects), `mandelbrot` (opensource), `tunnel` (experience), `rotozoom` (about), `copperBars` (contact). Forbidden: GSAP, ScrollTrigger, vendor bundles.
 - **Open Source proof field**: asymmetric R1 grid (`minmax(360px,0.38fr) minmax(0,0.62fr)`), exactly 4 `proof-row` entries. The `mandelbrot-proof-fallback.jpg` must be a real JPEG > 40 KB (rendered fallback). `og.png` must be 1200×630.
 - **Effect-skins palettes are single-source-of-truth**: each theme color hex may appear exactly once; all three effects share one frozen `appearance`. Overriding `appearance` per-effect throws at runtime (`assertNoLocalAppearance`). Theme + exact palette + field/runtime constants are pinned.
 
