@@ -148,6 +148,7 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   assert.match(script, /manifest\.apiVersion !== 3/);
   assert.match(script, /searchParams\.set\("v", manifest\.version\)/);
   assert.match(script, /demoscene-fallback/);
+  assert.match(script, /catch \(error\) \{\s*destroyEffects\(\);\s*root\.classList\.remove\("demoscene-ready"\);\s*root\.classList\.add\("demoscene-fallback"\);/);
   assert.match(script, /controller\.renderOnce\(0\)/);
   assert.match(script, /controller\.getStats\(\)\.backend === "canvas2d"/);
   assert.match(script, /definition\.staticOnly \|\| cpuOnlyMandelbrot/);
