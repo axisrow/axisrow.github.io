@@ -65,11 +65,11 @@ test('every section accent is mounted in document order and nothing else is', as
   // Document order, which is NOT the effectDefinitions() order in main.js —
   // that one is asserted separately below.
   assert.deepEqual(effects, [
-    'metaballs', 'starfield', 'plasma', 'mandelbrot', 'copperBars', 'feedback', 'tunnel'
+    'metaballs', 'starfield', 'plasma', 'mandelbrot', 'tunnel', 'rotozoom', 'copperBars'
   ]);
   // The point of this guard was always to keep animation libraries and vendored
-  // bundles out of the page; copper-bars/feedback/starfield are now first-party
-  // effect names rather than forbidden substrings.
+  // bundles out of the page; the section accent names are now first-party
+  // effect identifiers rather than forbidden substrings.
   assert.doesNotMatch(html, /gsap|ScrollTrigger|vendor\/demoscene/i);
 });
 
@@ -157,7 +157,7 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   // missing factory, so requiring them here would turn a partial bundle into a
   // whole-site fallback instead of four missing accents.
   assert.match(script, /var requiredEffects = \["metaballs", "plasma", "mandelbrot"\];/);
-  for (const name of ['starfield', 'copperBars', 'feedback', 'tunnel']) {
+  for (const name of ['starfield', 'tunnel', 'rotozoom', 'copperBars']) {
     assert.match(script, new RegExp(`name: "${name}",\\s*selector: "#[a-z-]+",\\s*surface: "preview",\\s*staticOnly: reduced`));
   }
   assert.match(html, /effect-skins\.js/);
@@ -171,7 +171,7 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
 });
 
 const EFFECT_NAMES = [
-  'metaballs', 'plasma', 'mandelbrot', 'starfield', 'copperBars', 'feedback', 'tunnel'
+  'metaballs', 'plasma', 'mandelbrot', 'starfield', 'tunnel', 'rotozoom', 'copperBars'
 ];
 
 test('all seven effects use one exact palette in each theme', async () => {
@@ -226,7 +226,7 @@ test('no effect carries an appearance key its library defaults would reject', as
     mandelbrot: ['interiorColor', 'colorScale', 'colorCurve', 'colorOffset', 'cycleSpeed'],
     starfield: ['trailFade', 'minAlpha', 'maxAlpha', 'minLineWidth', 'maxLineWidth'],
     tunnel: ['fogColor'],
-    feedback: ['strokeAlpha']
+    rotozoom: ['contrast']
   };
   for (const mobile of [false, true]) {
     const skins = sandbox.PortfolioEffectSkins.create('dark', mobile);
@@ -370,9 +370,9 @@ async function runLoader({
                 plasma() {},
                 mandelbrot() {},
                 starfield() {},
-                copperBars() {},
-                feedback() {},
-                tunnel() {}
+                tunnel() {},
+                rotozoom() {},
+                copperBars() {}
               };
             }
             element.onload();
