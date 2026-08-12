@@ -413,6 +413,7 @@
       libraryReady = true;
       mountEffects();
     } catch (error) {
+      destroyEffects();
       root.classList.remove("demoscene-ready");
       root.classList.add("demoscene-fallback");
       console.warn("Animated accents are using their static fallback.", error.message);
