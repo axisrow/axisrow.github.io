@@ -730,10 +730,10 @@ test('both themes and reduced-motion rendering are present', async () => {
   assert.match(css, /\.proof-field\s*\{/);
   assert.match(css, /grid-template-columns: minmax\(360px, 0\.38fr\) minmax\(0, 0\.62fr\)/);
   assert.match(css, /\.proof-field\s*\{[^}]*height: 380px;/s);
-  // Panels over a live canvas share one lighter veil token instead of each
-  // pinning its own near-opaque value.
-  assert.match(css, /--veil-canvas: rgba\(/);
-  assert.match(css, /\.proof-field-copy\.veil-panel[^{]*\{[^}]*background: var\(--veil-canvas\)/s);
+  // Panels over a live canvas fade towards their canvas instead of painting a
+  // flat near-opaque plate, matching .experience-field / .about-field.
+  assert.match(css, /\.contact-card\.veil-panel[^{]*\{[^}]*linear-gradient\(90deg, var\(--veil\), var\(--veil\) 46%, transparent 100%\)/s);
+  assert.match(css, /\.projects-field-copy\.veil-panel\s*\{[^}]*linear-gradient\(270deg, var\(--veil\), var\(--veil\) 46%, transparent 100%\)/s);
   assert.match(css, /\.proof-field-copy\s*\{[^}]*overflow: hidden/s);
   assert.match(css, /mandelbrot-proof-fallback\.jpg/);
   assert.doesNotMatch(css, /backdrop-filter: blur\(3px\)/);
