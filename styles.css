@@ -980,7 +980,9 @@ main {
   position: relative;
   left: 50%;
   width: min(1440px, calc(100vw - 24px));
-  padding: clamp(24px, 5vw, 70px);
+  /* No inner padding: the card below is the panel, so its border has to sit on
+     the field edge like the experience/about panels do. */
+  padding: 0;
   overflow: hidden;
   isolation: isolate;
   border-block: 1px solid var(--veil-border);
@@ -1367,9 +1369,11 @@ main {
      it to stay above the copper-bars layer. */
   position: relative;
   z-index: 2;
-  width: min(940px, 82%);
+  /* Fill the field's content box instead of carrying its own width and a
+     percentage offset: that made contact the one section whose card edges did
+     not line up with the copy panels above it. */
+  width: 100%;
   padding: var(--panel-space);
-  margin-left: 4%;
   border: 1px solid var(--veil-border);
   border-radius: var(--surface-radius);
   background: var(--veil);
@@ -1978,12 +1982,6 @@ main {
 
   .contact-field {
     width: 100%;
-    padding: 0;
-  }
-
-  .contact-card {
-    width: 100%;
-    margin-left: 0;
   }
 
   .plasma-frame {
