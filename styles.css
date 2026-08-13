@@ -275,6 +275,15 @@ a {
   -moz-appearance: none;
 }
 
+/* The transparent color above hides the closed select behind its icon, but
+   browsers that render <option> text with the select's author color would
+   inherit that same transparent value into the open dropdown list. Restore a
+   real, opaque color there so System/Light/Dark stay readable when open. */
+.theme-select option {
+  color: var(--ink);
+  background: var(--surface-solid);
+}
+
 .theme-select:focus-visible {
   outline: none;
 }

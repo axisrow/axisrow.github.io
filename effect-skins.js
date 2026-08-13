@@ -112,13 +112,18 @@
       },
       starfield: {
         motion: { speed: 0.6 },
-        // Only the population is raised. The profile slot resolves to 600 on
-        // both surfaces; desktop doubles to 1200 (the slot's own densityMax, so
-        // the clamp does not silently eat it) while mobile stops at 900 to keep
-        // the per-frame projection cost sane on a phone. Every other particles.*
-        // key is projection identity and stays with the profile slot, which
-        // keeps the seed sequence — and the composition — stable.
-        particles: { particleCount: mobile ? 900 : 1200 }
+        // Only the population is raised, and only modestly. This surface
+        // mounts on the "preview" slot, whose vendored budgets are 120
+        // (desktop) / 90 (mobile) particleCount under densityMode "explicit"
+        // -- that mode passes particleCount straight through with no
+        // densityMax clamp (the clamp only applies in "area" mode), so any
+        // multiplier here lands on the render loop verbatim. Doubling stays
+        // well inside what a panel-sized, 24-30fps strip can absorb; the 10x
+        // figure a prior version of this comment claimed was wrong. Every
+        // other particles.* key is projection identity and stays with the
+        // profile slot, which keeps the seed sequence — and the
+        // composition — stable.
+        particles: { particleCount: mobile ? 180 : 240 }
       },
       tunnel: {
         // The library defaults (forwardSpeed 0.9 / rotationSpeed 0.25) are demo
