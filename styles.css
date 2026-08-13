@@ -980,9 +980,7 @@ main {
   position: relative;
   left: 50%;
   width: min(1440px, calc(100vw - 24px));
-  /* No inner padding: the card below is the panel, so its border has to sit on
-     the field edge like the experience/about panels do. */
-  padding: 0;
+  padding: clamp(24px, 5vw, 70px);
   overflow: hidden;
   isolation: isolate;
   border-block: 1px solid var(--veil-border);
@@ -1369,25 +1367,12 @@ main {
      it to stay above the copper-bars layer. */
   position: relative;
   z-index: 2;
-  /* Fill the field's content box instead of carrying its own width and a
-     percentage offset: that made contact the one section whose card edges did
-     not line up with the copy panels above it. */
-  width: 100%;
+  width: min(940px, 82%);
   padding: var(--panel-space);
+  margin-left: 4%;
   border: 1px solid var(--veil-border);
   border-radius: var(--surface-radius);
-  /* Full-width now, so an opaque fill would cover the copper bars entirely --
-     they used to show in the gap this card left on its right. Fade towards the
-     bottom-right instead, where the visual's mask is focused (78% 72%), exactly
-     like the experience/about panels do for their own canvases. The copy side
-     keeps a near-opaque backing. */
-  background:
-    linear-gradient(
-      118deg,
-      var(--veil) 0 42%,
-      color-mix(in srgb, var(--veil) 62%, transparent) 66%,
-      transparent 100%
-    );
+  background: var(--veil);
   box-shadow: none;
 }
 
@@ -1710,9 +1695,7 @@ main {
   .hero {
     min-height: 100svh;
     align-items: flex-end;
-    /* 24px matches the gutter `.section` uses, so the hero copy plane starts
-       on the same vertical line as every block below it. */
-    padding: 124px 24px 80px;
+    padding: 124px 20px 80px;
   }
 
   .hero-copy {
@@ -1981,18 +1964,21 @@ main {
     grid-column: 2;
   }
 
-  /* These three sit inside `.section`, which already carries the 24px page
-     gutter. Subtracting another 24px on top of it pushed them 36px off the
-     edge while the copy panels inside the full-bleed fields stayed at 24px.
-     Span the section instead so every mobile block shares one gutter. */
   .experience-field,
   .about-field {
-    width: 100%;
+    left: 50%;
+    width: calc(100% - 24px);
     padding: var(--panel-space);
   }
 
   .contact-field {
+    width: calc(100% - 24px);
+    padding: 12px;
+  }
+
+  .contact-card {
     width: 100%;
+    margin-left: 0;
   }
 
   .plasma-frame {
