@@ -1376,7 +1376,18 @@ main {
   padding: var(--panel-space);
   border: 1px solid var(--veil-border);
   border-radius: var(--surface-radius);
-  background: var(--veil);
+  /* Full-width now, so an opaque fill would cover the copper bars entirely --
+     they used to show in the gap this card left on its right. Fade towards the
+     bottom-right instead, where the visual's mask is focused (78% 72%), exactly
+     like the experience/about panels do for their own canvases. The copy side
+     keeps a near-opaque backing. */
+  background:
+    linear-gradient(
+      118deg,
+      var(--veil) 0 42%,
+      color-mix(in srgb, var(--veil) 62%, transparent) 66%,
+      transparent 100%
+    );
   box-shadow: none;
 }
 
