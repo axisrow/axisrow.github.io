@@ -79,7 +79,7 @@
         }
       },
       plasma: {
-        motion: { speed: 0.42, paletteCycleSpeed: 0 },
+        motion: { speed: 1.15, paletteCycleSpeed: 0 },
         field: mobile ? {
           frequencies: [0.09, 0.09, 0.09, 1.8],
           radialCenterX: 0.5,
@@ -111,10 +111,19 @@
         }
       },
       starfield: {
-        motion: { speed: 0.6 }
-        // particles.* is projection identity and the profile slot already sizes
-        // the population per (surface, device); leaving it alone keeps the seed
-        // sequence — and therefore the composition — stable across breakpoints.
+        motion: { speed: 0.6 },
+        // Only the population is raised, and only modestly. This surface
+        // mounts on the "preview" slot, whose vendored budgets are 120
+        // (desktop) / 90 (mobile) particleCount under densityMode "explicit"
+        // -- that mode passes particleCount straight through with no
+        // densityMax clamp (the clamp only applies in "area" mode), so any
+        // multiplier here lands on the render loop verbatim. Doubling stays
+        // well inside what a panel-sized, 24-30fps strip can absorb; the 10x
+        // figure a prior version of this comment claimed was wrong. Every
+        // other particles.* key is projection identity and stays with the
+        // profile slot, which keeps the seed sequence — and the
+        // composition — stable.
+        particles: { particleCount: mobile ? 180 : 240 }
       },
       tunnel: {
         // The library defaults (forwardSpeed 0.9 / rotationSpeed 0.25) are demo
@@ -138,7 +147,7 @@
         // `bars` is deliberately not set: the library ships distinct desktop
         // (5 bars) and mobile (4 bars) layouts per profile slot, and overriding
         // here would discard that responsive tuning.
-        shading: { barAlphaScale: mobile ? 0.5 : 0.55 }
+        shading: { barAlphaScale: mobile ? 0.72 : 0.8 }
       }
     };
   }

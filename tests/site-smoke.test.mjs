@@ -313,6 +313,26 @@ test('mobile skins render a finer pattern without changing desktop composition',
   assert.equal(desktop.mandelbrot.motion.cycleSeconds, 4800);
 });
 
+test('starfield particle count stays within the vendored preview budget', async () => {
+  const skinScript = await source('effect-skins.js');
+  const sandbox = { window: null };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+
+  const desktop = sandbox.PortfolioEffectSkins.create('dark', false);
+  const mobile = sandbox.PortfolioEffectSkins.create('dark', true);
+  // main.js mounts starfield on the "preview" surface, whose vendored
+  // profiles use densityMode "explicit" -- particleCount passes straight
+  // through with no densityMax clamp (that clamp only applies in "area"
+  // mode). The library's own preview.desktop/preview.mobile budgets are
+  // 120/90; a raised count is fine, but it must stay a bounded multiple of
+  // that budget, not the ~10x this panel-sized, 24-30fps surface can't
+  // absorb on constrained devices.
+  assert.ok(desktop.starfield.particles.particleCount <= 120 * 2);
+  assert.ok(mobile.starfield.particles.particleCount <= 90 * 2);
+});
+
 function createClassList() {
   const values = new Set();
   return {
@@ -730,7 +750,10 @@ test('both themes and reduced-motion rendering are present', async () => {
   assert.match(css, /\.proof-field\s*\{/);
   assert.match(css, /grid-template-columns: minmax\(360px, 0\.38fr\) minmax\(0, 0\.62fr\)/);
   assert.match(css, /\.proof-field\s*\{[^}]*height: 380px;/s);
-  assert.match(css, /background: color-mix\(in srgb, var\(--veil-solid\) 97%, transparent\)/);
+  // Panels over a live canvas fade towards their canvas instead of painting a
+  // flat near-opaque plate, matching .experience-field / .about-field.
+  assert.match(css, /\.contact-card\.veil-panel[^{]*\{[^}]*linear-gradient\(90deg, var\(--veil\), var\(--veil\) 46%, transparent 100%\)/s);
+  assert.match(css, /\.projects-field-copy\.veil-panel\s*\{[^}]*linear-gradient\(270deg, var\(--veil\), var\(--veil\) 46%, transparent 100%\)/s);
   assert.match(css, /\.proof-field-copy\s*\{[^}]*overflow: hidden/s);
   assert.match(css, /mandelbrot-proof-fallback\.jpg/);
   assert.doesNotMatch(css, /backdrop-filter: blur\(3px\)/);
@@ -739,6 +762,16 @@ test('both themes and reduced-motion rendering are present', async () => {
   assert.doesNotMatch(css, /proof-stage|clip-path 900ms|proof-shadow/);
   assert.doesNotMatch(css, /\.effect-canvas\s*\{\s*display: none;/);
   assert.match(css, /min-width: 721px\) and \(max-width: 980px/);
+});
+
+test('the collapsed theme select keeps its option labels readable', async () => {
+  const css = await source('styles.css');
+  // .theme-select is visually collapsed onto the icon (color: transparent so
+  // the underlying icon glyph is what's seen), but that color is inherited by
+  // its <option> elements too -- the open dropdown must restore a real color
+  // there or the System/Light/Dark labels render invisible.
+  assert.match(css, /\.theme-select\s*\{[^}]*color: transparent;/s);
+  assert.match(css, /\.theme-select option\s*\{[^}]*color: var\(--ink\);/s);
 });
 
 test('Open Source keeps a real rendered JPEG fallback', async () => {
