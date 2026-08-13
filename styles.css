@@ -255,26 +255,9 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
+  line-height: 1;
   pointer-events: none;
-}
-
-.theme-icon {
-  display: none;
-  width: 18px;
-  height: 18px;
-}
-
-html[data-theme-choice="system"] .theme-icon-system,
-html:not([data-theme-choice]) .theme-icon-system {
-  display: block;
-}
-
-html[data-theme-choice="light"] .theme-icon-light {
-  display: block;
-}
-
-html[data-theme-choice="dark"] .theme-icon-dark {
-  display: block;
 }
 
 .theme-select {
@@ -1630,7 +1613,11 @@ main {
     position: relative;
     display: grid;
     min-height: 58px;
-    grid-template-columns: 44px 44px minmax(0, 1fr) 44px;
+    /* Three visible children on mobile: brand, the action icons, the burger.
+       Each is pinned to its own column in row 1 — leaving any of them to grid
+       auto-placement drops it onto a second row once the placement cursor has
+       passed an explicitly positioned sibling. */
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
     gap: 8px;
     padding: 7px;
     border-radius: 14px;
@@ -1639,11 +1626,14 @@ main {
   .brand {
     width: 44px;
     height: 44px;
+    grid-row: 1;
+    grid-column: 1;
   }
 
   .menu-toggle {
     display: inline-flex;
-    grid-column: 4;
+    grid-row: 1;
+    grid-column: 3;
   }
 
   .section-nav {
@@ -1696,7 +1686,9 @@ main {
   }
 
   .topbar-actions {
-    grid-column: 3;
+    grid-row: 1;
+    grid-column: 2;
+    justify-content: flex-end;
   }
 
   .icon-button {
