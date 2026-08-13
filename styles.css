@@ -225,10 +225,6 @@ a {
   display: none;
 }
 
-.topbar-link {
-  padding: 0 13px;
-}
-
 .icon-button:hover,
 .topbar-link:hover {
   border-color: var(--line-strong);
@@ -249,34 +245,58 @@ a {
 }
 
 .theme-select-label {
+  position: relative;
   display: inline-flex;
+  padding: 0;
+  overflow: hidden;
+}
+
+.theme-select-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.theme-icon {
+  display: none;
+  width: 18px;
+  height: 18px;
+}
+
+html[data-theme-choice="system"] .theme-icon-system,
+html:not([data-theme-choice]) .theme-icon-system {
+  display: block;
+}
+
+html[data-theme-choice="light"] .theme-icon-light {
+  display: block;
+}
+
+html[data-theme-choice="dark"] .theme-icon-dark {
+  display: block;
 }
 
 .theme-select {
-  height: 38px;
-  padding: 0 28px 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background-color: var(--page-soft);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  color: var(--ink);
-  font: 500 12px/1 "IBM Plex Mono", monospace;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
-}
-
-.theme-select:hover {
-  border-color: var(--line-strong);
-  background-color: var(--surface-raised);
-  transform: translateY(-1px);
 }
 
 .theme-select:focus-visible {
+  outline: none;
+}
+
+.theme-select-label:has(.theme-select:focus-visible) {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -1675,20 +1695,12 @@ main {
     vertical-align: middle;
   }
 
-  .topbar-link {
-    display: none;
-  }
-
   .topbar-actions {
     grid-column: 3;
   }
 
   .icon-button {
     width: 44px;
-    height: 44px;
-  }
-
-  .theme-select {
     height: 44px;
   }
 
