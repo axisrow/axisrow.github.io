@@ -92,8 +92,9 @@ test('Open Source uses the asymmetric R1 field without duplicated cards', async 
   assert.match(html, /class="proof-field-copy veil-panel"/);
   assert.match(html, /data-profile-value="merged_upstream_prs" data-target="38">38/);
   assert.match(html, /class="proof-field-visual"/);
-  assert.equal((html.match(/class="proof-row"/g) || []).length, 4);
+  assert.equal((html.match(/class="proof-row"/g) || []).length, 5);
   assert.equal((html.match(/github\.com\/steipete\/CodexBar\/pull\/2814/g) || []).length, 1);
+  assert.equal((html.match(/github\.com\/ranaroussi\/yfinance\/pull\/2627/g) || []).length, 1);
   assert.doesNotMatch(html, /proof-stage|contribution-card|proof-layout|mandelbrot-frame|Iteration \/ proof/i);
 });
 
@@ -749,7 +750,7 @@ test('both themes and reduced-motion rendering are present', async () => {
   assert.match(css, /\.visual-field\s*\{[^}]*width: 100vw;/s);
   assert.match(css, /\.proof-field\s*\{/);
   assert.match(css, /grid-template-columns: minmax\(360px, 0\.38fr\) minmax\(0, 0\.62fr\)/);
-  assert.match(css, /\.proof-field\s*\{[^}]*height: 380px;/s);
+  assert.match(css, /\.proof-field\s*\{[^}]*height: 412px;/s);
   // Panels over a live canvas fade towards their canvas instead of painting a
   // flat near-opaque plate, matching .experience-field / .about-field.
   assert.match(css, /\.contact-card\.veil-panel[^{]*\{[^}]*linear-gradient\(90deg, var\(--veil\), var\(--veil\) 46%, transparent 100%\)/s);
