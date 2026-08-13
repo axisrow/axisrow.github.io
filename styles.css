@@ -950,8 +950,10 @@ main {
   position: relative;
   left: 50%;
   width: 100vw;
-  padding: var(--panel-space);
+  padding: var(--panel-space) max(var(--panel-space), calc((100vw - var(--max-width)) / 2));
+  border: 0;
   border-block: 1px solid var(--veil-border);
+  border-radius: 0;
   /* Both now host an accent canvas: clip it to the rounded box and give each
      panel its own stacking context so the layer cannot escape upwards. */
   overflow: hidden;
@@ -1960,13 +1962,6 @@ main {
   .proof-row small {
     grid-row: 1;
     grid-column: 2;
-  }
-
-  .experience-field,
-  .about-field {
-    left: 50%;
-    width: 100vw;
-    padding: var(--panel-space);
   }
 
   .contact-field {
