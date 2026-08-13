@@ -646,7 +646,7 @@ main {
 .visual-field {
   position: relative;
   left: 50%;
-  width: min(1440px, calc(100vw - 24px));
+  width: 100vw;
   overflow: visible;
   background: transparent;
   transform: translateX(-50%);
@@ -942,18 +942,18 @@ main {
   white-space: nowrap;
 }
 
-/* Share the full-bleed geometry of every other field (stars, projects, proof,
-   contact) so the panels line up on the same left/right edges instead of each
-   carrying its own width and offset. The accent stays in the gradient below,
-   not in the box position. */
+/* Every field runs edge to edge: no side gutter, so no vertical border or
+   corner radius either -- those only read as a panel when there is page around
+   them. Horizontal rules stay, matching what contact already did. */
 .experience-field,
 .about-field {
   position: relative;
   left: 50%;
-  width: min(1440px, calc(100vw - 24px));
-  padding: var(--panel-space);
-  border: 1px solid var(--veil-border);
-  border-radius: var(--surface-radius);
+  width: 100vw;
+  padding: var(--panel-space) max(var(--panel-space), calc((100vw - var(--max-width)) / 2));
+  border: 0;
+  border-block: 1px solid var(--veil-border);
+  border-radius: 0;
   /* Both now host an accent canvas: clip it to the rounded box and give each
      panel its own stacking context so the layer cannot escape upwards. */
   overflow: hidden;
@@ -979,7 +979,7 @@ main {
 .contact-field {
   position: relative;
   left: 50%;
-  width: min(1440px, calc(100vw - 24px));
+  width: 100vw;
   padding: clamp(24px, 5vw, 70px);
   overflow: hidden;
   isolation: isolate;
@@ -1695,9 +1695,7 @@ main {
   .hero {
     min-height: 100svh;
     align-items: flex-end;
-    /* 24px matches the gutter `.section` uses, so the hero copy plane starts
-       on the same vertical line as every block below it. */
-    padding: 124px 24px 80px;
+    padding: 124px 20px 80px;
   }
 
   .hero-copy {
@@ -1966,19 +1964,9 @@ main {
     grid-column: 2;
   }
 
-  /* These three sit inside `.section`, which already carries the 24px page
-     gutter. Subtracting another 24px on top of it pushed them 36px off the
-     edge while the copy panels inside the full-bleed fields stayed at 24px.
-     Span the section instead so every mobile block shares one gutter. */
-  .experience-field,
-  .about-field {
-    width: 100%;
-    padding: var(--panel-space);
-  }
-
   .contact-field {
-    width: 100%;
-    padding: 0;
+    width: 100vw;
+    padding: 12px;
   }
 
   .contact-card {
