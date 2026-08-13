@@ -21,6 +21,11 @@
   --field: rgba(233, 228, 218, 0.64);
   --field-solid: #e5dfd4;
   --veil: rgba(248, 245, 238, 0.91);
+  /* Panels that sit over a live effect canvas let more of it through than the
+     flat --veil does. 0.8 is the floor: composited over a black canvas pixel
+     (mandelbrot reaches 0,0,0) it keeps the in-panel --ink-faint at 4.91:1,
+     still clear of AA. Going lower drops secondary copy under the threshold. */
+  --veil-canvas: rgba(248, 245, 238, 0.8);
   --veil-solid: #f8f5ee;
   --veil-border: rgba(23, 25, 29, 0.2);
   --panel-space: clamp(24px, 4vw, 48px);
@@ -51,6 +56,9 @@
   --field: rgba(14, 17, 23, 0.7);
   --field-solid: #0e1218;
   --veil: rgba(17, 21, 27, 0.91);
+  /* Same trade as the light palette, measured against a white canvas pixel:
+     --ink-faint holds at 5.74:1 here. */
+  --veil-canvas: rgba(17, 21, 27, 0.8);
   --veil-solid: #11151b;
   --veil-border: rgba(240, 237, 229, 0.18);
 }
@@ -646,6 +654,16 @@ main {
   background: var(--veil);
 }
 
+/* The panels that overlay a live effect canvas take the lighter veil, so the
+   field reads through instead of being flattened out. .project-surface keeps
+   the opaque --veil above: it has no canvas behind it. */
+.stars-field-copy.veil-panel,
+.projects-field-copy.veil-panel,
+.proof-field-copy.veil-panel,
+.contact-card.veil-panel {
+  background: var(--veil-canvas);
+}
+
 .visual-field {
   position: relative;
   left: 50%;
@@ -887,7 +905,7 @@ main {
   overflow: hidden;
   border: 1px solid var(--veil-border);
   border-radius: var(--surface-radius);
-  background: color-mix(in srgb, var(--veil-solid) 97%, transparent);
+  /* Background comes from the .veil-panel canvas group above. */
 }
 
 .proof-summary {
@@ -1375,7 +1393,7 @@ main {
   margin-left: 4%;
   border: 1px solid var(--veil-border);
   border-radius: var(--surface-radius);
-  background: var(--veil);
+  background: var(--veil-canvas);
   box-shadow: none;
 }
 
