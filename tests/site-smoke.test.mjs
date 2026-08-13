@@ -90,10 +90,10 @@ test('Open Source uses the asymmetric R1 field without duplicated cards', async 
   const html = await source('index.html');
   assert.match(html, /class="visual-field proof-field reveal"/);
   assert.match(html, /class="proof-field-copy veil-panel"/);
-  assert.match(html, /data-profile-value="merged_upstream_prs" data-target="37">37/);
+  assert.match(html, /data-profile-value="merged_upstream_prs" data-target="38">38/);
   assert.match(html, /class="proof-field-visual"/);
   assert.equal((html.match(/class="proof-row"/g) || []).length, 4);
-  assert.equal((html.match(/github\.com\/ranaroussi\/yfinance\/pull\/2627/g) || []).length, 1);
+  assert.equal((html.match(/github\.com\/steipete\/CodexBar\/pull\/2814/g) || []).length, 1);
   assert.doesNotMatch(html, /proof-stage|contribution-card|proof-layout|mandelbrot-frame|Iteration \/ proof/i);
 });
 
