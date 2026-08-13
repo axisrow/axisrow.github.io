@@ -725,7 +725,8 @@ test('both themes and reduced-motion rendering are present', async () => {
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css, /--veil: rgba\(/);
   assert.match(css, /\.visual-field\s*\{/);
-  assert.match(css, /width: min\(1440px, calc\(100vw - 24px\)\)/);
+  // Fields run edge to edge -- no max width, no side gutter.
+  assert.match(css, /\.visual-field\s*\{[^}]*width: 100vw;/s);
   assert.match(css, /\.proof-field\s*\{/);
   assert.match(css, /grid-template-columns: minmax\(360px, 0\.38fr\) minmax\(0, 0\.62fr\)/);
   assert.match(css, /\.proof-field\s*\{[^}]*height: 380px;/s);
