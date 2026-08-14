@@ -12,7 +12,7 @@
     "star_history_start": "2026-03-01",
     "merged_upstream_prs": 38,
     "starred_projects": 16,
-    "_note": "stars_earned includes 5 stars on forks; the graph uses a 2026-03-01 opening balance plus GitHub star events and ends at 99 original-repository stars"
+    "_note": "stars_earned includes 5 stars on forks; the daily history (stars-history.json) tracks only original-repository events (GitHub has no reliable per-day fork-star signal), so the rendered chart adds fork_stars as a constant offset to every point — the line's endpoint always equals stars_earned, matching the 'all repositories' copy next to it"
   },
 
   "contributions": [

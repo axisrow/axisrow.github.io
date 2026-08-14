@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -15,6 +16,11 @@ from profile.sync.build_pages import (
 from profile.sync import build_pages as build_pages_module
 
 REPO = Path(__file__).resolve().parents[2]
+
+# Matches a same-origin <script src="name.js?v=..."> reference — deliberately
+# excludes absolute/protocol-relative URLs (http:, https:, //) so a CDN script
+# tag never gets mistaken for a local file the artifact must ship.
+_LOCAL_SCRIPT_SRC_RE = re.compile(r'<script\s+src="([^":/][^"]*?)(?:\?[^"]*)?"')
 
 
 def _seed_site_root(temp: Path) -> Path:
@@ -62,6 +68,21 @@ class BuildPagesTests(unittest.TestCase):
             for path in canonical.rglob("*")
             if path.is_file()
         }
+
+    def test_every_local_script_index_html_references_is_in_public_files(self) -> None:
+        # Regression guard for the bug this test was added alongside: index.html
+        # gained a new <script src="i18n.js"> without PUBLIC_FILES being updated
+        # to match, so the deployed Pages artifact silently omitted i18n.js —
+        # production requested a nonexistent script. This asserts the inverse
+        # direction (every referenced local script is shipped) so a future
+        # <script> addition can't repeat that gap.
+        html = (REPO / "index.html").read_text()
+        referenced = {match.group(1) for match in _LOCAL_SCRIPT_SRC_RE.finditer(html)}
+        self.assertTrue(referenced, "expected to find at least one local <script> tag")
+        self.assertTrue(
+            referenced.issubset(set(PUBLIC_FILES)),
+            f"index.html references local scripts not in PUBLIC_FILES: {referenced - set(PUBLIC_FILES)}",
+        )
 
     def test_artifact_is_allowlisted_and_source_is_unchanged(self) -> None:
         with TemporaryDirectory() as tmp:

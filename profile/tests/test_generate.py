@@ -100,6 +100,40 @@ class ChartDataTests(unittest.TestCase):
         # end_x is the x-projection of the last index: left + plot_width.
         self.assertEqual(chart["end_x"], "936.0")
 
+    def test_fork_stars_offsets_every_plotted_point_and_the_endpoint(self) -> None:
+        # fork_stars has no daily history of its own (GitHub gives no reliable
+        # per-day signal for fork stargazers), so it's added as a constant
+        # offset to every entry's total — the chart's endpoint (latest_total)
+        # must equal stats_earned (original total + fork_stars), matching the
+        # "all repositories" copy rendered next to the chart.
+        entries = [
+            {"date": "2026-03-01", "gained": 0, "total": 0},
+            {"date": "2026-03-02", "gained": 7, "total": 7},
+        ]
+        chart = chart_data(self._history(entries), fork_stars=5)
+        self.assertEqual(chart["latest_total"], 12)
+        self.assertEqual(len(chart["points"].split()), 2)
+        # A fix that only patched the endpoint (e.g. adding fork_stars to
+        # latest_total alone, without threading it through every plotted
+        # point) would leave ceiling/scale computed off the un-offset totals
+        # and the first point's y unaffected. With the offset applied to
+        # every entry, ceiling must be sized off the offset maximum (12 → 20,
+        # not 7 → 10) and the first point (total 0 + 5 = 5) must sit above
+        # the axis baseline (y < the y of an unoffset 0).
+        no_offset_chart = chart_data(self._history(entries))
+        self.assertEqual(chart["ticks"][-1]["value"], 20)
+        self.assertEqual(no_offset_chart["ticks"][-1]["value"], 10)
+        first_point_y = float(chart["points"].split()[0].split(",")[1])
+        baseline_y = float(chart["ticks"][0]["y"])  # y for value=0 on this chart's scale
+        self.assertLess(first_point_y, baseline_y)
+
+    def test_zero_fork_stars_is_the_default_and_matches_prior_behavior(self) -> None:
+        entries = [{"date": "2026-03-01", "gained": 0, "total": 9}]
+        with_default = chart_data(self._history(entries))
+        with_explicit_zero = chart_data(self._history(entries), fork_stars=0)
+        self.assertEqual(with_default, with_explicit_zero)
+        self.assertEqual(with_default["latest_total"], 9)
+
 
 class LoadHistoryTests(unittest.TestCase):
     """load_history resolves its file as ROOT.parent/data/stars-history.json,
@@ -146,6 +180,11 @@ class LoadHistoryTests(unittest.TestCase):
         assert result is not None
         self.assertIn("chart", result)
         self.assertEqual(result["entries"], entries)
+        # The chart's own endpoint must match stats_earned — the page's copy
+        # next to the chart claims "all repositories", so the plotted line
+        # has to end where that number says it ends, not at the
+        # forks-excluded raw entry total.
+        self.assertEqual(result["chart"]["latest_total"], 104)
 
     def test_does_not_mutate_caller_stats_dict(self) -> None:
         entries = [{"date": "2026-03-01", "gained": 0, "total": 50}]

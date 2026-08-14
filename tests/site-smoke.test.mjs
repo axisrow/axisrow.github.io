@@ -22,8 +22,8 @@ test('page keeps the approved proof-first section order and sync markers', async
     assert.equal((html.match(new RegExp(`PROFILE:${name}:START`, 'g')) || []).length, 1);
     assert.equal((html.match(new RegExp(`PROFILE:${name}:END`, 'g')) || []).length, 1);
   }
-  assert.match(html, /id="stars"[\s\S]*?<span>01<\/span> Momentum/);
-  assert.match(html, /id="projects"[\s\S]*?<span>02<\/span> Selected Work/);
+  assert.match(html, /id="stars"[\s\S]*?<span>01<\/span> <span data-i18n="stars\.eyebrow">Momentum<\/span>/);
+  assert.match(html, /id="projects"[\s\S]*?<span>02<\/span> <span data-i18n="projects\.eyebrow">Selected Work<\/span>/);
 });
 
 test('content surfaces share one spacing and radius system', async () => {
@@ -90,7 +90,10 @@ test('Open Source uses the asymmetric R1 field without duplicated cards', async 
   const html = await source('index.html');
   assert.match(html, /class="visual-field proof-field reveal"/);
   assert.match(html, /class="proof-field-copy veil-panel"/);
-  assert.match(html, /data-profile-value="merged_upstream_prs" data-target="38">38/);
+  // data-target and the element's text must be the same bot-synced number --
+  // pinning one literal value here would break on every daily stats sync
+  // (see the PROFILE:* markers in CLAUDE.md), so check the pattern instead.
+  assert.match(html, /data-profile-value="merged_upstream_prs" data-target="(\d+)">\1/);
   assert.match(html, /class="proof-field-visual"/);
   assert.equal((html.match(/class="proof-row"/g) || []).length, 5);
   assert.equal((html.match(/github\.com\/steipete\/CodexBar\/pull\/2814/g) || []).length, 1);
@@ -107,7 +110,7 @@ test('navigation and generated values are data-driven', async () => {
     assert.match(html, new RegExp(`data-profile-value="${key}"`));
   }
   assert.equal((html.match(/data-profile-value="merged_upstream_prs"/g) || []).length, 3);
-  assert.match(html, /chart excludes the 5 stars earned on maintained forks/);
+  assert.match(html, /Cumulative GitHub stars across all repositories since/);
 });
 
 test('mobile navigation uses an accessible menu with full-size links', async () => {
@@ -130,6 +133,322 @@ test('contact uses the configured Telegram channel chat link', async () => {
   assert.equal(profile.telegram, 'https://t.me/prog_ai?direct');
   assert.match(html, new RegExp(`href="${profile.telegram.replace('?', '\\?')}"`));
   assert.doesNotMatch(html, /href="https:\/\/t\.me\/axisrow"/);
+});
+
+function collectI18nKeys(html) {
+  const keys = new Set();
+  for (const match of html.matchAll(/data-i18n="([^"]+)"/g)) keys.add(match[1]);
+  for (const match of html.matchAll(/data-i18n-meta="([^"]+)"/g)) keys.add(match[1]);
+  for (const match of html.matchAll(/data-i18n-attr="([^"]+)"/g)) {
+    for (const pair of match[1].split(',')) {
+      const key = pair.split(':')[1];
+      if (key) keys.add(key.trim());
+    }
+  }
+  // Drop Jinja template expressions — they expand at build time, and the
+  // rendered index.html (also collected) carries the concrete keys.
+  for (const key of keys) {
+    if (key.includes('{{')) keys.delete(key);
+  }
+  return keys;
+}
+
+function fakeDocumentElement() {
+  return { lang: '', dataset: {}, classList: { remove() {}, add() {} } };
+}
+
+function loadI18nSandbox(script) {
+  const sandbox = {
+    window: {},
+    document: {
+      querySelectorAll: () => [],
+      documentElement: fakeDocumentElement(),
+      getElementById() { return null; },
+      querySelector() { return null; }
+    },
+    navigator: { languages: ['en'] },
+    localStorage: { getItem: () => null, setItem() {} }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(script, sandbox, { filename: 'i18n.js' });
+  return sandbox.window.PortfolioI18n;
+}
+
+test('i18n dictionaries cover every data-i18n / data-i18n-attr / data-i18n-meta key used in the markup', async () => {
+  const html = await source('index.html');
+  const starsTemplate = await source('profile/sync/templates/stars.html.j2');
+  const projectsTemplate = await source('profile/sync/templates/projects.html.j2');
+  const usedKeys = new Set([
+    ...collectI18nKeys(html),
+    ...collectI18nKeys(starsTemplate),
+    ...collectI18nKeys(projectsTemplate)
+  ]);
+  assert.ok(usedKeys.size > 20, 'expected a substantial set of translatable keys');
+
+  const i18nScript = await source('i18n.js');
+  const i18n = loadI18nSandbox(i18nScript);
+  // i18n.js runs inside its own vm context, so its Array differs from this
+  // file's Array — deepEqual across realms reports "same structure but not
+  // reference-equal". Compare via a realm-neutral primitive instead.
+  assert.deepEqual(Array.from(i18n.SUPPORTED).sort().join(','), 'en,ru');
+
+  for (const key of usedKeys) {
+    for (const lang of ['en', 'ru']) {
+      const value = i18n.translate(lang, key);
+      assert.notEqual(value, key, `missing "${lang}" translation for key "${key}"`);
+    }
+  }
+});
+
+test('i18n dictionaries carry the exact same key set in both languages', async () => {
+  const i18nScript = await source('i18n.js');
+  // translate() silently falls back to English (and then the raw key) for a
+  // missing entry, which would hide a one-sided dictionary edit from the
+  // coverage test above. Read the dictionary objects directly instead.
+  const sandbox = {
+    window: {},
+    document: {
+      querySelectorAll: () => [],
+      documentElement: fakeDocumentElement(),
+      getElementById() { return null; },
+      querySelector() { return null; }
+    },
+    navigator: { languages: ['en'] },
+    localStorage: { getItem: () => null, setItem() {} }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(i18nScript.replace(
+    'window.PortfolioI18n = {',
+    'window.__I18N_DICTIONARIES__ = DICTIONARIES;\n  window.PortfolioI18n = {'
+  ), sandbox, { filename: 'i18n.js' });
+  const dictionaries = sandbox.window.__I18N_DICTIONARIES__;
+  const enKeys = Object.keys(dictionaries.en).sort();
+  const ruKeys = Object.keys(dictionaries.ru).sort();
+  assert.deepEqual(enKeys, ruKeys);
+});
+
+test('i18n switcher is wired into the topbar next to the theme toggle and GitHub link', async () => {
+  const html = await source('index.html');
+  assert.match(html, /<label class="lang-select-label icon-button" for="lang-select"/);
+  assert.match(html, /<select id="lang-select" class="lang-select">/);
+  assert.match(html, /<option value="ru">RU<\/option>/);
+  assert.match(html, /<option value="en">EN<\/option>/);
+  // Same relative position as issue #41 requires: theme toggle, then
+  // language switcher, then the GitHub link, all inside .topbar-actions.
+  assert.match(html, /theme-select-label[\s\S]*?lang-select-label[\s\S]*?topbar-link icon-button/);
+  assert.match(html, /<script src="i18n\.js\?v=/);
+  // i18n.js must load before main.js: main.js reads window.PortfolioI18n for
+  // the mobile-menu aria-label.
+  assert.ok(html.indexOf('i18n.js?v=') < html.indexOf('main.js?v='));
+});
+
+test('language is resolved before first paint like the theme bootstrap, with a FOUC guard', async () => {
+  const html = await source('index.html');
+  const css = await source('styles.css');
+  assert.match(html, /localStorage\.getItem\("lang-choice"\)/);
+  assert.match(html, /navigator\.languages/);
+  assert.match(html, /document\.documentElement\.dataset\.lang = lang;/);
+  assert.match(html, /document\.documentElement\.lang = lang;/);
+  assert.match(html, /document\.documentElement\.classList\.add\("lang-loading"\)/);
+  assert.match(css, /\.lang-loading body\s*\{[^}]*visibility: hidden;/s);
+});
+
+test('the lang-loading guard fails open if i18n.js never runs', async () => {
+  // i18n.js is normally the only thing that removes .lang-loading. If it
+  // never executes (blocked by an ad-blocker/CSP, a network failure, a
+  // missing/stale deploy artifact), styles.css's `.lang-loading body {
+  // visibility: hidden; }` would otherwise hide the page forever. The
+  // bootstrap script must carry an independent timeout that removes the
+  // guard on its own, so a visitor gets a possible flash of untranslated
+  // English rather than a permanently blank page.
+  const html = await source('index.html');
+  assert.match(
+    html,
+    /if \(lang !== "en"\) \{[\s\S]*?classList\.add\("lang-loading"\)[\s\S]*?setTimeout\(function \(\) \{[\s\S]*?classList\.remove\("lang-loading"\)[\s\S]*?\}, \d+\);[\s\S]*?\}/
+  );
+});
+
+function fakeElement({ tagName = 'SPAN', attrs = {} } = {}) {
+  const attributes = { ...attrs };
+  return {
+    tagName,
+    textContent: '',
+    getAttribute(name) { return Object.prototype.hasOwnProperty.call(attributes, name) ? attributes[name] : null; },
+    setAttribute(name, value) { attributes[name] = String(value); }
+  };
+}
+
+test('applyTranslations rewrites textContent, attributes, and meta tags for the selected language', async () => {
+  const i18nScript = await source('i18n.js');
+  const heroLead = fakeElement({ attrs: { 'data-i18n': 'hero.lead' } });
+  const brandLink = fakeElement({ tagName: 'A', attrs: { 'data-i18n-attr': 'aria-label:topbar.brand', 'aria-label': 'axisrow — back to top' } });
+  const githubLink = fakeElement({ tagName: 'A', attrs: { 'data-i18n-attr': 'aria-label:topbar.github,title:topbar.github', 'aria-label': 'GitHub', title: 'GitHub' } });
+  const titleTag = fakeElement({ tagName: 'TITLE', attrs: { 'data-i18n-meta': 'meta.title' } });
+  const descriptionMeta = fakeElement({ tagName: 'META', attrs: { 'data-i18n-meta': 'meta.description', content: 'placeholder' } });
+
+  const byAttr = {
+    '[data-i18n]': [heroLead],
+    '[data-i18n-attr]': [brandLink, githubLink],
+    '[data-i18n-meta]': [titleTag, descriptionMeta]
+  };
+  const documentElement = { lang: 'en', dataset: { lang: 'en' }, classList: { remove() {} } };
+  const sandbox = {
+    window: {},
+    document: {
+      documentElement,
+      querySelectorAll(selector) { return byAttr[selector] || []; },
+      getElementById() { return null; },
+      querySelector() { return null; }
+    },
+    navigator: { languages: ['en'] },
+    localStorage: { getItem: () => null, setItem() {} }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(i18nScript, sandbox, { filename: 'i18n.js' });
+  const i18n = sandbox.window.PortfolioI18n;
+
+  i18n.setLanguage('ru', false);
+  assert.equal(documentElement.lang, 'ru');
+  assert.equal(heroLead.textContent, i18n.translate('ru', 'hero.lead'));
+  assert.notEqual(heroLead.textContent, i18n.translate('en', 'hero.lead'));
+  assert.equal(brandLink.getAttribute('aria-label'), i18n.translate('ru', 'topbar.brand'));
+  assert.equal(githubLink.getAttribute('aria-label'), i18n.translate('ru', 'topbar.github'));
+  assert.equal(githubLink.getAttribute('title'), i18n.translate('ru', 'topbar.github'));
+  assert.equal(titleTag.textContent, i18n.translate('ru', 'meta.title'));
+  assert.equal(descriptionMeta.getAttribute('content'), i18n.translate('ru', 'meta.description'));
+
+  i18n.setLanguage('en', false);
+  assert.equal(heroLead.textContent, i18n.translate('en', 'hero.lead'));
+});
+
+test('applyTranslations interpolates data-i18n-vars placeholders for text and meta nodes', async () => {
+  const i18nScript = await source('i18n.js');
+  // stars.chartTitle/stars.chartDesc carry {startDate}/{count}/{endDate}
+  // placeholders (the SVG chart's <title>/<desc> are bot-synced, not static
+  // strings) — data-i18n-vars supplies per-node values, same JSON-on-attribute
+  // shape used in index.html and the stars.html.j2 template.
+  const chartTitle = fakeElement({
+    tagName: 'title',
+    attrs: { 'data-i18n-meta': 'stars.chartTitle', 'data-i18n-vars': '{"startDate":"2026-03-01"}' }
+  });
+  const chartDesc = fakeElement({
+    tagName: 'desc',
+    attrs: { 'data-i18n-meta': 'stars.chartDesc', 'data-i18n-vars': '{"count":"108","endDate":"2026-08-14"}' }
+  });
+  const malformed = fakeElement({
+    attrs: { 'data-i18n': 'stars.chartTitle', 'data-i18n-vars': '{not valid json' }
+  });
+
+  const byAttr = {
+    '[data-i18n]': [malformed],
+    '[data-i18n-attr]': [],
+    '[data-i18n-meta]': [chartTitle, chartDesc]
+  };
+  const documentElement = { lang: 'en', dataset: { lang: 'en' }, classList: { remove() {} } };
+  const sandbox = {
+    window: {},
+    document: {
+      documentElement,
+      querySelectorAll(selector) { return byAttr[selector] || []; },
+      getElementById() { return null; },
+      querySelector() { return null; }
+    },
+    navigator: { languages: ['en'] },
+    localStorage: { getItem: () => null, setItem() {} }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(i18nScript, sandbox, { filename: 'i18n.js' });
+  const i18n = sandbox.window.PortfolioI18n;
+
+  i18n.setLanguage('ru', false);
+  assert.equal(chartTitle.textContent, 'Совокупное число звёзд на GitHub с 2026-03-01');
+  assert.equal(chartDesc.textContent, 'На графике показано 108 звёзд по состоянию на 2026-08-14.');
+  // A malformed data-i18n-vars degrades to the untranslated {placeholder}
+  // tokens instead of throwing, so the rest of the page still translates.
+  assert.equal(malformed.textContent, i18n.translate('ru', 'stars.chartTitle'));
+  assert.match(malformed.textContent, /\{startDate\}/);
+});
+
+test('applyTranslations interpolates meta.description/ogDescription from live data-profile-value counters', async () => {
+  const i18nScript = await source('i18n.js');
+  // meta.description/meta.ogDescription no longer bake PR/star/starred counts
+  // as dictionary literals (those went stale the moment profile/sync's daily
+  // bot updated the numbers elsewhere on the page without touching i18n.js).
+  // Instead they carry {prs}/{stars}/{starred} placeholders that
+  // readProfileVars fills from the same <span data-profile-value> nodes the
+  // bot keeps current.
+  const descriptionMeta = fakeElement({ tagName: 'META', attrs: { 'data-i18n-meta': 'meta.description', content: 'placeholder' } });
+  const ogDescriptionMeta = fakeElement({ tagName: 'META', attrs: { 'data-i18n-meta': 'meta.ogDescription', content: 'placeholder' } });
+  const profileSpans = {
+    merged_upstream_prs: fakeElement({ attrs: {} }),
+    stars_earned: fakeElement({ attrs: {} }),
+    starred_projects: fakeElement({ attrs: {} })
+  };
+  profileSpans.merged_upstream_prs.textContent = '42';
+  profileSpans.stars_earned.textContent = '150';
+  profileSpans.starred_projects.textContent = '9';
+
+  const byAttr = {
+    '[data-i18n]': [],
+    '[data-i18n-attr]': [],
+    '[data-i18n-meta]': [descriptionMeta, ogDescriptionMeta]
+  };
+  const documentElement = { lang: 'en', dataset: { lang: 'en' }, classList: { remove() {} } };
+  const sandbox = {
+    window: {},
+    document: {
+      documentElement,
+      querySelectorAll(selector) { return byAttr[selector] || []; },
+      getElementById() { return null; },
+      querySelector(selector) {
+        const match = /data-profile-value="([^"]+)"/.exec(selector);
+        return match ? profileSpans[match[1]] || null : null;
+      }
+    },
+    navigator: { languages: ['en'] },
+    localStorage: { getItem: () => null, setItem() {} }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(i18nScript, sandbox, { filename: 'i18n.js' });
+  const i18n = sandbox.window.PortfolioI18n;
+
+  i18n.setLanguage('ru', false);
+  assert.equal(
+    descriptionMeta.getAttribute('content'),
+    'Python-инженер: инструменты для AI-агентов, автоматизация и системы данных. 42 PR, принятых в upstream · 150 звёзд · 9 проектов со звёздами.'
+  );
+  assert.equal(
+    ogDescriptionMeta.getAttribute('content'),
+    'Инструменты для AI-агентов, автоматизация и системы данных. 42 PR, принятых в upstream · 150 звёзд · 9 проектов со звёздами.'
+  );
+  assert.doesNotMatch(descriptionMeta.getAttribute('content'), /\{prs\}|\{stars\}|\{starred\}/);
+});
+
+test('SVG stars chart title/desc are translated and interpolated, in both index.html and the bot template', async () => {
+  const html = await source('index.html');
+  const starsTemplate = await source('profile/sync/templates/stars.html.j2');
+  for (const markup of [html, starsTemplate]) {
+    assert.match(
+      markup,
+      /<title id="stars-chart-title" data-i18n-meta="stars\.chartTitle" data-i18n-vars='\{"startDate":"[^"]+"\}'/
+    );
+    assert.match(
+      markup,
+      /<desc id="stars-chart-desc" data-i18n-meta="stars\.chartDesc" data-i18n-vars='\{"count":"[^"]+","endDate":"[^"]+"\}'/
+    );
+  }
+});
+
+test('main.js keeps the mobile-menu aria-label translated via PortfolioI18n', async () => {
+  const script = await source('main.js');
+  assert.match(script, /window\.PortfolioI18n\.translate/);
+  assert.match(script, /topbar\.menuOpen/);
+  assert.match(script, /topbar\.menuClose/);
 });
 
 test('publishing fails closed when GitHub App credentials are unavailable', async () => {

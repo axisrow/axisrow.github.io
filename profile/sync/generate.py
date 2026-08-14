@@ -42,13 +42,27 @@ TEMPLATES = ROOT / "templates"
 DEFAULT_OUT = Path(".build/profile")
 
 
-def chart_data(history: dict) -> dict:
-    """Prepare a compact, responsive SVG line-chart from daily cumulative data."""
+def chart_data(history: dict, fork_stars: int = 0) -> dict:
+    """Prepare a compact, responsive SVG line-chart from daily cumulative data.
+
+    ``history["entries"]`` tracks only original (non-fork) repositories —
+    GitHub's stargazer-events API has no reliable per-day signal for fork
+    stars, so they can't be plotted as their own history (see
+    stars_history.py's "Original axisrow repositories; forks excluded"
+    scope). The page's copy next to the chart nonetheless claims "all
+    repositories" and its stats/current-total swatch shows stats_earned
+    (original + fork stars) — so ``fork_stars`` is added as a constant
+    offset to every plotted point, making the line's endpoint equal
+    stats_earned and match what the visible/accessible chart text asserts.
+    It does not imply the offset accrued gradually; it has always been
+    "current" fork stars, added uniformly across the whole series.
+    """
     entries = history["entries"]
     width, height = 960, 340
     left, right, top, bottom = 54, 24, 22, 42
     plot_width, plot_height = width - left - right, height - top - bottom
-    maximum = max(entry["total"] for entry in entries)
+    totals = [entry["total"] + fork_stars for entry in entries]
+    maximum = max(totals)
     ceiling = max(10, ((maximum + 9) // 10) * 10)
 
     def x(index: int) -> float:
@@ -57,7 +71,7 @@ def chart_data(history: dict) -> dict:
     def y(value: int) -> float:
         return top + plot_height * (1 - value / ceiling)
 
-    points = " ".join(f"{x(i):.1f},{y(entry['total']):.1f}" for i, entry in enumerate(entries))
+    points = " ".join(f"{x(i):.1f},{y(total):.1f}" for i, total in enumerate(totals))
     ticks = [0, ceiling // 2, ceiling]
     month_labels = []
     for index, entry in enumerate(entries):
@@ -67,8 +81,8 @@ def chart_data(history: dict) -> dict:
     return {
         "points": points,
         "end_x": f"{x(len(entries) - 1):.1f}",
-        "end_y": f"{y(entries[-1]['total']):.1f}",
-        "latest_total": entries[-1]["total"],
+        "end_y": f"{y(totals[-1]):.1f}",
+        "latest_total": totals[-1],
         "latest_date": entries[-1]["date"],
         "ticks": [{"value": tick, "y": f"{y(tick):.1f}"} for tick in ticks],
         "months": month_labels,
@@ -128,11 +142,10 @@ def load_history(cfg: dict) -> dict | None:
     if not history_path.exists():
         return None
     history = json.loads(history_path.read_text())
+    fork_stars = int(cfg["stats"]["fork_stars"])
     cfg["stats"] = dict(cfg["stats"])
-    cfg["stats"]["stars_earned"] = (
-        history["entries"][-1]["total"] + int(cfg["stats"]["fork_stars"])
-    )
-    return {**history, "chart": chart_data(history)}
+    cfg["stats"]["stars_earned"] = history["entries"][-1]["total"] + fork_stars
+    return {**history, "chart": chart_data(history, fork_stars)}
 
 
 def main() -> int:
