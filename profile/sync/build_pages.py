@@ -29,6 +29,7 @@ PUBLIC_FILES = (
     "index.html",
     "styles.css",
     "main.js",
+    "i18n.js",
     "effect-skins.js",
     "favicon.svg",
     "og.png",
