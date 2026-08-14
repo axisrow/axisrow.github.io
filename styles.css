@@ -395,7 +395,7 @@ main {
   text-transform: uppercase;
 }
 
-.availability span {
+.availability span:first-child {
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
