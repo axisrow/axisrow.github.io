@@ -47,10 +47,18 @@
 
   applyTheme(readStoredThemeChoice(), false);
 
+  function menuLabel(key, fallback) {
+    // i18n.js (loaded before main.js) owns the dictionaries; fall back to the
+    // English literal if it failed to load so the button never ends up
+    // without an accessible name.
+    var lang = root.dataset.lang;
+    return window.PortfolioI18n ? window.PortfolioI18n.translate(lang, key) : fallback;
+  }
+
   function closeMenu() {
     if (!menuToggle || !sectionNavigation) return;
     menuToggle.setAttribute("aria-expanded", "false");
-    menuToggle.setAttribute("aria-label", "Open section navigation");
+    menuToggle.setAttribute("aria-label", menuLabel("topbar.menuOpen", "Open section navigation"));
     sectionNavigation.classList.remove("is-open");
   }
 
@@ -58,7 +66,7 @@
     if (!menuToggle || !sectionNavigation) return;
     var open = menuToggle.getAttribute("aria-expanded") !== "true";
     menuToggle.setAttribute("aria-expanded", String(open));
-    menuToggle.setAttribute("aria-label", open ? "Close section navigation" : "Open section navigation");
+    menuToggle.setAttribute("aria-label", menuLabel(open ? "topbar.menuClose" : "topbar.menuOpen", open ? "Close section navigation" : "Open section navigation"));
     sectionNavigation.classList.toggle("is-open", open);
   }
 

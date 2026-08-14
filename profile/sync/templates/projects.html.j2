@@ -4,13 +4,13 @@
           <canvas id="projects-plasma" class="effect-canvas" data-effect="plasma"></canvas>
         </div>
         <div class="projects-field-copy veil-panel">
-          <p class="eyebrow"><span>02</span> Selected Work</p>
-          <h2 class="section-title">Systems with measurable output.</h2>
-          <p class="section-note">Original repositories with the most stars — see all at <a href="https://github.com/{{ handle }}?tab=repositories" target="_blank" rel="noopener">github.com/{{ handle }}</a>.</p>
+          <p class="eyebrow"><span>02</span> <span data-i18n="projects.eyebrow">Selected Work</span></p>
+          <h2 class="section-title" data-i18n="projects.title">Systems with measurable output.</h2>
+          <p class="section-note"><span data-i18n="projects.notePrefix">Original repositories with the most stars — see all at </span><a href="https://github.com/{{ handle }}?tab=repositories" target="_blank" rel="noopener">github.com/{{ handle }}</a>.</p>
           <div class="field-caption">
-            <span>Selected systems</span>
-            <strong>Automation that ships.</strong>
-            <small>Agents · integrations · data</small>
+            <span data-i18n="projects.captionLabel">Selected systems</span>
+            <strong data-i18n="projects.captionStrong">Automation that ships.</strong>
+            <small data-i18n="projects.captionSmall">Agents · integrations · data</small>
           </div>
         </div>
       </div>
@@ -20,7 +20,7 @@
 {% for name in repos %}        <a class="card reveal" href="https://github.com/{{ handle }}/{{ name }}" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">{{ name }}</span>{% if stars[name] %}<span class="card-star">★ {{ stars[name] }}</span>{% endif %}</div>
           <p class="card-desc">{{ descriptions[name] }}</p>
-          <span class="card-link">View repository ↗</span>
+          <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
 {% endfor %}      </div>
 {% endfor %}      </div>

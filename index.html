@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>axisrow — Python engineer</title>
-  <meta name="description" content="Python engineer building AI agent tooling, automation, and data systems. 37 merged upstream PRs · 108 stars · 7 starred projects." />
+  <title data-i18n-meta="meta.title">axisrow — Python engineer</title>
+  <meta name="description" content="Python engineer building AI agent tooling, automation, and data systems. 37 merged upstream PRs · 108 stars · 7 starred projects." data-i18n-meta="meta.description" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <meta name="demoscene-base" content="assets/demoscene" />
 
-  <meta property="og:title" content="axisrow — Python engineer" />
-  <meta property="og:description" content="AI agent tooling, automation, and data systems. 37 merged upstream PRs · 108 stars · 7 starred projects." />
+  <meta property="og:title" content="axisrow — Python engineer" data-i18n-meta="meta.ogTitle" />
+  <meta property="og:description" content="AI agent tooling, automation, and data systems. 37 merged upstream PRs · 108 stars · 7 starred projects." data-i18n-meta="meta.ogDescription" />
   <meta property="og:url" content="https://axisrow.github.io/" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://axisrow.github.io/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="axisrow — Python engineer" />
-  <meta name="twitter:description" content="AI agent tooling, automation, and production Python systems." />
+  <meta name="twitter:title" content="axisrow — Python engineer" data-i18n-meta="meta.twitterTitle" />
+  <meta name="twitter:description" content="AI agent tooling, automation, and production Python systems." data-i18n-meta="meta.twitterDescription" />
   <meta name="twitter:image" content="https://axisrow.github.io/og.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,36 +41,70 @@
       document.documentElement.dataset.theme = dark ? "dark" : "light";
       document.documentElement.dataset.themeChoice = choice;
       document.documentElement.classList.add("js");
+
+      // Resolve the visitor's language before first paint, same rationale as
+      // the theme block above: index.html ships English text inline (the
+      // default, and what tests/site-smoke.test.mjs pins), so any resolved
+      // language other than "en" needs i18n.js's translation pass before the
+      // page is shown, or the visitor sees a flash of English. The
+      // lang-loading class (styles.css) hides <body> until that pass runs;
+      // i18n.js removes it even if translation throws, so a broken dictionary
+      // never leaves the page permanently blank.
+      var lang = null;
+      try { lang = localStorage.getItem("lang-choice"); } catch (error) {}
+      if (lang !== "en" && lang !== "ru") {
+        lang = "ru";
+        try {
+          var browserLangs = navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language];
+          for (var i = 0; i < browserLangs.length; i++) {
+            var code = String(browserLangs[i] || "").slice(0, 2).toLowerCase();
+            if (code === "en" || code === "ru") { lang = code; break; }
+          }
+        } catch (error) {}
+      }
+      document.documentElement.dataset.lang = lang;
+      document.documentElement.lang = lang;
+      if (lang !== "en") document.documentElement.classList.add("lang-loading");
     }());
   </script>
-  <link rel="stylesheet" href="styles.css?v=canvas-veil-fade-3" />
+  <link rel="stylesheet" href="styles.css?v=i18n-lang-select-1" />
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="#hero" aria-label="axisrow — back to top">AX</a>
-      <button id="menu-toggle" class="icon-button menu-toggle" type="button" aria-label="Open section navigation" aria-controls="section-navigation" aria-expanded="false">
+      <a class="brand" href="#hero" data-i18n-attr="aria-label:topbar.brand" aria-label="axisrow — back to top">AX</a>
+      <button id="menu-toggle" class="icon-button menu-toggle" type="button" data-i18n-attr="aria-label:topbar.menuOpen" aria-label="Open section navigation" aria-controls="section-navigation" aria-expanded="false">
         <span aria-hidden="true">☰</span>
       </button>
-      <nav id="section-navigation" class="section-nav" aria-label="Section navigation">
-        <a href="#stars" data-nav="stars">Stars</a>
-        <a href="#projects" data-nav="projects">Projects</a>
-        <a href="#opensource" data-nav="opensource">Open Source</a>
-        <a href="#experience" data-nav="experience">Experience</a>
-        <a href="#about" data-nav="about">About</a>
-        <a href="#contact" data-nav="contact">Contact</a>
+      <nav id="section-navigation" class="section-nav" data-i18n-attr="aria-label:topbar.nav" aria-label="Section navigation">
+        <a href="#stars" data-nav="stars" data-i18n="nav.stars">Stars</a>
+        <a href="#projects" data-nav="projects" data-i18n="nav.projects">Projects</a>
+        <a href="#opensource" data-nav="opensource" data-i18n="nav.opensource">Open Source</a>
+        <a href="#experience" data-nav="experience" data-i18n="nav.experience">Experience</a>
+        <a href="#about" data-nav="about" data-i18n="nav.about">About</a>
+        <a href="#contact" data-nav="contact" data-i18n="nav.contact">Contact</a>
       </nav>
       <div class="topbar-actions">
-        <label class="theme-select-label icon-button" for="theme-select" title="Colour theme">
-          <span class="visually-hidden">Colour theme</span>
+        <label class="theme-select-label icon-button" for="theme-select" data-i18n-attr="title:topbar.theme" title="Colour theme">
+          <span class="visually-hidden" data-i18n="topbar.theme">Colour theme</span>
           <span class="theme-select-icon" aria-hidden="true">◐</span>
           <select id="theme-select" class="theme-select">
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="system" data-i18n="topbar.themeSystem">System</option>
+            <option value="light" data-i18n="topbar.themeLight">Light</option>
+            <option value="dark" data-i18n="topbar.themeDark">Dark</option>
           </select>
         </label>
-        <a class="topbar-link icon-button" href="https://github.com/axisrow" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+        <label class="lang-select-label icon-button" for="lang-select" data-i18n-attr="title:topbar.language" title="Language">
+          <span class="visually-hidden" data-i18n="topbar.language">Language</span>
+          <span class="lang-select-icon" aria-hidden="true" data-lang-icon>EN</span>
+          <select id="lang-select" class="lang-select">
+            <option value="ru">RU</option>
+            <option value="en">EN</option>
+          </select>
+        </label>
+        <a class="topbar-link icon-button" href="https://github.com/axisrow" target="_blank" rel="noopener" data-i18n-attr="aria-label:topbar.github,title:topbar.github" aria-label="GitHub" title="GitHub">
           <svg class="topbar-link-icon" aria-hidden="true" viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         </a>
       </div>
@@ -86,44 +120,47 @@
         <span class="orbit orbit-inner"></span>
       </div>
       <div class="hero-copy">
-        <p class="availability"><span></span> Available for selected engineering work</p>
+        <p class="availability"><span></span> <span data-i18n="hero.availability">Available for selected engineering work</span></p>
         <h1 id="hero-title">AXISROW</h1>
         <div class="hero-copy-plane">
-          <p class="hero-lead">Python engineer building AI agent tooling, automation, and data systems that survive production.</p>
+          <p class="hero-lead" data-i18n="hero.lead">Python engineer building AI agent tooling, automation, and data systems that survive production.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#projects">View selected work</a>
-            <a class="button button-secondary" href="mailto:axisrow@gmail.com">Start a conversation</a>
+            <a class="button button-primary" href="#projects" data-i18n="hero.viewWork">View selected work</a>
+            <a class="button button-secondary" href="mailto:axisrow@gmail.com" data-i18n="hero.startConversation">Start a conversation</a>
           </div>
-          <dl class="hero-stats" aria-label="Open-source statistics">
+          <dl class="hero-stats" data-i18n-attr="aria-label:hero.statsLabel" aria-label="Open-source statistics">
             <div>
-              <dt>Stars across GitHub</dt>
+              <dt data-i18n="hero.starsLabel">Stars across GitHub</dt>
               <dd><span data-profile-value="stars_earned" data-target="108">108</span></dd>
             </div>
             <div>
-              <dt>Merged upstream PRs</dt>
+              <dt data-i18n="hero.prsLabel">Merged upstream PRs</dt>
               <dd><span data-profile-value="merged_upstream_prs" data-target="37">37</span></dd>
             </div>
             <div>
-              <dt>Starred projects</dt>
+              <dt data-i18n="hero.starredLabel">Starred projects</dt>
               <dd><span data-profile-value="starred_projects" data-target="7">7</span></dd>
             </div>
           </dl>
         </div>
       </div>
       <div class="hero-foot" aria-hidden="true">
-        <span>Canvas 2D / Metaballs</span>
-        <span>Scroll to inspect ↓</span>
+        <span data-i18n="hero.footEffect">Canvas 2D / Metaballs</span>
+        <span data-i18n="hero.footScroll">Scroll to inspect ↓</span>
       </div>
     </section>
 
     <!-- PROFILE:STARS:START -->
     <section id="stars" class="section section-stars">
       <div class="visual-field stars-field reveal">
+        <div class="stars-field-visual" aria-hidden="true">
+          <canvas id="stars-starfield" class="effect-canvas" data-effect="starfield"></canvas>
+        </div>
         <div class="stars-field-copy veil-panel">
-          <p class="eyebrow"><span>01</span> Momentum</p>
-          <h2 class="section-title">Stars over time.</h2>
+          <p class="eyebrow"><span>01</span> <span data-i18n="stars.eyebrow">Momentum</span></p>
+          <h2 class="section-title" data-i18n="stars.title">Stars over time.</h2>
           <p class="section-note">Daily cumulative stars on original GitHub repositories. The line starts with an opening balance on 2026-03-01; this chart excludes the 5 stars earned on maintained forks.</p>
-          <div class="stars-current"><strong>103★</strong><span>2026-08-14 · original repositories</span></div>
+          <div class="stars-current"><strong>103★</strong><span>2026-08-14 · <span data-i18n="stars.currentLabel">original repositories</span></span></div>
         </div>
         <div class="stars-chart">
         <svg viewBox="0 0 960 340" role="img" aria-labelledby="stars-chart-title stars-chart-desc">
@@ -156,13 +193,13 @@
           <canvas id="projects-plasma" class="effect-canvas" data-effect="plasma"></canvas>
         </div>
         <div class="projects-field-copy veil-panel">
-          <p class="eyebrow"><span>02</span> Selected Work</p>
-          <h2 class="section-title">Systems with measurable output.</h2>
-          <p class="section-note">Original repositories with the most stars — see all at <a href="https://github.com/axisrow?tab=repositories" target="_blank" rel="noopener">github.com/axisrow</a>.</p>
+          <p class="eyebrow"><span>02</span> <span data-i18n="projects.eyebrow">Selected Work</span></p>
+          <h2 class="section-title" data-i18n="projects.title">Systems with measurable output.</h2>
+          <p class="section-note"><span data-i18n="projects.notePrefix">Original repositories with the most stars — see all at </span><a href="https://github.com/axisrow?tab=repositories" target="_blank" rel="noopener">github.com/axisrow</a>.</p>
           <div class="field-caption">
-            <span>Selected systems</span>
-            <strong>Automation that ships.</strong>
-            <small>Agents · integrations · data</small>
+            <span data-i18n="projects.captionLabel">Selected systems</span>
+            <strong data-i18n="projects.captionStrong">Automation that ships.</strong>
+            <small data-i18n="projects.captionSmall">Agents · integrations · data</small>
           </div>
         </div>
       </div>
@@ -172,17 +209,17 @@
         <a class="card reveal" href="https://github.com/axisrow/tg_content_factory" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">tg_content_factory</span><span class="card-star">★ 31</span></div>
           <p class="card-desc">Content-factory pipeline for Telegram — flagship project.</p>
-          <span class="card-link">View repository ↗</span>
+          <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
         <a class="card reveal" href="https://github.com/axisrow/yandex-direct-mcp-plugin" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">yandex-direct-mcp-plugin</span><span class="card-star">★ 9</span></div>
           <p class="card-desc">Claude Code plugin for Yandex.Direct — MCP server + skills + OAuth.</p>
-          <span class="card-link">View repository ↗</span>
+          <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
         <a class="card reveal" href="https://github.com/axisrow/direct-cli" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">direct-cli</span><span class="card-star">★ 6</span></div>
           <p class="card-desc">CLI for Yandex.Direct.</p>
-          <span class="card-link">View repository ↗</span>
+          <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
       </div>
       <h3 class="group-title">AI / Agent Tooling</h3>
@@ -190,17 +227,17 @@
         <a class="card reveal" href="https://github.com/axisrow/clihost" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">clihost</span><span class="card-star">★ 5</span></div>
           <p class="card-desc">Self-hosting / proxy CLI, security-hardened.</p>
-          <span class="card-link">View repository ↗</span>
+          <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
         <a class="card reveal" href="https://github.com/axisrow/claude-code-cycle-review-skill" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">claude-code-cycle-review-skill</span><span class="card-star">★ 7</span></div>
           <p class="card-desc">Automated PR review cycle for Claude Code.</p>
-          <span class="card-link">View repository ↗</span>
+          <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
         <a class="card reveal" href="https://github.com/axisrow/claude_code_gmail_plugin" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">claude_code_gmail_plugin</span><span class="card-star">★ 3</span></div>
           <p class="card-desc">Gmail plugin for Claude Code.</p>
-          <span class="card-link">View repository ↗</span>
+          <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
       </div>
       <h3 class="group-title">Data / ML</h3>
@@ -208,7 +245,7 @@
         <a class="card reveal" href="https://github.com/axisrow/llm_benchmark" target="_blank" rel="noopener">
           <div class="card-head"><span class="card-name">llm_benchmark</span><span class="card-star">★ 3</span></div>
           <p class="card-desc">LLM benchmark harness.</p>
-          <span class="card-link">View repository ↗</span>
+          <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
       </div>
       </div>
@@ -217,16 +254,16 @@
 
     <section id="opensource" class="section section-open-source">
       <div class="section-heading reveal">
-        <p class="eyebrow"><span>03</span> Proof of Work</p>
-        <h2 class="section-title">Useful changes, merged upstream.</h2>
-        <p class="section-note">Every contribution below points to accepted production code.</p>
+        <p class="eyebrow"><span>03</span> <span data-i18n="opensource.eyebrow">Proof of Work</span></p>
+        <h2 class="section-title" data-i18n="opensource.title">Useful changes, merged upstream.</h2>
+        <p class="section-note" data-i18n="opensource.note">Every contribution below points to accepted production code.</p>
       </div>
-      <div class="visual-field proof-field reveal" aria-label="Merged upstream contributions">
+      <div class="visual-field proof-field reveal" data-i18n-attr="aria-label:opensource.ariaLabel" aria-label="Merged upstream contributions">
         <div class="proof-field-visual" aria-hidden="true">
           <canvas id="opensource-mandelbrot" class="effect-canvas" data-effect="mandelbrot"></canvas>
         </div>
         <div class="proof-field-copy veil-panel">
-          <div class="proof-summary"><strong><span data-profile-value="merged_upstream_prs" data-target="37">37</span></strong><span>merged upstream PRs</span></div>
+          <div class="proof-summary"><strong><span data-profile-value="merged_upstream_prs" data-target="37">37</span></strong><span data-i18n="opensource.prsLabel">merged upstream PRs</span></div>
           <div class="proof-rows">
             <a class="proof-row" href="https://github.com/steipete/CodexBar/pull/2814" target="_blank" rel="noopener"><strong>steipete / CodexBar</strong><span>Side project of Peter Steinberger, creator of OpenClaw (github.com/steipete/openclaw).</span><small>Merged · PR #2814 ↗</small></a>
             <a class="proof-row" href="https://github.com/ranaroussi/yfinance/pull/2627" target="_blank" rel="noopener"><strong>yfinance</strong><span>Retry transient network errors.</span><small>Merged · PR #2627 ↗</small></a>
@@ -240,8 +277,8 @@
 
     <section id="experience" class="section section-experience">
       <div class="section-heading reveal">
-        <p class="eyebrow"><span>04</span> Experience</p>
-        <h2 class="section-title">Engineering through shipped work.</h2>
+        <p class="eyebrow"><span>04</span> <span data-i18n="experience.eyebrow">Experience</span></p>
+        <h2 class="section-title" data-i18n="experience.title">Engineering through shipped work.</h2>
       </div>
       <div class="experience-field veil-panel">
       <div class="experience-field-visual" aria-hidden="true">
@@ -252,14 +289,14 @@
           <span class="timeline-index">01</span>
           <div>
             <div class="timeline-head">
-              <h3>Open-Source Contributor</h3>
-              <span>2024 — Present</span>
+              <h3 data-i18n="experience.item1Title">Open-Source Contributor</h3>
+              <span data-i18n="experience.item1Period">2024 — Present</span>
             </div>
             <p class="timeline-org">yfinance · IBM/mcp-cli · ai-resto · agent-orchestrator</p>
             <ul>
-              <li><span data-profile-value="merged_upstream_prs">37</span> merged PRs across upstream projects.</li>
-              <li>Reliability fixes, production features, automation, and safer interfaces.</li>
-              <li>Changes are scoped, tested, reviewed, and maintained after merge.</li>
+              <li><span data-profile-value="merged_upstream_prs">37</span> <span data-i18n="experience.item1Bullet1Suffix">merged PRs across upstream projects.</span></li>
+              <li data-i18n="experience.item1Bullet2">Reliability fixes, production features, automation, and safer interfaces.</li>
+              <li data-i18n="experience.item1Bullet3">Changes are scoped, tested, reviewed, and maintained after merge.</li>
             </ul>
           </div>
         </article>
@@ -267,14 +304,14 @@
           <span class="timeline-index">02</span>
           <div>
             <div class="timeline-head">
-              <h3>Independent Python Engineer</h3>
-              <span>2021 — Present</span>
+              <h3 data-i18n="experience.item2Title">Independent Python Engineer</h3>
+              <span data-i18n="experience.item2Period">2021 — Present</span>
             </div>
             <p class="timeline-org">Telegram automation · AI agent tooling · data &amp; finance</p>
             <ul>
-              <li>Production services built around Python, asyncio, agents, and APIs.</li>
-              <li>Author of <span data-profile-value="starred_projects">7</span> starred open-source projects.</li>
-              <li><span data-profile-value="stars_earned">108</span> stars across original work and maintained forks.</li>
+              <li data-i18n="experience.item2Bullet1">Production services built around Python, asyncio, agents, and APIs.</li>
+              <li><span data-i18n="experience.item2Bullet2Prefix">Author of </span><span data-profile-value="starred_projects">7</span><span data-i18n="experience.item2Bullet2Suffix"> starred open-source projects.</span></li>
+              <li><span data-profile-value="stars_earned">108</span> <span data-i18n="experience.item2Bullet3Suffix">stars across original work and maintained forks.</span></li>
             </ul>
           </div>
         </article>
@@ -284,8 +321,8 @@
 
     <section id="about" class="section section-about">
       <div class="section-heading reveal">
-        <p class="eyebrow"><span>05</span> About</p>
-        <h2 class="section-title">Calm systems for complicated work.</h2>
+        <p class="eyebrow"><span>05</span> <span data-i18n="about.eyebrow">About</span></p>
+        <h2 class="section-title" data-i18n="about.title">Calm systems for complicated work.</h2>
       </div>
       <div class="about-field veil-panel">
       <div class="about-field-visual" aria-hidden="true">
@@ -293,11 +330,11 @@
       </div>
       <div class="about-grid">
         <div class="about-copy reveal">
-          <p>I build AI agent tooling, Telegram automation, and data systems with a bias toward explicit behaviour, observable failures, and boring operations.</p>
-          <p>When a dependency needs a fix, I prefer contributing the improvement upstream instead of carrying a permanent local patch.</p>
+          <p data-i18n="about.copy1">I build AI agent tooling, Telegram automation, and data systems with a bias toward explicit behaviour, observable failures, and boring operations.</p>
+          <p data-i18n="about.copy2">When a dependency needs a fix, I prefer contributing the improvement upstream instead of carrying a permanent local patch.</p>
         </div>
         <div class="stack-panel reveal">
-          <p class="panel-label">Working stack</p>
+          <p class="panel-label" data-i18n="about.stackLabel">Working stack</p>
           <ul class="stack-list">
             <li>Python</li><li>asyncio</li><li>aiogram</li><li>LangChain</li>
             <li>MCP</li><li>pandas</li><li>statsmodels</li><li>sktime</li>
@@ -314,24 +351,25 @@
         <canvas id="contact-copper-bars" class="effect-canvas" data-effect="copperBars"></canvas>
       </div>
       <div class="contact-card veil-panel">
-        <p class="availability"><span></span> Open to contributions, tooling, and selected contract work</p>
-        <h2>Need a system that should keep working?</h2>
-        <p>Bring the difficult integration, unreliable workflow, or data process. I’ll help turn it into explicit, tested software.</p>
+        <p class="availability"><span></span> <span data-i18n="contact.availability">Open to contributions, tooling, and selected contract work</span></p>
+        <h2 data-i18n="contact.title">Need a system that should keep working?</h2>
+        <p data-i18n="contact.copy">Bring the difficult integration, unreliable workflow, or data process. I’ll help turn it into explicit, tested software.</p>
         <div class="contact-actions">
           <a class="button button-primary" href="mailto:axisrow@gmail.com">axisrow@gmail.com</a>
-          <a class="button button-secondary" href="https://t.me/prog_ai?direct" target="_blank" rel="noopener">Telegram ↗</a>
-          <a class="button button-secondary" href="https://github.com/axisrow" target="_blank" rel="noopener">GitHub ↗</a>
+          <a class="button button-secondary" href="https://t.me/prog_ai?direct" target="_blank" rel="noopener" data-i18n="contact.telegram">Telegram ↗</a>
+          <a class="button button-secondary" href="https://github.com/axisrow" target="_blank" rel="noopener" data-i18n="contact.github">GitHub ↗</a>
         </div>
       </div>
       </div>
       <footer class="site-footer">
-        <span>© axisrow · 2026</span>
-        <span>Canvas effects powered by <a href="https://github.com/axisrow/demoscene_classics" target="_blank" rel="noopener">Demoscene Classics ↗</a></span>
+        <span data-i18n="footer.copyright">© axisrow · 2026</span>
+        <span><span data-i18n="footer.effectsPrefix">Canvas effects powered by </span><a href="https://github.com/axisrow/demoscene_classics" target="_blank" rel="noopener" data-i18n="footer.effectsLink">Demoscene Classics ↗</a></span>
       </footer>
     </section>
   </main>
 
   <script src="effect-skins.js?v=field-energy-2"></script>
-  <script src="main.js?v=lazy-mount-effects-2"></script>
+  <script src="i18n.js?v=i18n-ru-en-1"></script>
+  <script src="main.js?v=i18n-menu-labels-1"></script>
 </body>
 </html>

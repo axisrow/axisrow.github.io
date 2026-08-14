@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --check main.js && node --check effect-skins.js && node --test"
+    "test": "node --check main.js && node --check effect-skins.js && node --check i18n.js && node --test"
   }
 }

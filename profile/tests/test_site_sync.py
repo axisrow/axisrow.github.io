@@ -61,8 +61,8 @@ class SiteSyncTests(unittest.TestCase):
         project_root = Path(__file__).resolve().parents[1]
         projects = (project_root / "sync/templates/projects.html.j2").read_text()
         stars = (project_root / "sync/templates/stars.html.j2").read_text()
-        self.assertIn('<span>01</span> Momentum', stars)
-        self.assertIn('<span>02</span> Selected Work', projects)
+        self.assertIn('<span>01</span> <span data-i18n="stars.eyebrow">Momentum</span>', stars)
+        self.assertIn('<span>02</span> <span data-i18n="projects.eyebrow">Selected Work</span>', projects)
 
     def test_generated_sections_keep_their_effect_canvases(self) -> None:
         # The bot rewrites everything between the PROFILE markers from these
