@@ -110,7 +110,7 @@ test('navigation and generated values are data-driven', async () => {
     assert.match(html, new RegExp(`data-profile-value="${key}"`));
   }
   assert.equal((html.match(/data-profile-value="merged_upstream_prs"/g) || []).length, 3);
-  assert.match(html, /chart excludes the 5 stars earned on maintained forks/);
+  assert.match(html, /chart excludes the[\s\S]*?5[\s\S]*?stars earned on maintained forks/);
 });
 
 test('mobile navigation uses an accessible menu with full-size links', async () => {
@@ -144,6 +144,11 @@ function collectI18nKeys(html) {
       const key = pair.split(':')[1];
       if (key) keys.add(key.trim());
     }
+  }
+  // Drop Jinja template expressions — they expand at build time, and the
+  // rendered index.html (also collected) carries the concrete keys.
+  for (const key of keys) {
+    if (key.includes('{{')) keys.delete(key);
   }
   return keys;
 }

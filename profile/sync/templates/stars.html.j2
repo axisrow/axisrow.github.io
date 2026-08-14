@@ -6,7 +6,7 @@
         <div class="stars-field-copy veil-panel">
           <p class="eyebrow"><span>01</span> <span data-i18n="stars.eyebrow">Momentum</span></p>
           <h2 class="section-title" data-i18n="stars.title">Stars over time</h2>
-          <p class="section-note">Daily cumulative stars on original GitHub repositories. The line starts with an opening balance on {{ star_history.start_date }}; this chart excludes the {{ stats.fork_stars }} stars earned on maintained forks.</p>
+          <p class="section-note"><span data-i18n="stars.notePrefix">Daily cumulative stars on own GitHub repositories. Opening balance on </span>{{ star_history.start_date }}<span data-i18n="stars.noteMiddle">; this chart excludes the </span>{{ stats.fork_stars }}<span data-i18n="stars.noteSuffix"> stars earned on maintained forks.</span></p>
           <div class="stars-current"><strong>{{ star_history.chart.latest_total }}★</strong><span>{{ star_history.chart.latest_date }} · <span data-i18n="stars.currentLabel">own repositories</span></span></div>
         </div>
         <div class="stars-chart">
@@ -18,7 +18,7 @@
 {% endfor %}          <polyline class="stars-line" points="{{ star_history.chart.points }}" />
           <circle class="stars-end" cx="{{ star_history.chart.end_x }}" cy="{{ star_history.chart.end_y }}" r="5" />
 {% for month in star_history.chart.months %}          {# x-label baseline sits 24px below the plot's bottom margin so month names clear the axis. #}
-          <text class="stars-x-label" x="{{ month.x }}" y="{{ star_history.chart.height - star_history.chart.bottom + 24 }}">{{ month.label }}</text>
+          <text class="stars-x-label" x="{{ month.x }}" y="{{ star_history.chart.height - star_history.chart.bottom + 24 }}" data-i18n="month.{{ month.label }}">{{ month.label }}</text>
 {% endfor %}        </svg>
         </div>
       </div>
