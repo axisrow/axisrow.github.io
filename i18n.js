@@ -12,9 +12,9 @@
   var DICTIONARIES = {
     en: {
       "meta.title": "axisrow — Python engineer",
-      "meta.description": "Python engineer building AI agent tooling, automation, and data systems. 37 merged upstream PRs · 108 stars · 7 starred projects.",
+      "meta.description": "Python engineer building AI agent tooling, automation, and data systems. {prs} merged upstream PRs · {stars} stars · {starred} starred projects.",
       "meta.ogTitle": "axisrow — Python engineer",
-      "meta.ogDescription": "AI agent tooling, automation, and data systems. 37 merged upstream PRs · 108 stars · 7 starred projects.",
+      "meta.ogDescription": "AI agent tooling, automation, and data systems. {prs} merged upstream PRs · {stars} stars · {starred} starred projects.",
       "meta.twitterTitle": "axisrow — Python engineer",
       "meta.twitterDescription": "AI agent tooling, automation, and production Python systems.",
 
@@ -51,6 +51,8 @@
       "stars.title": "Stars over time",
       "stars.sectionNote": "Cumulative GitHub stars across all repositories since ",
       "stars.currentLabel": "all repositories",
+      "stars.chartTitle": "Cumulative GitHub stars since {startDate}",
+      "stars.chartDesc": "The chart ends at {count} stars on {endDate}.",
 
       "month.Jan": "Jan",
       "month.Feb": "Feb",
@@ -133,9 +135,9 @@
     },
     ru: {
       "meta.title": "axisrow — Python-инженер",
-      "meta.description": "Python-инженер: инструменты для AI-агентов, автоматизация и системы данных. 37 PR, принятых в upstream · 108 звёзд · 7 проектов со звёздами.",
+      "meta.description": "Python-инженер: инструменты для AI-агентов, автоматизация и системы данных. {prs} PR, принятых в upstream · {stars} звёзд · {starred} проектов со звёздами.",
       "meta.ogTitle": "axisrow — Python-инженер",
-      "meta.ogDescription": "Инструменты для AI-агентов, автоматизация и системы данных. 37 PR, принятых в upstream · 108 звёзд · 7 проектов со звёздами.",
+      "meta.ogDescription": "Инструменты для AI-агентов, автоматизация и системы данных. {prs} PR, принятых в upstream · {stars} звёзд · {starred} проектов со звёздами.",
       "meta.twitterTitle": "axisrow — Python-инженер",
       "meta.twitterDescription": "Инструменты для AI-агентов, автоматизация и production-системы на Python.",
 
@@ -172,6 +174,8 @@
       "stars.title": "Рост звёзд",
       "stars.sectionNote": "Совокупное число звёзд на всех репозиториях с ",
       "stars.currentLabel": "все репозитории",
+      "stars.chartTitle": "Совокупное число звёзд на GitHub с {startDate}",
+      "stars.chartDesc": "На графике показано {count} звёзд по состоянию на {endDate}.",
 
       "month.Jan": "Янв",
       "month.Feb": "Фев",
@@ -291,6 +295,53 @@
     return Object.prototype.hasOwnProperty.call(fallback, key) ? fallback[key] : key;
   }
 
+  // Substitutes {placeholder} tokens in a translated string with caller-supplied
+  // values. Used for copy that embeds bot-synced data (star counts, PR counts,
+  // dates) so those numbers live in one place (the DOM, updated daily by
+  // profile/sync/apply_site_fragments.py) instead of being duplicated as
+  // literals inside both language dictionaries above, where they'd silently
+  // go stale every time the bot updates the page but not this file.
+  function interpolate(text, vars) {
+    if (!vars) return text;
+    return text.replace(/\{(\w+)\}/g, function (match, name) {
+      return Object.prototype.hasOwnProperty.call(vars, name) ? vars[name] : match;
+    });
+  }
+
+  // Reads a node's `data-i18n-vars` attribute — a small JSON object of
+  // placeholder values, e.g. {"count":"108","date":"2026-08-14"} — and returns
+  // it, or null if absent/malformed (malformed is treated as "no vars", not an
+  // error, so a bad attribute degrades to the untranslated {placeholder} tokens
+  // rather than throwing and leaving the rest of the page untranslated).
+  function readVars(node) {
+    var raw = node.getAttribute("data-i18n-vars");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Reads the hero's live profile counters straight from the DOM
+  // (<span data-profile-value="…">), the same nodes
+  // profile/sync/apply_site_fragments.py keeps current on every bot sync, so
+  // meta.description/meta.ogDescription always interpolate today's numbers
+  // instead of a snapshot baked into this dictionary at PR time.
+  function readProfileVars(scope) {
+    var doc = (scope && scope.ownerDocument) || (typeof document !== "undefined" ? document : null);
+    if (!doc || !doc.querySelector) return null;
+    var read = function (key) {
+      var node = doc.querySelector('[data-profile-value="' + key + '"]');
+      return node ? node.textContent.trim() : null;
+    };
+    var prs = read("merged_upstream_prs");
+    var stars = read("stars_earned");
+    var starred = read("starred_projects");
+    if (prs === null || stars === null || starred === null) return null;
+    return { prs: prs, stars: stars, starred: starred };
+  }
+
   function applyTranslations(root, lang) {
     var scope = root || document;
 
@@ -298,7 +349,7 @@
     for (var i = 0; i < textNodes.length; i++) {
       var node = textNodes[i];
       var key = node.getAttribute("data-i18n");
-      if (key) node.textContent = translate(lang, key);
+      if (key) node.textContent = interpolate(translate(lang, key), readVars(node));
     }
 
     var attrNodes = scope.querySelectorAll("[data-i18n-attr]");
@@ -316,12 +367,23 @@
     }
 
     var metaNodes = scope.querySelectorAll("[data-i18n-meta]");
+    var profileVars = null;
     for (var m = 0; m < metaNodes.length; m++) {
       var metaNode = metaNodes[m];
       var metaKey = metaNode.getAttribute("data-i18n-meta");
       if (!metaKey) continue;
-      var value = translate(lang, metaKey);
-      if (metaNode.tagName === "TITLE") metaNode.textContent = value;
+      var vars = readVars(metaNode);
+      if (!vars && (metaKey === "meta.description" || metaKey === "meta.ogDescription")) {
+        if (profileVars === null) profileVars = readProfileVars(scope) || false;
+        vars = profileVars || null;
+      }
+      var value = interpolate(translate(lang, metaKey), vars);
+      // SVG <title>/<desc> keep their source-case tagName ("title"/"desc"),
+      // unlike HTML elements (always uppercased) — compare case-insensitively
+      // so both the document <title> and an in-chart <title>/<desc> take the
+      // textContent branch instead of falling through to setAttribute.
+      var tag = metaNode.tagName.toLowerCase();
+      if (tag === "title" || tag === "desc") metaNode.textContent = value;
       else metaNode.setAttribute("content", value);
     }
   }

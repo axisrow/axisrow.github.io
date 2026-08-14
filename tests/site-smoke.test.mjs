@@ -309,6 +309,126 @@ test('applyTranslations rewrites textContent, attributes, and meta tags for the 
   assert.equal(heroLead.textContent, i18n.translate('en', 'hero.lead'));
 });
 
+test('applyTranslations interpolates data-i18n-vars placeholders for text and meta nodes', async () => {
+  const i18nScript = await source('i18n.js');
+  // stars.chartTitle/stars.chartDesc carry {startDate}/{count}/{endDate}
+  // placeholders (the SVG chart's <title>/<desc> are bot-synced, not static
+  // strings) — data-i18n-vars supplies per-node values, same JSON-on-attribute
+  // shape used in index.html and the stars.html.j2 template.
+  const chartTitle = fakeElement({
+    tagName: 'title',
+    attrs: { 'data-i18n-meta': 'stars.chartTitle', 'data-i18n-vars': '{"startDate":"2026-03-01"}' }
+  });
+  const chartDesc = fakeElement({
+    tagName: 'desc',
+    attrs: { 'data-i18n-meta': 'stars.chartDesc', 'data-i18n-vars': '{"count":"108","endDate":"2026-08-14"}' }
+  });
+  const malformed = fakeElement({
+    attrs: { 'data-i18n': 'stars.chartTitle', 'data-i18n-vars': '{not valid json' }
+  });
+
+  const byAttr = {
+    '[data-i18n]': [malformed],
+    '[data-i18n-attr]': [],
+    '[data-i18n-meta]': [chartTitle, chartDesc]
+  };
+  const documentElement = { lang: 'en', dataset: { lang: 'en' }, classList: { remove() {} } };
+  const sandbox = {
+    window: {},
+    document: {
+      documentElement,
+      querySelectorAll(selector) { return byAttr[selector] || []; },
+      getElementById() { return null; },
+      querySelector() { return null; }
+    },
+    navigator: { languages: ['en'] },
+    localStorage: { getItem: () => null, setItem() {} }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(i18nScript, sandbox, { filename: 'i18n.js' });
+  const i18n = sandbox.window.PortfolioI18n;
+
+  i18n.setLanguage('ru', false);
+  assert.equal(chartTitle.textContent, 'Совокупное число звёзд на GitHub с 2026-03-01');
+  assert.equal(chartDesc.textContent, 'На графике показано 108 звёзд по состоянию на 2026-08-14.');
+  // A malformed data-i18n-vars degrades to the untranslated {placeholder}
+  // tokens instead of throwing, so the rest of the page still translates.
+  assert.equal(malformed.textContent, i18n.translate('ru', 'stars.chartTitle'));
+  assert.match(malformed.textContent, /\{startDate\}/);
+});
+
+test('applyTranslations interpolates meta.description/ogDescription from live data-profile-value counters', async () => {
+  const i18nScript = await source('i18n.js');
+  // meta.description/meta.ogDescription no longer bake PR/star/starred counts
+  // as dictionary literals (those went stale the moment profile/sync's daily
+  // bot updated the numbers elsewhere on the page without touching i18n.js).
+  // Instead they carry {prs}/{stars}/{starred} placeholders that
+  // readProfileVars fills from the same <span data-profile-value> nodes the
+  // bot keeps current.
+  const descriptionMeta = fakeElement({ tagName: 'META', attrs: { 'data-i18n-meta': 'meta.description', content: 'placeholder' } });
+  const ogDescriptionMeta = fakeElement({ tagName: 'META', attrs: { 'data-i18n-meta': 'meta.ogDescription', content: 'placeholder' } });
+  const profileSpans = {
+    merged_upstream_prs: fakeElement({ attrs: {} }),
+    stars_earned: fakeElement({ attrs: {} }),
+    starred_projects: fakeElement({ attrs: {} })
+  };
+  profileSpans.merged_upstream_prs.textContent = '42';
+  profileSpans.stars_earned.textContent = '150';
+  profileSpans.starred_projects.textContent = '9';
+
+  const byAttr = {
+    '[data-i18n]': [],
+    '[data-i18n-attr]': [],
+    '[data-i18n-meta]': [descriptionMeta, ogDescriptionMeta]
+  };
+  const documentElement = { lang: 'en', dataset: { lang: 'en' }, classList: { remove() {} } };
+  const sandbox = {
+    window: {},
+    document: {
+      documentElement,
+      querySelectorAll(selector) { return byAttr[selector] || []; },
+      getElementById() { return null; },
+      querySelector(selector) {
+        const match = /data-profile-value="([^"]+)"/.exec(selector);
+        return match ? profileSpans[match[1]] || null : null;
+      }
+    },
+    navigator: { languages: ['en'] },
+    localStorage: { getItem: () => null, setItem() {} }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(i18nScript, sandbox, { filename: 'i18n.js' });
+  const i18n = sandbox.window.PortfolioI18n;
+
+  i18n.setLanguage('ru', false);
+  assert.equal(
+    descriptionMeta.getAttribute('content'),
+    'Python-инженер: инструменты для AI-агентов, автоматизация и системы данных. 42 PR, принятых в upstream · 150 звёзд · 9 проектов со звёздами.'
+  );
+  assert.equal(
+    ogDescriptionMeta.getAttribute('content'),
+    'Инструменты для AI-агентов, автоматизация и системы данных. 42 PR, принятых в upstream · 150 звёзд · 9 проектов со звёздами.'
+  );
+  assert.doesNotMatch(descriptionMeta.getAttribute('content'), /\{prs\}|\{stars\}|\{starred\}/);
+});
+
+test('SVG stars chart title/desc are translated and interpolated, in both index.html and the bot template', async () => {
+  const html = await source('index.html');
+  const starsTemplate = await source('profile/sync/templates/stars.html.j2');
+  for (const markup of [html, starsTemplate]) {
+    assert.match(
+      markup,
+      /<title id="stars-chart-title" data-i18n-meta="stars\.chartTitle" data-i18n-vars='\{"startDate":"[^"]+"\}'/
+    );
+    assert.match(
+      markup,
+      /<desc id="stars-chart-desc" data-i18n-meta="stars\.chartDesc" data-i18n-vars='\{"count":"[^"]+","endDate":"[^"]+"\}'/
+    );
+  }
+});
+
 test('main.js keeps the mobile-menu aria-label translated via PortfolioI18n', async () => {
   const script = await source('main.js');
   assert.match(script, /window\.PortfolioI18n\.translate/);
