@@ -110,7 +110,7 @@ test('navigation and generated values are data-driven', async () => {
     assert.match(html, new RegExp(`data-profile-value="${key}"`));
   }
   assert.equal((html.match(/data-profile-value="merged_upstream_prs"/g) || []).length, 3);
-  assert.match(html, /chart excludes the[\s\S]*?5[\s\S]*?stars earned on maintained forks/);
+  assert.match(html, /Cumulative GitHub stars across all repositories since/);
 });
 
 test('mobile navigation uses an accessible menu with full-size links', async () => {

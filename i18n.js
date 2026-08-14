@@ -49,10 +49,8 @@
 
       "stars.eyebrow": "Momentum",
       "stars.title": "Stars over time",
-      "stars.notePrefix": "Daily cumulative stars on own GitHub repositories. Opening balance on ",
-      "stars.noteMiddle": "; this chart excludes the ",
-      "stars.noteSuffix": " stars earned on maintained forks.",
-      "stars.currentLabel": "own repositories",
+      "stars.sectionNote": "Cumulative GitHub stars across all repositories since ",
+      "stars.currentLabel": "all repositories",
 
       "month.Jan": "Jan",
       "month.Feb": "Feb",
@@ -172,10 +170,8 @@
 
       "stars.eyebrow": "Динамика",
       "stars.title": "Рост звёзд",
-      "stars.notePrefix": "Ежедневная сумма звёзд на собственных GitHub-репозиториях. Начальный баланс на ",
-      "stars.noteMiddle": "; график не учитывает ",
-      "stars.noteSuffix": " звёзд, полученных на поддерживаемых форках.",
-      "stars.currentLabel": "собственные репозитории",
+      "stars.sectionNote": "Совокупное число звёзд на всех репозиториях с ",
+      "stars.currentLabel": "все репозитории",
 
       "month.Jan": "Янв",
       "month.Feb": "Фев",

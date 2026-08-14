@@ -6,13 +6,13 @@
         <div class="stars-field-copy veil-panel">
           <p class="eyebrow"><span>01</span> <span data-i18n="stars.eyebrow">Momentum</span></p>
           <h2 class="section-title" data-i18n="stars.title">Stars over time</h2>
-          <p class="section-note"><span data-i18n="stars.notePrefix">Daily cumulative stars on own GitHub repositories. Opening balance on </span>{{ star_history.start_date }}<span data-i18n="stars.noteMiddle">; this chart excludes the </span>{{ stats.fork_stars }}<span data-i18n="stars.noteSuffix"> stars earned on maintained forks.</span></p>
-          <div class="stars-current"><strong>{{ star_history.chart.latest_total }}★</strong><span>{{ star_history.chart.latest_date }} · <span data-i18n="stars.currentLabel">own repositories</span></span></div>
+          <p class="section-note"><span data-i18n="stars.sectionNote">Cumulative GitHub stars across all repositories since </span>{{ star_history.start_date }}.</p>
+          <div class="stars-current"><strong>{{ stats.stars_earned }}★</strong><span>{{ star_history.chart.latest_date }} · <span data-i18n="stars.currentLabel">all repositories</span></span></div>
         </div>
         <div class="stars-chart">
         <svg viewBox="0 0 {{ star_history.chart.width }} {{ star_history.chart.height }}" role="img" aria-labelledby="stars-chart-title stars-chart-desc">
           <title id="stars-chart-title">Cumulative GitHub stars since {{ star_history.start_date }}</title>
-          <desc id="stars-chart-desc">The chart ends at {{ star_history.chart.latest_total }} stars on {{ star_history.chart.latest_date }}.</desc>
+          <desc id="stars-chart-desc">The chart ends at {{ stats.stars_earned }} stars on {{ star_history.chart.latest_date }}.</desc>
 {% for tick in star_history.chart.ticks %}          <line class="stars-grid" x1="{{ star_history.chart.left }}" x2="{{ star_history.chart.width - star_history.chart.right }}" y1="{{ tick.y }}" y2="{{ tick.y }}" />
           <text class="stars-y-label" x="44" y="{{ tick.y }}">{{ tick.value }}</text>
 {% endfor %}          <polyline class="stars-line" points="{{ star_history.chart.points }}" />
