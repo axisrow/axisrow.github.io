@@ -59,6 +59,117 @@ test('animated fields remain behind readable mobile cards', async () => {
   assert.doesNotMatch(css, /\.proof-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
 });
 
+/* Contrast of the small text that sits on a mobile veil panel, computed rather
+   than pinned: the panel is a --panel-veil tint over a live effect canvas, so
+   the real backdrop is every stop of the shared effect palette composited under
+   that tint. Reading the numbers out of the sources keeps this honest if either
+   the palette or the veil alpha moves. */
+function relativeLuminance([r, g, b]) {
+  const channel = (value) => {
+    const c = value / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+function parseHex(hex) {
+  const value = hex.replace('#', '');
+  return [0, 2, 4].map((i) => parseInt(value.slice(i, i + 2), 16));
+}
+
+function contrastRatio(a, b) {
+  const [x, y] = [relativeLuminance(a), relativeLuminance(b)];
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+
+// The library interpolates the five stops into a 256-entry ramp; sampling the
+// interpolation (not just the stops) is what makes "worst case" meaningful.
+function paletteRamp(stops, steps = 256) {
+  const points = stops.map(parseHex);
+  return Array.from({ length: steps }, (_, i) => {
+    const t = (i / (steps - 1)) * (points.length - 1);
+    const k = Math.min(Math.floor(t), points.length - 2);
+    const f = t - k;
+    return points[k].map((c, j) => c + (points[k + 1][j] - c) * f);
+  });
+}
+
+function composite(tint, backdrop, alpha) {
+  return tint.map((c, i) => c * alpha + backdrop[i] * (1 - alpha));
+}
+
+test('mobile panel text clears WCAG AA over the worst backdrop the veil can composite', async () => {
+  const css = await source('styles.css');
+  const skins = await source('effect-skins.js');
+
+  const stops = (theme) => {
+    const block = new RegExp(`${theme}:\\s*\\{\\s*colors:\\s*colors\\(\\[([^\\]]+)\\]`).exec(skins);
+    assert.ok(block, `no ${theme} palette in effect-skins.js`);
+    return block[1].match(/#[0-9a-f]{6}/gi) ?? [];
+  };
+  // The dark palette leads with the shared `ink` identifier, not a literal.
+  const darkStops = ['#090b0f', ...stops('dark')];
+  const lightStops = stops('light');
+  assert.equal(lightStops.length, 5);
+  assert.equal(darkStops.length, 5);
+
+  const mobile = css.slice(css.indexOf('@media (max-width: 720px)'));
+  const veil = (source, alphaPattern) => {
+    const match = alphaPattern.exec(source);
+    assert.ok(match, 'no --panel-veil declaration found');
+    return Number(match[1]) / 100;
+  };
+  const lightAlpha = veil(mobile, /--panel-veil:\s*color-mix\(in srgb,\s*var\(--veil-solid\)\s*(\d+)%/);
+  const darkAlpha = veil(mobile, /--panel-veil:\s*color-mix\(in srgb,\s*var\(--page\)\s*(\d+)%/);
+
+  const declared = (block, name) => {
+    const match = new RegExp(`${name}:\\s*(#[0-9a-f]{6})`, 'i').exec(block);
+    assert.ok(match, `no ${name} in the panel override block`);
+    return parseHex(match[1]);
+  };
+  const lightPanel = /\.contact-card\s*\{([^}]*)\}/.exec(mobile);
+  const darkPanel = /:root\[data-theme="dark"\] \.contact-card\s*\{([^}]*)\}/.exec(mobile);
+  assert.ok(lightPanel && darkPanel);
+
+  const cases = [
+    // Light: --veil-solid tint, ink black body text, panel-local secondaries.
+    {
+      stops: lightStops,
+      tint: parseHex('#f8f5ee'),
+      alpha: lightAlpha,
+      block: lightPanel[1],
+      globals: { '--ink': '#17191d', '--success': '#287c59', '--accent': '#a15f40' }
+    },
+    // Dark: --page tint. No --success / --accent override is needed here, so
+    // the globals are what the panel actually renders.
+    {
+      stops: darkStops,
+      tint: parseHex('#090b0f'),
+      alpha: darkAlpha,
+      block: darkPanel[1],
+      globals: { '--ink': '#f0ede5', '--success': '#67c99c', '--accent': '#dc8d67' }
+    }
+  ];
+
+  for (const { stops: palette, tint, alpha, block, globals } of cases) {
+    const backdrops = paletteRamp(palette).map((tone) => composite(tint, tone, alpha));
+    // A panel-local override wins where it exists; otherwise the global token
+    // is what renders, and it has to clear AA on its own.
+    const resolve = (name) => (new RegExp(`${name}:`).test(block) ? declared(block, name) : parseHex(globals[name]));
+    const inks = [
+      parseHex(globals['--ink']),
+      declared(block, '--ink-soft'),
+      declared(block, '--ink-faint'),
+      resolve('--success'),
+      resolve('--accent')
+    ];
+    for (const colour of inks) {
+      const worst = Math.min(...backdrops.map((bg) => contrastRatio(colour, bg)));
+      assert.ok(worst >= 4.5, `#${colour.map((c) => Math.round(c).toString(16).padStart(2, '0')).join('')} only reaches ${worst.toFixed(2)}:1`);
+    }
+  }
+});
+
 test('every section accent is mounted in document order and nothing else is', async () => {
   const html = await source('index.html');
   const effects = Array.from(html.matchAll(/data-effect="([^"]+)"/g), (match) => match[1]);
