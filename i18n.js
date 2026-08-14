@@ -48,19 +48,19 @@
       "hero.footScroll": "Scroll to explore ↓",
 
       "stars.eyebrow": "Momentum",
-      "stars.title": "Stars over time.",
+      "stars.title": "Stars over time",
       "stars.currentLabel": "own repositories",
 
       "projects.eyebrow": "Selected Work",
-      "projects.title": "Systems with measurable output.",
+      "projects.title": "Systems with measurable output",
       "projects.notePrefix": "Own repositories with the most stars — see all at ",
       "projects.captionLabel": "Selected systems",
-      "projects.captionStrong": "Automation that ships.",
+      "projects.captionStrong": "Automation that ships",
       "projects.captionSmall": "Agents · integrations · data",
       "projects.viewRepository": "View repository ↗",
 
       "opensource.eyebrow": "Contributions",
-      "opensource.title": "Useful changes, merged upstream.",
+      "opensource.title": "Useful changes, merged upstream",
       "opensource.note": "Every entry below links to accepted production code.",
       "opensource.ariaLabel": "Merged upstream contributions",
       "opensource.prsLabel": "merged upstream PRs",
@@ -76,7 +76,7 @@
       "opensource.row5Status": "Merged · PR #2357 ↗",
 
       "experience.eyebrow": "Experience",
-      "experience.title": "Built, shipped, maintained.",
+      "experience.title": "Built, shipped, maintained",
       "experience.item1Title": "Open-Source Contributor",
       "experience.item1Period": "2024 — Present",
       "experience.item1Bullet1Suffix": "merged PRs across upstream projects.",
@@ -90,7 +90,7 @@
       "experience.item2Bullet3Suffix": "stars across own projects and maintained forks.",
 
       "about.eyebrow": "About",
-      "about.title": "Calm systems for complicated work.",
+      "about.title": "Calm systems for complicated work",
       "about.copy1": "I build AI agent tooling, Telegram automation, and data systems with a bias toward explicit behaviour, observable failures, and uneventful operations.",
       "about.copy2": "When a dependency needs a fix, I prefer contributing the improvement upstream instead of carrying a permanent local patch.",
       "about.stackLabel": "Working stack",
@@ -143,19 +143,19 @@
       "hero.footScroll": "Листайте вниз ↓",
 
       "stars.eyebrow": "Динамика",
-      "stars.title": "Рост звёзд.",
+      "stars.title": "Рост звёзд",
       "stars.currentLabel": "собственные репозитории",
 
       "projects.eyebrow": "Проекты",
-      "projects.title": "Системы, которые дают результат.",
+      "projects.title": "Системы, которые дают результат",
       "projects.notePrefix": "Собственные репозитории с наибольшим числом звёзд — все проекты на ",
       "projects.captionLabel": "Лучшие системы",
-      "projects.captionStrong": "Автоматизация, которая работает.",
+      "projects.captionStrong": "Автоматизация, которая работает",
       "projects.captionSmall": "Агенты · интеграции · данные",
       "projects.viewRepository": "Открыть репозиторий ↗",
 
       "opensource.eyebrow": "Принятые PR",
-      "opensource.title": "Полезные изменения, принятые в upstream.",
+      "opensource.title": "Полезные изменения, принятые в upstream",
       "opensource.note": "Каждая строка ниже — это принятый production-код.",
       "opensource.ariaLabel": "PR, принятые в upstream",
       "opensource.prsLabel": "PR, принятых в upstream",
@@ -171,7 +171,7 @@
       "opensource.row5Status": "Принят · PR #2357 ↗",
 
       "experience.eyebrow": "Опыт",
-      "experience.title": "Создано, выпущено, поддерживается.",
+      "experience.title": "Создано, выпущено, поддерживается",
       "experience.item1Title": "Контрибьютор open source",
       "experience.item1Period": "2024 — настоящее время",
       "experience.item1Bullet1Suffix": "PR, принятых в upstream-проекты.",
@@ -185,7 +185,7 @@
       "experience.item2Bullet3Suffix": "звёзд на собственных проектах и поддерживаемых форках.",
 
       "about.eyebrow": "Обо мне",
-      "about.title": "Спокойные системы для сложных задач.",
+      "about.title": "Спокойные системы для сложных задач",
       "about.copy1": "Я создаю инструменты для AI-агентов, автоматизацию Telegram и системы данных с упором на явное поведение, наблюдаемые сбои и предсказуемую эксплуатацию.",
       "about.copy2": "Когда зависимость требует исправления, я предпочитаю вносить улучшение в upstream, а не поддерживать локальный патч навсегда.",
       "about.stackLabel": "Рабочий стек",
