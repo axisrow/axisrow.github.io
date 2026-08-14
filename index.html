@@ -7,6 +7,12 @@
   <meta name="description" content="Python engineer building AI agent tooling, automation, and data systems. 37 merged upstream PRs · 108 stars · 7 starred projects." data-i18n-meta="meta.description" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <meta name="demoscene-base" content="assets/demoscene" />
+  <!-- Single source of truth for the supported-languages list + default,
+       read by both the inline bootstrap script below (pre-paint, before
+       i18n.js loads) and i18n.js itself — see #42 follow-up: this used to
+       be two independently hardcoded literals that could silently diverge
+       if a language were ever added to one and not the other. -->
+  <meta name="i18n-languages" content="en,ru" data-default="ru" />
 
   <meta property="og:title" content="axisrow — Python engineer" data-i18n-meta="meta.ogTitle" />
   <meta property="og:description" content="AI agent tooling, automation, and data systems. 37 merged upstream PRs · 108 stars · 7 starred projects." data-i18n-meta="meta.ogDescription" />
@@ -50,17 +56,20 @@
       // lang-loading class (styles.css) hides <body> until that pass runs;
       // i18n.js removes it even if translation throws, so a broken dictionary
       // never leaves the page permanently blank.
+      var langMeta = document.querySelector('meta[name="i18n-languages"]');
+      var supportedLangs = (langMeta && langMeta.content ? langMeta.content : "en,ru").split(",");
+      var defaultLang = (langMeta && langMeta.getAttribute("data-default")) || "ru";
       var lang = null;
       try { lang = localStorage.getItem("lang-choice"); } catch (error) {}
-      if (lang !== "en" && lang !== "ru") {
-        lang = "ru";
+      if (supportedLangs.indexOf(lang) === -1) {
+        lang = defaultLang;
         try {
           var browserLangs = navigator.languages && navigator.languages.length
             ? navigator.languages
             : [navigator.language];
           for (var i = 0; i < browserLangs.length; i++) {
             var code = String(browserLangs[i] || "").slice(0, 2).toLowerCase();
-            if (code === "en" || code === "ru") { lang = code; break; }
+            if (supportedLangs.indexOf(code) !== -1) { lang = code; break; }
           }
         } catch (error) {}
       }

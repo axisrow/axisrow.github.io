@@ -202,8 +202,17 @@
     }
   };
 
-  var SUPPORTED = ["en", "ru"];
-  var DEFAULT_LANG = "ru";
+  // Supported-languages list + default read from the <meta name="i18n-languages">
+  // tag in index.html's <head> — the single source of truth also read by the
+  // inline pre-paint bootstrap script there, so the two never hardcode the
+  // language list independently and silently diverge if a language is added.
+  // Falls back to the current en/ru pair when the meta tag is absent (e.g.
+  // this file's `vm` sandbox in tests/site-smoke.test.mjs has no real DOM).
+  var langMeta = typeof document !== "undefined" && document.querySelector
+    ? document.querySelector('meta[name="i18n-languages"]')
+    : null;
+  var SUPPORTED = (langMeta && langMeta.content ? langMeta.content : "en,ru").split(",");
+  var DEFAULT_LANG = (langMeta && langMeta.getAttribute("data-default")) || "ru";
   var STORAGE_KEY = "lang-choice";
 
   function detectLanguage() {
