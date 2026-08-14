@@ -75,7 +75,20 @@
       }
       document.documentElement.dataset.lang = lang;
       document.documentElement.lang = lang;
-      if (lang !== "en") document.documentElement.classList.add("lang-loading");
+      if (lang !== "en") {
+        document.documentElement.classList.add("lang-loading");
+        // Fail-open: i18n.js (loaded at the end of body) is the only thing
+        // that removes lang-loading. If that script never runs — blocked by
+        // an ad-blocker/CSP, a network failure, a stale/missing deploy
+        // artifact, or any error before its own removal runs — <body> would
+        // otherwise stay `visibility: hidden` forever (styles.css). This
+        // independent timeout guarantees the guard is lifted regardless,
+        // trading a possible flash of untranslated English for a page that
+        // is never permanently blank.
+        setTimeout(function () {
+          document.documentElement.classList.remove("lang-loading");
+        }, 2000);
+      }
     }());
   </script>
   <link rel="stylesheet" href="styles.css?v=availability-dot-fix-1" />

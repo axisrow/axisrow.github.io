@@ -255,6 +255,21 @@ test('language is resolved before first paint like the theme bootstrap, with a F
   assert.match(css, /\.lang-loading body\s*\{[^}]*visibility: hidden;/s);
 });
 
+test('the lang-loading guard fails open if i18n.js never runs', async () => {
+  // i18n.js is normally the only thing that removes .lang-loading. If it
+  // never executes (blocked by an ad-blocker/CSP, a network failure, a
+  // missing/stale deploy artifact), styles.css's `.lang-loading body {
+  // visibility: hidden; }` would otherwise hide the page forever. The
+  // bootstrap script must carry an independent timeout that removes the
+  // guard on its own, so a visitor gets a possible flash of untranslated
+  // English rather than a permanently blank page.
+  const html = await source('index.html');
+  assert.match(
+    html,
+    /if \(lang !== "en"\) \{[\s\S]*?classList\.add\("lang-loading"\)[\s\S]*?setTimeout\(function \(\) \{[\s\S]*?classList\.remove\("lang-loading"\)[\s\S]*?\}, \d+\);[\s\S]*?\}/
+  );
+});
+
 function fakeElement({ tagName = 'SPAN', attrs = {} } = {}) {
   const attributes = { ...attrs };
   return {
