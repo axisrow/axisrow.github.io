@@ -1662,7 +1662,18 @@ main {
 
   /* The secondary tones were picked for a near-opaque panel. Over a live field
      they drop under AA, so step them towards the body colour inside every
-     panel that now shows a canvas through. */
+     panel that now shows a canvas through.
+
+     --success and --accent go with them, but only in the light theme. At 88%
+     the darkest backdrop a panel can composite is #e4e4df (the veil over the
+     palette's #526b75 stop), and against it the global green lands at 4.01:1
+     and the global terracotta at 3.91:1 -- both under AA for the 9px
+     .proof-row small and the 11px .timeline-index that carry them over a live
+     canvas. Darkening each by ~11% holds the hue and clears 4.6:1. Note this
+     block deliberately does not cover .project-surface: it is a .veil-panel,
+     but no effect canvas sits behind it, so its cards keep the global tones
+     against a flat surface. The dark theme needs no equivalent either -- its
+     worst backdrop is #29251c and every token already sits above 5.6:1. */
   .hero-copy-plane,
   .projects-field-copy,
   .proof-field-copy,
@@ -1672,6 +1683,8 @@ main {
   .contact-card {
     --ink-soft: #3f423f;
     --ink-faint: #4a4d4a;
+    --success: #257151;
+    --accent: #91553a;
   }
 
   :root[data-theme="dark"] .hero-copy-plane,
