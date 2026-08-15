@@ -1,14 +1,14 @@
 (function () {
   "use strict";
 
-  // Two flat dictionaries keyed by "section.item" — meaningful, grouped keys
+  // Flat dictionaries keyed by "section.item" — meaningful, grouped keys
   // rather than key1/key2 so the mapping to markup stays legible. index.html
   // ships English text inline (also what tests/site-smoke.test.mjs pins), so
   // the "en" dictionary below must mirror that literal markup exactly — it is
-  // the no-op fallback language, not a translation target. "ru" carries the
-  // real Russian copy. Every data-i18n / data-i18n-attr / data-i18n-meta key
-  // used in index.html (and mirrored in profile/sync/templates/*.j2) must
-  // exist in both languages.
+  // the no-op fallback language, not a translation target. "ru", "zh", and
+  // "hi" carry real translations. Every data-i18n / data-i18n-attr /
+  // data-i18n-meta key used in index.html (and mirrored in
+  // profile/sync/templates/*.j2) must exist in every language.
   var DICTIONARIES = {
     en: {
       "meta.title": "axisrow — Python engineer",
@@ -259,6 +259,256 @@
       "footer.copyright": "© axisrow · 2026",
       "footer.effectsPrefix": "Canvas-эффекты работают на ",
       "footer.effectsLink": "Demoscene Classics ↗"
+    },
+    zh: {
+      "meta.title": "axisrow — Python 工程师",
+      "meta.description": "Python 工程师，专注于 AI Agent 工具、自动化和数据系统。{prs} 个已合并的上游 PR · {stars} 个星标 · {starred} 个获星项目。",
+      "meta.ogTitle": "axisrow — Python 工程师",
+      "meta.ogDescription": "AI Agent 工具、自动化和数据系统。{prs} 个已合并的上游 PR · {stars} 个星标 · {starred} 个获星项目。",
+      "meta.twitterTitle": "axisrow — Python 工程师",
+      "meta.twitterDescription": "AI Agent 工具与生产环境 Python 系统。",
+
+      "topbar.brand": "axisrow — 返回顶部",
+      "topbar.menuOpen": "打开分区导航",
+      "topbar.menuClose": "关闭分区导航",
+      "topbar.nav": "分区导航",
+      "topbar.theme": "配色主题",
+      "topbar.themeSystem": "跟随系统",
+      "topbar.themeLight": "浅色",
+      "topbar.themeDark": "深色",
+      "topbar.language": "语言",
+      "topbar.github": "GitHub",
+
+      "nav.stars": "星标",
+      "nav.projects": "项目",
+      "nav.opensource": "开源贡献",
+      "nav.experience": "经历",
+      "nav.about": "关于",
+      "nav.contact": "联系方式",
+
+      "hero.availability": "有选择地接受工程项目",
+      "hero.lead": "Python 工程师，打造经得起生产环境考验的 AI Agent 工具、自动化和数据系统。",
+      "hero.viewWork": "查看代表作品",
+      "hero.startConversation": "取得联系",
+      "hero.statsLabel": "开源统计数据",
+      "hero.starsLabel": "GitHub 星标总数",
+      "hero.prsLabel": "已合并的上游 PR",
+      "hero.starredLabel": "获星项目数",
+      "hero.footEffect": "Canvas 2D / 融球效果",
+      "hero.footScroll": "向下滚动查看 ↓",
+
+      "stars.eyebrow": "增长趋势",
+      "stars.title": "星标增长曲线",
+      "stars.sectionNote": "自以下时间起，所有仓库的累计 GitHub 星标数：",
+      "stars.currentLabel": "全部仓库",
+      "stars.chartTitle": "自 {startDate} 起的累计 GitHub 星标数",
+      "stars.chartDesc": "该图表截至 {endDate}，共计 {count} 个星标。",
+
+      "month.Jan": "1月",
+      "month.Feb": "2月",
+      "month.Mar": "3月",
+      "month.Apr": "4月",
+      "month.May": "5月",
+      "month.Jun": "6月",
+      "month.Jul": "7月",
+      "month.Aug": "8月",
+      "month.Sep": "9月",
+      "month.Oct": "10月",
+      "month.Nov": "11月",
+      "month.Dec": "12月",
+
+      "projects.eyebrow": "代表作品",
+      "projects.title": "带来可衡量成果的系统",
+      "projects.notePrefix": "星标最多的个人仓库 — 查看全部项目：",
+      "projects.captionLabel": "精选系统",
+      "projects.captionStrong": "持续交付的自动化",
+      "projects.captionSmall": "Agent · 集成 · 数据",
+      "projects.viewRepository": "查看仓库 ↗",
+
+      "projects.group.telegram-yandex": "Telegram 与 Yandex",
+      "projects.group.ai-agent-tooling": "AI / Agent 工具",
+      "projects.group.data-ml": "数据 / 机器学习",
+      "projects.desc.tg_content_factory": "Telegram 内容工厂流水线 — 旗舰项目。",
+      "projects.desc.yandex-direct-mcp-plugin": "面向 Yandex.Direct 的 Claude Code 插件 — MCP 服务器 + 技能 + OAuth。",
+      "projects.desc.direct-cli": "Yandex.Direct 命令行工具。",
+      "projects.desc.clihost": "经过安全加固的自托管 / 代理命令行工具。",
+      "projects.desc.claude-code-cycle-review-skill": "Claude Code 的自动化 PR 审查流程。",
+      "projects.desc.claude_code_gmail_plugin": "Claude Code 的 Gmail 插件。",
+      "projects.desc.zai-codex-helper": "在 Z.ai 与 OpenAI 之间切换 Codex 的命令行工具（已归档）。",
+      "projects.desc.ccusage-dashboard": "Claude Code 与 Codex 用量的按小时成本仪表盘。",
+      "projects.desc.llm_benchmark": "LLM 基准测试框架。",
+
+      "opensource.eyebrow": "开源贡献",
+      "opensource.title": "已合并到上游的实用改进",
+      "opensource.note": "以下每一条都链接到已被采纳的生产代码。",
+      "opensource.ariaLabel": "已合并的上游贡献",
+      "opensource.prsLabel": "个已合并的上游 PR",
+      "opensource.row1Desc": "为 Peter Steinberger 的桌面工具贡献功能与文档。",
+      "opensource.row1Status": "已合并 · PR #2814 ↗",
+      "opensource.row2Desc": "对临时性网络错误进行重试。",
+      "opensource.row2Status": "已合并 · PR #2627 ↗",
+      "opensource.row3Desc": "符合 Unix 风格的自动化与序列化。",
+      "opensource.row3Status": "已合并 · PR #227 ↗",
+      "opensource.row4Desc": "认证、缓存、数据库、端到端测试、PWA 与安全性。",
+      "opensource.row4Status": "23 个已合并的 PR ↗",
+      "opensource.row5Desc": "多行提交与更安全的权限处理。",
+      "opensource.row5Status": "已合并 · PR #2357 ↗",
+
+      "experience.eyebrow": "经历",
+      "experience.title": "构建、发布、持续维护",
+      "experience.item1Title": "开源贡献者",
+      "experience.item1Period": "2024 — 至今",
+      "experience.item1Bullet1Suffix": "个已合并到上游项目的 PR。",
+      "experience.item1Bullet2": "可靠性修复、生产环境功能、自动化以及更安全的接口设计。",
+      "experience.item1Bullet3": "每一次改动都范围明确、经过测试与审查，并在合并后持续维护。",
+      "experience.item2Title": "独立 Python 工程师",
+      "experience.item2Org": "Telegram 自动化 · AI Agent 工具 · 数据与金融",
+      "experience.item2Period": "2021 — 至今",
+      "experience.item2Bullet1": "基于 Python、asyncio、Agent 与各类 API 构建的生产环境服务。",
+      "experience.item2Bullet2Prefix": "作者，拥有 ",
+      "experience.item2Bullet2Suffix": " 个获星开源项目。",
+      "experience.item2Bullet3Suffix": "个星标，来自个人项目与维护的分支。",
+
+      "about.eyebrow": "关于我",
+      "about.title": "为复杂工作打造稳定的系统",
+      "about.copy1": "我构建 AI Agent 工具、Telegram 自动化和数据系统，注重行为的明确性、故障的可观测性以及运行的平稳可靠。",
+      "about.copy2": "当依赖项需要修复时，我更倾向于将改进直接贡献回上游，而不是长期维护本地补丁。",
+      "about.stackLabel": "常用技术栈",
+
+      "contact.availability": "欢迎开源贡献、工具合作与精选项目合作",
+      "contact.title": "需要一套真正稳定运行的系统？",
+      "contact.copy": "有棘手的集成需求、不稳定的工作流程或数据处理问题？我可以帮你把它变成明确、经过测试的软件。",
+      "contact.telegram": "Telegram ↗",
+      "contact.github": "GitHub ↗",
+
+      "footer.copyright": "© axisrow · 2026",
+      "footer.effectsPrefix": "Canvas 效果技术支持：",
+      "footer.effectsLink": "Demoscene Classics ↗"
+    },
+    hi: {
+      "meta.title": "axisrow — Python इंजीनियर",
+      "meta.description": "AI एजेंट टूलिंग, ऑटोमेशन और डेटा सिस्टम बनाने वाला Python इंजीनियर। {prs} मर्ज किए गए अपस्ट्रीम PR · {stars} स्टार · {starred} स्टार-प्राप्त प्रोजेक्ट।",
+      "meta.ogTitle": "axisrow — Python इंजीनियर",
+      "meta.ogDescription": "AI एजेंट टूलिंग, ऑटोमेशन और डेटा सिस्टम। {prs} मर्ज किए गए अपस्ट्रीम PR · {stars} स्टार · {starred} स्टार-प्राप्त प्रोजेक्ट।",
+      "meta.twitterTitle": "axisrow — Python इंजीनियर",
+      "meta.twitterDescription": "AI एजेंट टूलिंग और प्रोडक्शन Python सिस्टम।",
+
+      "topbar.brand": "axisrow — शीर्ष पर वापस जाएं",
+      "topbar.menuOpen": "सेक्शन नेविगेशन खोलें",
+      "topbar.menuClose": "सेक्शन नेविगेशन बंद करें",
+      "topbar.nav": "सेक्शन नेविगेशन",
+      "topbar.theme": "रंग थीम",
+      "topbar.themeSystem": "सिस्टम",
+      "topbar.themeLight": "हल्का",
+      "topbar.themeDark": "गहरा",
+      "topbar.language": "भाषा",
+      "topbar.github": "GitHub",
+
+      "nav.stars": "स्टार",
+      "nav.projects": "प्रोजेक्ट",
+      "nav.opensource": "ओपन सोर्स",
+      "nav.experience": "अनुभव",
+      "nav.about": "परिचय",
+      "nav.contact": "संपर्क",
+
+      "hero.availability": "चुनिंदा इंजीनियरिंग कार्य के लिए उपलब्ध",
+      "hero.lead": "Python इंजीनियर, जो प्रोडक्शन में टिकने के लिए बनाए गए AI एजेंट टूलिंग, ऑटोमेशन और डेटा सिस्टम विकसित करता है।",
+      "hero.viewWork": "चुनिंदा काम देखें",
+      "hero.startConversation": "संपर्क करें",
+      "hero.statsLabel": "ओपन-सोर्स आँकड़े",
+      "hero.starsLabel": "GitHub पर कुल स्टार",
+      "hero.prsLabel": "मर्ज किए गए अपस्ट्रीम PR",
+      "hero.starredLabel": "स्टार-प्राप्त प्रोजेक्ट",
+      "hero.footEffect": "Canvas 2D / मेटाबॉल्स",
+      "hero.footScroll": "एक्सप्लोर करने के लिए स्क्रॉल करें ↓",
+
+      "stars.eyebrow": "प्रगति",
+      "stars.title": "समय के साथ स्टार वृद्धि",
+      "stars.sectionNote": "सभी रिपॉज़िटरी में संचयी GitHub स्टार, इस तारीख़ से: ",
+      "stars.currentLabel": "सभी रिपॉज़िटरी",
+      "stars.chartTitle": "{startDate} से संचयी GitHub स्टार",
+      "stars.chartDesc": "यह चार्ट {endDate} को {count} स्टार पर समाप्त होता है।",
+
+      "month.Jan": "जन",
+      "month.Feb": "फ़र",
+      "month.Mar": "मार्च",
+      "month.Apr": "अप्रैल",
+      "month.May": "मई",
+      "month.Jun": "जून",
+      "month.Jul": "जुलाई",
+      "month.Aug": "अग",
+      "month.Sep": "सित",
+      "month.Oct": "अक्टू",
+      "month.Nov": "नव",
+      "month.Dec": "दिस",
+
+      "projects.eyebrow": "चुनिंदा काम",
+      "projects.title": "मापने योग्य परिणाम देने वाले सिस्टम",
+      "projects.notePrefix": "सबसे ज़्यादा स्टार वाली निजी रिपॉज़िटरी — सभी प्रोजेक्ट यहाँ देखें: ",
+      "projects.captionLabel": "चुनिंदा सिस्टम",
+      "projects.captionStrong": "ऑटोमेशन जो वाक़ई काम करता है",
+      "projects.captionSmall": "एजेंट · इंटीग्रेशन · डेटा",
+      "projects.viewRepository": "रिपॉज़िटरी देखें ↗",
+
+      "projects.group.telegram-yandex": "Telegram और Yandex",
+      "projects.group.ai-agent-tooling": "AI / एजेंट टूलिंग",
+      "projects.group.data-ml": "डेटा / ML",
+      "projects.desc.tg_content_factory": "Telegram के लिए कंटेंट-फ़ैक्ट्री पाइपलाइन — प्रमुख प्रोजेक्ट।",
+      "projects.desc.yandex-direct-mcp-plugin": "Yandex.Direct के लिए Claude Code प्लगइन — MCP सर्वर + स्किल्स + OAuth।",
+      "projects.desc.direct-cli": "Yandex.Direct के लिए CLI।",
+      "projects.desc.clihost": "सुरक्षा की दृष्टि से मज़बूत सेल्फ़-होस्टिंग / प्रॉक्सी CLI।",
+      "projects.desc.claude-code-cycle-review-skill": "Claude Code के लिए ऑटोमेटेड PR रिव्यू साइकल।",
+      "projects.desc.claude_code_gmail_plugin": "Claude Code के लिए Gmail प्लगइन।",
+      "projects.desc.zai-codex-helper": "Codex को Z.ai और OpenAI के बीच स्विच करने वाला CLI (आर्काइव्ड)।",
+      "projects.desc.ccusage-dashboard": "Claude Code और Codex उपयोग के लिए प्रति-घंटा लागत डैशबोर्ड।",
+      "projects.desc.llm_benchmark": "LLM बेंचमार्क हार्नेस।",
+
+      "opensource.eyebrow": "योगदान",
+      "opensource.title": "उपयोगी बदलाव, अपस्ट्रीम में मर्ज किए गए",
+      "opensource.note": "नीचे दी गई हर एंट्री स्वीकृत प्रोडक्शन कोड से जुड़ी है।",
+      "opensource.ariaLabel": "मर्ज किए गए अपस्ट्रीम योगदान",
+      "opensource.prsLabel": "मर्ज किए गए अपस्ट्रीम PR",
+      "opensource.row1Desc": "Peter Steinberger के डेस्कटॉप यूटिलिटी के लिए फ़ीचर और डॉक्यूमेंटेशन योगदान।",
+      "opensource.row1Status": "मर्ज किया गया · PR #2814 ↗",
+      "opensource.row2Desc": "अस्थायी नेटवर्क त्रुटियों के लिए पुनः प्रयास।",
+      "opensource.row2Status": "मर्ज किया गया · PR #2627 ↗",
+      "opensource.row3Desc": "Unix-अनुकूल ऑटोमेशन और सीरियलाइज़ेशन।",
+      "opensource.row3Status": "मर्ज किया गया · PR #227 ↗",
+      "opensource.row4Desc": "ऑथ, कैशिंग, डेटाबेस, E2E, PWA और सुरक्षा।",
+      "opensource.row4Status": "23 मर्ज किए गए PR ↗",
+      "opensource.row5Desc": "मल्टीलाइन सबमिट और सुरक्षित परमिशन हैंडलिंग।",
+      "opensource.row5Status": "मर्ज किया गया · PR #2357 ↗",
+
+      "experience.eyebrow": "अनुभव",
+      "experience.title": "बनाया, रिलीज़ किया, बनाए रखा",
+      "experience.item1Title": "ओपन-सोर्स योगदानकर्ता",
+      "experience.item1Period": "2024 — अब तक",
+      "experience.item1Bullet1Suffix": "अपस्ट्रीम प्रोजेक्ट्स में मर्ज किए गए PR।",
+      "experience.item1Bullet2": "रिलायबिलिटी फ़िक्स, प्रोडक्शन फ़ीचर्स, ऑटोमेशन और सुरक्षित इंटरफ़ेस।",
+      "experience.item1Bullet3": "हर बदलाव सीमित दायरे का, टेस्ट किया हुआ, रिव्यू किया हुआ और मर्ज के बाद बनाए रखा जाता है।",
+      "experience.item2Title": "स्वतंत्र Python इंजीनियर",
+      "experience.item2Org": "Telegram ऑटोमेशन · AI एजेंट टूलिंग · डेटा और फ़ाइनेंस",
+      "experience.item2Period": "2021 — अब तक",
+      "experience.item2Bullet1": "Python, asyncio, एजेंट्स और API पर आधारित प्रोडक्शन सर्विसेज़।",
+      "experience.item2Bullet2Prefix": "लेखक — ",
+      "experience.item2Bullet2Suffix": " स्टार-प्राप्त ओपन-सोर्स प्रोजेक्ट्स के।",
+      "experience.item2Bullet3Suffix": "स्टार, निजी प्रोजेक्ट्स और मेंटेन किए गए फ़ॉर्क्स में।",
+
+      "about.eyebrow": "परिचय",
+      "about.title": "जटिल काम के लिए स्थिर सिस्टम",
+      "about.copy1": "मैं AI एजेंट टूलिंग, Telegram ऑटोमेशन और डेटा सिस्टम बनाता हूँ — स्पष्ट व्यवहार, देखने योग्य विफलताओं और बिना उतार-चढ़ाव वाले संचालन को प्राथमिकता देते हुए।",
+      "about.copy2": "जब किसी डिपेंडेंसी में फ़िक्स की ज़रूरत होती है, तो मैं स्थायी लोकल पैच बनाए रखने के बजाय सुधार सीधे अपस्ट्रीम में योगदान करना पसंद करता हूँ।",
+      "about.stackLabel": "कार्य स्टैक",
+
+      "contact.availability": "योगदान, टूलिंग और चुनिंदा कॉन्ट्रैक्ट कार्य के लिए उपलब्ध",
+      "contact.title": "ऐसा सिस्टम चाहिए जो वाक़ई काम करता रहे?",
+      "contact.copy": "कोई मुश्किल इंटीग्रेशन, अविश्वसनीय वर्कफ़्लो, या डेटा प्रोसेस? मैं इसे स्पष्ट, टेस्ट किए गए सॉफ़्टवेयर में बदलने में मदद करूँगा।",
+      "contact.telegram": "Telegram ↗",
+      "contact.github": "GitHub ↗",
+
+      "footer.copyright": "© axisrow · 2026",
+      "footer.effectsPrefix": "Canvas इफ़ेक्ट्स के पीछे: ",
+      "footer.effectsLink": "Demoscene Classics ↗"
     }
   };
 
@@ -266,12 +516,13 @@
   // tag in index.html's <head> — the single source of truth also read by the
   // inline pre-paint bootstrap script there, so the two never hardcode the
   // language list independently and silently diverge if a language is added.
-  // Falls back to the current en/ru pair when the meta tag is absent (e.g.
-  // this file's `vm` sandbox in tests/site-smoke.test.mjs has no real DOM).
+  // Falls back to the current supported-languages list when the meta tag is
+  // absent (e.g. this file's `vm` sandbox in tests/site-smoke.test.mjs has no
+  // real DOM).
   var langMeta = typeof document !== "undefined" && document.querySelector
     ? document.querySelector('meta[name="i18n-languages"]')
     : null;
-  var SUPPORTED = (langMeta && langMeta.content ? langMeta.content : "en,ru").split(",");
+  var SUPPORTED = (langMeta && langMeta.content ? langMeta.content : "en,ru,zh,hi").split(",");
   var DEFAULT_LANG = (langMeta && langMeta.getAttribute("data-default")) || "ru";
   var STORAGE_KEY = "lang-choice";
 
