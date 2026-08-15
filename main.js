@@ -82,6 +82,12 @@
       effectMountObserver.unobserve(scene.element);
       effectPlaybackObserver.unobserve(scene.element);
       if (scene.controller) scene.controller.destroy();
+      // A remount (theme toggle, FX speed slider, media-query change) must
+      // not eagerly recreate every effect a visitor has ever scrolled past.
+      // Only selectors still visible right now stay "activated"; scenes
+      // currently off-screen fall back to lazy (IntersectionObserver-gated)
+      // mounting on the next mountEffects() call, same as on first load.
+      if (!scene.visible) activatedEffectSelectors.delete(scene.definition.selector);
     });
     scenes = [];
   }
@@ -722,13 +728,18 @@
     var fxSpeed = document.getElementById('fx-speed');
     var fxSpeedVal = document.getElementById('fx-speed-val');
     var fxReset = document.getElementById('fx-reset');
+    function setFxPanelOpen(open) {
+      fxPanel.classList.toggle('is-open', open);
+      fxPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if (fxToggle) fxToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
     if (fxToggle && fxPanel) {
       fxToggle.addEventListener('click', function () {
-        fxPanel.classList.toggle('is-open');
+        setFxPanelOpen(!fxPanel.classList.contains('is-open'));
       });
     }
-    if (fxClose) fxClose.addEventListener('click', function () {
-      fxPanel.classList.remove('is-open');
+    if (fxClose && fxPanel) fxClose.addEventListener('click', function () {
+      setFxPanelOpen(false);
     });
     if (fxSpeed && fxSpeedVal) {
       var updateSpeed = function (remount) {

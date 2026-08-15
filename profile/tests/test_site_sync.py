@@ -96,6 +96,32 @@ class SiteSyncTests(unittest.TestCase):
         self.assertIn("viewBox=\"0 0 {{ star_history.chart.width }} {{ star_history.chart.height }}\"", stars)
         self.assertIn("{{ star_history.chart.left }}", stars)
         self.assertIn("{{ star_history.chart.width - star_history.chart.right }}", stars)
+        # The crosshair's vertical extent must track the plot's top/bottom
+        # edge like every other coordinate in this SVG, not hardcode the
+        # pixel values that happen to match today's margins.
+        self.assertNotIn('y1="22" y2="298"', stars)
+        self.assertIn("{{ star_history.chart.plot_top_y }}", stars)
+        self.assertIn("{{ star_history.chart.plot_bottom_y }}", stars)
+
+    def test_chart_data_plot_y_bounds_match_top_bottom_margins(self) -> None:
+        import sys
+
+        project_root = Path(__file__).resolve().parents[2]
+        if str(project_root) not in sys.path:
+            sys.path.insert(0, str(project_root))
+        from profile.sync.generate import chart_data
+
+        history = {
+            "entries": [
+                {"date": "2026-01-01", "total": 0},
+                {"date": "2026-06-01", "total": 50},
+            ]
+        }
+        data = chart_data(history)
+        # plot_top_y/plot_bottom_y must be derived from the same top/bottom
+        # margins used everywhere else, not independently hardcoded.
+        self.assertEqual(data["plot_top_y"], f"{data['top']:.1f}")
+        self.assertEqual(data["plot_bottom_y"], f"{data['top'] + data['height'] - data['top'] - data['bottom']:.1f}")
 
 
 if __name__ == "__main__":

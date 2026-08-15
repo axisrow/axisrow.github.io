@@ -20,7 +20,7 @@
           <circle class="stars-end" cx="{{ star_history.chart.end_x }}" cy="{{ star_history.chart.end_y }}" r="5" />
 {% for month in star_history.chart.months %}          {# x-label baseline sits 24px below the plot's bottom margin so month names clear the axis. #}
           <text class="stars-x-label" x="{{ month.x }}" y="{{ star_history.chart.height - star_history.chart.bottom + 24 }}" data-i18n="month.{{ month.label }}">{{ month.label }}</text>
-{% endfor %}          <line class="stars-crosshair" x1="0" x2="0" y1="22" y2="298" opacity="0" />
+{% endfor %}          <line class="stars-crosshair" x1="0" x2="0" y1="{{ star_history.chart.plot_top_y }}" y2="{{ star_history.chart.plot_bottom_y }}" opacity="0" />
           <circle class="stars-hover-dot" cx="0" cy="0" r="5" opacity="0" />
         </svg>
         <div class="stars-tooltip" aria-hidden="true">

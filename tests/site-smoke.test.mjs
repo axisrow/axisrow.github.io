@@ -1555,11 +1555,17 @@ test('dragging the FX speed slider remounts effects so the new speed reaches act
   await new Promise((resolve) => setTimeout(resolve, 50));
 
   // Force the hero scene into its first viewport intersection so it
-  // actually mounts (mountEffects() otherwise only observes it lazily).
+  // actually mounts (mountEffects() otherwise only observes it lazily),
+  // then mark it currently visible via the playback observer — a remount
+  // must only eagerly re-mount scenes that are actually on screen right
+  // now, not every selector ever activated in the session.
   const mountObserver = ioInstances.find((observer) => observer.options.threshold === 0);
+  const playbackObserver = ioInstances.find((observer) => Array.isArray(observer.options.threshold) && observer.options.threshold.length > 1);
   assert.ok(mountObserver, 'a mount IntersectionObserver must exist');
+  assert.ok(playbackObserver, 'a playback IntersectionObserver must exist');
   mountObserver.deliver([{ target: heroElement, isIntersecting: true, intersectionRatio: 0.1 }]);
   assert.deepEqual(factoryCalls, ['metaballs'], 'the hero effect must mount on first intersection');
+  playbackObserver.deliver([{ target: heroElement, isIntersecting: true, intersectionRatio: 0.5 }]);
 
   assert.ok(fxSpeed._input, 'the fx-speed input handler must be registered');
   fxSpeed.value = '2';
@@ -1567,5 +1573,97 @@ test('dragging the FX speed slider remounts effects so the new speed reaches act
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   assert.deepEqual(factoryCalls, ['metaballs', 'metaballs'],
-    'moving the speed slider must remount the already-active scene (a 2nd factory call), not just update a stored multiplier');
+    'moving the speed slider must remount the already-active, currently-visible scene (a 2nd factory call), not just update a stored multiplier');
+});
+
+test('a remount does not eagerly re-mount effects that are currently off-screen', async () => {
+  const runtime = await runEffectRuntime();
+  const hero = runtime.elements.get('#hero-metaballs');
+
+  // Mount the hero effect (first intersection), then scroll it back out of
+  // view (playback observer reports isIntersecting: false) before the next
+  // remount — e.g. from a later theme toggle or FX-speed slider tick.
+  runtime.mountObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.1 }]);
+  assert.deepEqual(runtime.factoryCalls, ['metaballs']);
+  runtime.playbackObserver.deliver([{ target: hero, isIntersecting: false, intersectionRatio: 0 }]);
+
+  runtime.window.__FX_SPEED_MULTIPLIER__ = function () { return 1.5; };
+  runtime.remount();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  assert.deepEqual(runtime.factoryCalls, ['metaballs'],
+    'a scene that is off-screen at remount time must not be eagerly re-created; it should fall back to lazy (IntersectionObserver-gated) mounting');
+});
+
+test('the FX playground panel toggles aria-hidden and aria-expanded when opened/closed', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const fxPanelClassList = createClassList();
+  let fxPanelAriaHidden = 'true';
+  let fxToggleAriaExpanded = 'false';
+  let toggleClickHandler = null;
+  let closeClickHandler = null;
+  const fxToggle = {
+    addEventListener(type, handler) { if (type === 'click') toggleClickHandler = handler; },
+    setAttribute(name, value) { if (name === 'aria-expanded') fxToggleAriaExpanded = value; }
+  };
+  const fxPanel = {
+    classList: fxPanelClassList,
+    setAttribute(name, value) { if (name === 'aria-hidden') fxPanelAriaHidden = value; }
+  };
+  const fxClose = { addEventListener(type, handler) { if (type === 'click') closeClickHandler = handler; } };
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: root,
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement() { return {}; },
+      getElementById(id) {
+        if (id === 'fx-toggle') return fxToggle;
+        if (id === 'fx-playground') return fxPanel;
+        if (id === 'fx-close') return fxClose;
+        return null;
+      },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') return { getAttribute() { return 'assets/demoscene'; } };
+        return null;
+      },
+      querySelectorAll() { return []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(toggleClickHandler, 'the fx-toggle click handler must be registered');
+  toggleClickHandler();
+  assert.equal(fxPanelClassList.contains('is-open'), true);
+  assert.equal(fxPanelAriaHidden, 'false', 'opening the panel must clear aria-hidden');
+  assert.equal(fxToggleAriaExpanded, 'true', 'opening the panel must set aria-expanded on the toggle');
+
+  assert.ok(closeClickHandler, 'the fx-close click handler must be registered');
+  closeClickHandler();
+  assert.equal(fxPanelClassList.contains('is-open'), false);
+  assert.equal(fxPanelAriaHidden, 'true', 'closing the panel must restore aria-hidden');
+  assert.equal(fxToggleAriaExpanded, 'false', 'closing the panel must clear aria-expanded on the toggle');
 });
