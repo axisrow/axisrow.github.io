@@ -84,6 +84,8 @@
       "projects.desc.clihost": "Self-hosting / proxy CLI, security-hardened.",
       "projects.desc.claude-code-cycle-review-skill": "Automated PR review cycle for Claude Code.",
       "projects.desc.claude_code_gmail_plugin": "Gmail plugin for Claude Code.",
+      "projects.desc.zai-codex-helper": "CLI to switch Codex between Z.ai and OpenAI (archived).",
+      "projects.desc.ccusage-dashboard": "Hourly cost dashboard for Claude Code and Codex usage.",
       "projects.desc.llm_benchmark": "LLM benchmark harness.",
 
       "opensource.eyebrow": "Contributions",
@@ -207,6 +209,8 @@
       "projects.desc.clihost": "CLI для self-hosting / прокси, с усиленной безопасностью.",
       "projects.desc.claude-code-cycle-review-skill": "Автоматический цикл PR-ревью для Claude Code.",
       "projects.desc.claude_code_gmail_plugin": "Gmail-плагин для Claude Code.",
+      "projects.desc.zai-codex-helper": "CLI для переключения Codex между Z.ai и OpenAI (архивирован).",
+      "projects.desc.ccusage-dashboard": "Почасовой дашборд расхода Claude Code и Codex.",
       "projects.desc.llm_benchmark": "Стенд для бенчмарков LLM.",
 
       "opensource.eyebrow": "Принятые PR",
