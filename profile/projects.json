@@ -65,7 +65,9 @@
     "AI / Agent Tooling": [
       "clihost",
       "claude-code-cycle-review-skill",
-      "claude_code_gmail_plugin"
+      "claude_code_gmail_plugin",
+      "zai-codex-helper",
+      "ccusage-dashboard"
     ],
     "Data / ML": [
       "llm_benchmark"
@@ -79,6 +81,8 @@
     "clihost": "Self-hosting / proxy CLI, security-hardened.",
     "claude-code-cycle-review-skill": "Automated PR review cycle for Claude Code.",
     "claude_code_gmail_plugin": "Gmail plugin for Claude Code.",
+    "zai-codex-helper": "CLI to switch Codex between Z.ai and OpenAI (archived).",
+    "ccusage-dashboard": "Hourly cost dashboard for Claude Code and Codex usage.",
     "llm_benchmark": "LLM benchmark harness."
   }
 }
