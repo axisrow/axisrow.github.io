@@ -75,6 +75,8 @@
       "projects.captionSmall": "Agents · integrations · data",
       "projects.viewRepository": "View repository ↗",
 
+      "projects.filterAll": "All",
+      "projects.filterLabel": "Filter projects by category",
       "projects.group.telegram-yandex": "Telegram & Yandex",
       "projects.group.ai-agent-tooling": "AI / Agent Tooling",
       "projects.group.data-ml": "Data / ML",
@@ -133,7 +135,17 @@
 
       "footer.copyright": "© axisrow · 2026",
       "footer.effectsPrefix": "Canvas effects powered by ",
-      "footer.effectsLink": "Demoscene Classics ↗"
+      "footer.effectsLink": "Demoscene Classics ↗",
+
+      "common.copied": "Copied to clipboard!",
+
+      "fx.title": "FX Playground",
+      "fx.close": "Close panel",
+      "fx.toggle": "Tune effects",
+      "fx.speed": "Speed",
+      "fx.fps": "Performance",
+      "fx.reset": "Reset",
+      "contact.copyEmail": "Copy email address",
     },
     ru: {
       "meta.title": "axisrow — Python-инженер",
@@ -199,6 +211,9 @@
       "projects.captionStrong": "Автоматизация, которая работает",
       "projects.captionSmall": "Агенты · интеграции · данные",
       "projects.viewRepository": "Открыть репозиторий ↗",
+      "projects.filterAll": "Все",
+      "projects.filterLabel": "Фильтровать проекты по категории",
+
 
       "projects.group.telegram-yandex": "Telegram и Яндекс",
       "projects.group.ai-agent-tooling": "AI / Инструменты для агентов",
@@ -258,7 +273,16 @@
 
       "footer.copyright": "© axisrow · 2026",
       "footer.effectsPrefix": "Canvas-эффекты работают на ",
-      "footer.effectsLink": "Demoscene Classics ↗"
+      "footer.effectsLink": "Demoscene Classics ↗",
+      "common.copied": "Скопировано в буфер обмена!",
+
+      "fx.title": "FX-плейграунд",
+      "fx.close": "Закрыть панель",
+      "fx.toggle": "Настроить эффекты",
+      "fx.speed": "Скорость",
+      "fx.fps": "Производительность",
+      "fx.reset": "Сброс",
+      "contact.copyEmail": "Скопировать email"
     },
     zh: {
       "meta.title": "axisrow — Python 工程师",
