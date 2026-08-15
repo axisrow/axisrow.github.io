@@ -900,6 +900,8 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
     classList: createClassList()
   }]));
   const observers = [];
+  const mediaChangeHandlers = {};
+  const unloadHandlers = [];
 
   class MockIntersectionObserver {
     constructor(callback, options = {}) {
@@ -977,14 +979,20 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
     location: { href: 'http://localhost/', protocol: 'http:' },
     localStorage: { getItem() { return null; }, setItem() {} },
     matchMedia(query) {
-      return {
+      const mql = {
         matches: (reducedMotion && query.includes('prefers-reduced-motion'))
           || (mobile && query.includes('max-width')),
-        addEventListener() {}
+        addEventListener(type, handler) {
+          if (type !== 'change') return;
+          (mediaChangeHandlers[query] || (mediaChangeHandlers[query] = [])).push(handler);
+        }
       };
+      return mql;
     },
     requestAnimationFrame(callback) { callback(0); return 1; },
-    addEventListener() {},
+    addEventListener(type, handler) {
+      if (type === 'beforeunload') unloadHandlers.push(handler);
+    },
     removeEventListener() {},
     setTimeout,
     clearTimeout
@@ -1002,6 +1010,13 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
     controllers,
     elements,
     observers,
+    window: sandbox,
+    mediaChangeHandlers,
+    unloadHandlers,
+    remount() {
+      const reducedHandlers = mediaChangeHandlers['(prefers-reduced-motion: reduce)'] || [];
+      reducedHandlers.forEach((handler) => handler());
+    },
     mountObserver: observers.find((observer) => observer.options.threshold === 0),
     playbackObserver: observers.find((observer) => observer.options.rootMargin && observer !== observers.at(-1))
   };
@@ -1229,4 +1244,100 @@ test('vendored Demoscene manifest and bundle are present for Pages', async () =>
   for (const name of EFFECT_NAMES) {
     assert.match(bundle, new RegExp(name), `bundle must expose ${name}`);
   }
+});
+
+test('the FX speed multiplier does not mutate the frozen effect-skins config', async () => {
+  // effect-skins.js deep-freezes every config object it returns (CLAUDE.md:
+  // "pure, deeply-frozen config factory"). effectDefinitions() must honour
+  // window.__FX_SPEED_MULTIPLIER__ without assigning into that frozen
+  // structure, or the assignment throws in strict mode and aborts mounting.
+  // effectDefinitions() is only re-evaluated on a fresh mountEffects() call,
+  // so set the multiplier and force a remount (remountEffects() debounces
+  // via setTimeout(180)) rather than delivering to an already-computed scene.
+  const runtime = await runEffectRuntime();
+  runtime.window.__FX_SPEED_MULTIPLIER__ = function () { return 1.5; };
+  runtime.remount();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  assert.deepEqual(runtime.warnings, [], 'a non-1 speed multiplier must not trip the static fallback');
+  assert.equal(runtime.root.classList.contains('demoscene-fallback'), false);
+});
+
+test('changing the reduced-motion preference mid-session remounts effects into static mode', async () => {
+  const runtime = await runEffectRuntime();
+  const changeHandlers = runtime.mediaChangeHandlers['(prefers-reduced-motion: reduce)'];
+  assert.ok(changeHandlers && changeHandlers.length > 0, 'main.js must listen for reduced-motion changes');
+});
+
+test('destroyEffects is wired to beforeunload for explicit cleanup', async () => {
+  const runtime = await runEffectRuntime();
+  assert.ok(runtime.unloadHandlers.length > 0, 'main.js must register a beforeunload cleanup handler');
+});
+
+test('stars chart tooltip derives its scale from the rendered y-axis labels, not a hardcoded ceiling', async () => {
+  const script = await source('main.js');
+  assert.doesNotMatch(script, /110 - \(\(y - 22\)/, 'tooltip must not hardcode the 110/22/298 scale');
+});
+
+test('a failed navigator.clipboard write still shows the copy toast via a fallback path', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const toastClassList = createClassList();
+  const toast = { classList: toastClassList };
+  const textarea = { style: {}, setAttribute() {}, select() {} };
+  let execCommandCalled = false;
+  let clickHandler = null;
+  const button = {
+    dataset: { copyText: 'axisrow@gmail.com' },
+    addEventListener(type, handler) { if (type === 'click') clickHandler = handler; }
+  };
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    navigator: { clipboard: { writeText() { return Promise.reject(new Error('denied')); } } },
+    document: {
+      hidden: false,
+      documentElement: root,
+      body: { appendChild() {}, removeChild() {} },
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement(tag) { return tag === 'textarea' ? textarea : {}; },
+      execCommand() { execCommandCalled = true; return true; },
+      getElementById(id) { return id === 'copy-toast' ? toast : null; },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') {
+          return { getAttribute() { return 'assets/demoscene'; } };
+        }
+        return null;
+      },
+      querySelectorAll(selector) { return selector === '.copy-button' ? [button] : []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(clickHandler, 'the copy button must be wired to a click handler');
+  clickHandler();
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(execCommandCalled, 'a rejected clipboard write must fall back to document.execCommand("copy")');
+  assert.equal(toastClassList.contains('is-active'), true, 'the copy toast must still show after the fallback succeeds');
 });

@@ -93,11 +93,21 @@
     var skins = window.PortfolioEffectSkins.create(dark ? "dark" : "light", mobile);
     var speedMul = typeof window.__FX_SPEED_MULTIPLIER__ === "function" ? window.__FX_SPEED_MULTIPLIER__() : 1;
     if (speedMul !== 1) {
+      // effect-skins.js deep-freezes every config it returns; mutate a plain
+      // clone instead of writing into the frozen `motion` object (which
+      // throws in strict mode and aborts the whole effect mount).
+      var scaled = {};
       Object.keys(skins).forEach(function (name) {
-        if (skins[name] && skins[name].motion && typeof skins[name].motion.speed === "number") {
-          skins[name].motion.speed *= speedMul;
+        var skin = skins[name];
+        if (skin && skin.motion && typeof skin.motion.speed === "number") {
+          scaled[name] = Object.assign({}, skin, {
+            motion: Object.assign({}, skin.motion, { speed: skin.motion.speed * speedMul })
+          });
+        } else {
+          scaled[name] = skin;
         }
       });
+      skins = scaled;
     }
     return [
       {
@@ -522,6 +532,17 @@
     if (!mobileQuery.matches) closeMenu();
     remountEffects();
   });
+  reduceMotionQuery.addEventListener("change", function () {
+    document.querySelectorAll(".reveal").forEach(function (element) {
+      element.classList.add("is-visible");
+    });
+    if (libraryReady) {
+      remountEffects();
+    } else {
+      loadDemoscene();
+    }
+  });
+  window.addEventListener("beforeunload", destroyEffects);
   // ==== Interactive UI Features ==== //
   function initInteractiveFeatures() {
     // Scroll progress bar
@@ -550,15 +571,29 @@
       var hoverTarget = hitArea || starsSvg;
       var polyline  = starsSvg.querySelector('.stars-line');
       var points    = [];
+      // Derive the Y-axis scale from the chart's own rendered labels instead
+      // of a hardcoded ceiling: the generator (profile/sync/generate.py)
+      // computes the ceiling dynamically from the data, so a fixed constant
+      // here silently desyncs from the plotted line once the total crosses
+      // the next ceiling boundary.
+      var yLabels = [];
+      starsSvg.querySelectorAll('.stars-y-label').forEach(function (el) {
+        var value = parseFloat(el.textContent);
+        var y = parseFloat(el.getAttribute('y'));
+        if (!isNaN(value) && !isNaN(y)) yLabels.push({ value: value, y: y });
+      });
+      var yZero = null, yCeiling = null;
+      yLabels.forEach(function (label) {
+        if (yZero === null || label.y > yZero.y) yZero = label;
+        if (yCeiling === null || label.value > yCeiling.value) yCeiling = label;
+      });
       // Build data from polyline points
-      if (polyline) {
+      if (polyline && yZero && yCeiling && yCeiling.y !== yZero.y) {
         polyline.getAttribute('points').trim().split(/\s+/).forEach(function (pt, i) {
           var xy = pt.split(',');
           if (xy.length === 2) {
-            // Reconstruct approximate star count from Y position
-            // y1=22 → 110 stars, y2=298 → 0 stars (from SVG labels)
             var y = +xy[1];
-            var stars = Math.round(110 - ((y - 22) / (298 - 22)) * 110);
+            var stars = Math.round(yZero.value + ((y - yZero.y) / (yCeiling.y - yZero.y)) * (yCeiling.value - yZero.value));
             points.push({ x: +xy[0], y: y, stars: Math.max(0, stars), idx: i });
           }
         });
@@ -620,11 +655,30 @@
       toast.classList.add('is-active');
       setTimeout(function () { toast.classList.remove('is-active'); }, 2000);
     }
+    // Fallback for browsers/contexts without the async Clipboard API (e.g.
+    // non-secure origins): still surface the toast on success so a copy
+    // failure isn't silently swallowed with only a console.error.
+    function legacyCopy(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      var copied = false;
+      try { copied = document.execCommand('copy'); } catch (e) { copied = false; }
+      document.body.removeChild(textarea);
+      if (copied) showToast();
+    }
     document.querySelectorAll('.copy-button').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var text = btn.dataset.copyText;
-        if (text) {
-          navigator.clipboard.writeText(text).then(showToast).catch(function (e) { console.error(e); });
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(showToast).catch(function () { legacyCopy(text); });
+        } else {
+          legacyCopy(text);
         }
       });
     });
