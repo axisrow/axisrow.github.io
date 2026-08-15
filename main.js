@@ -540,37 +540,56 @@
 
     // Stars chart tooltip & crosshair
     var starsSvg = document.querySelector('.stars-chart svg');
+    var tooltip = document.querySelector('.stars-chart .stars-tooltip');
+    var tooltipValue = tooltip && tooltip.querySelector('.stars-tooltip-value');
+    var tooltipDate  = tooltip && tooltip.querySelector('.stars-tooltip-date');
     if (starsSvg) {
       var crosshair = starsSvg.querySelector('.stars-crosshair');
-      var hoverDot = starsSvg.querySelector('.stars-hover-dot');
-      var tooltip = starsSvg.querySelector('.stars-tooltip');
-      var line = starsSvg.querySelector('.stars-line');
-      var points = [];
-      if (line) {
-        var pts = line.getAttribute('points').trim().split(' ');
-        pts.forEach(function (pt) {
+      var hoverDot  = starsSvg.querySelector('.stars-hover-dot');
+      var polyline  = starsSvg.querySelector('.stars-line');
+      var points    = [];
+      // Build data from polyline points
+      if (polyline) {
+        polyline.getAttribute('points').trim().split(/\s+/).forEach(function (pt, i) {
           var xy = pt.split(',');
-          if (xy.length === 2) points.push({ x: +xy[0], y: +xy[1] });
+          if (xy.length === 2) {
+            // Reconstruct approximate star count from Y position
+            // y1=22 → 110 stars, y2=298 → 0 stars (from SVG labels)
+            var y = +xy[1];
+            var stars = Math.round(110 - ((y - 22) / (298 - 22)) * 110);
+            points.push({ x: +xy[0], y: y, stars: Math.max(0, stars), idx: i });
+          }
         });
       }
-      var rect = starsSvg.getBoundingClientRect();
-      var toSvg = function (clientX, clientY) {
-        return { x: clientX - rect.left, y: clientY - rect.top };
-      };
-      var nearest = function (x, y) {
-        var best = null;
-        var bestDist = Infinity;
+      // X-axis labels from the SVG text elements for month mapping
+      var monthLabels = [];
+      starsSvg.querySelectorAll('.stars-x-label').forEach(function (el) {
+        monthLabels.push({ x: +el.getAttribute('x'), label: el.textContent.trim() });
+      });
+      function getMonthForX(x) {
+        var best = monthLabels[0];
+        monthLabels.forEach(function (m) {
+          if (Math.abs(m.x - x) < Math.abs(best.x - x)) best = m;
+        });
+        return best ? best.label : '';
+      }
+      var viewBox = starsSvg.viewBox.baseVal;
+      function nearest(svgX) {
+        var best = null, bestDist = Infinity;
         points.forEach(function (p) {
-          var dx = p.x - x;
-          var dy = p.y - y;
-          var d = dx * dx + dy * dy;
+          var d = Math.abs(p.x - svgX);
           if (d < bestDist) { bestDist = d; best = p; }
         });
         return best;
-      };
+      }
+      function clientToSvgX(clientX) {
+        var r = starsSvg.getBoundingClientRect();
+        return ((clientX - r.left) / r.width) * viewBox.width;
+      }
       starsSvg.addEventListener('pointermove', function (e) {
-        var pos = toSvg(e.clientX, e.clientY);
-        var n = nearest(pos.x, pos.y);
+        var svgX = clientToSvgX(e.clientX);
+        var n = nearest(svgX);
+        if (!n) return;
         if (crosshair) {
           crosshair.setAttribute('x1', n.x);
           crosshair.setAttribute('x2', n.x);
@@ -581,12 +600,14 @@
           hoverDot.setAttribute('cy', n.y);
           hoverDot.setAttribute('opacity', '1');
         }
+        if (tooltipValue) tooltipValue.textContent = n.stars + '★';
+        if (tooltipDate)  tooltipDate.textContent  = getMonthForX(n.x);
         if (tooltip) tooltip.classList.add('is-active');
       });
       starsSvg.addEventListener('pointerleave', function () {
         if (crosshair) crosshair.setAttribute('opacity', '0');
-        if (hoverDot) hoverDot.setAttribute('opacity', '0');
-        if (tooltip) tooltip.classList.remove('is-active');
+        if (hoverDot)  hoverDot.setAttribute('opacity', '0');
+        if (tooltip)   tooltip.classList.remove('is-active');
       });
     }
 
