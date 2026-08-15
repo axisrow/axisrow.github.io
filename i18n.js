@@ -281,7 +281,7 @@
 
       "nav.stars": "星标",
       "nav.projects": "项目",
-      "nav.opensource": "开源贡献",
+      "nav.opensource": "开源",
       "nav.experience": "经历",
       "nav.about": "关于",
       "nav.contact": "联系方式",
@@ -294,12 +294,12 @@
       "hero.starsLabel": "GitHub 星标总数",
       "hero.prsLabel": "已合并的上游 PR",
       "hero.starredLabel": "获星项目数",
-      "hero.footEffect": "Canvas 2D / 融球效果",
+      "hero.footEffect": "Canvas 2D / 元球效果",
       "hero.footScroll": "向下滚动查看 ↓",
 
       "stars.eyebrow": "增长趋势",
       "stars.title": "星标增长曲线",
-      "stars.sectionNote": "自以下时间起，所有仓库的累计 GitHub 星标数：",
+      "stars.sectionNote": "所有仓库的累计 GitHub 星标数，自 ",
       "stars.currentLabel": "全部仓库",
       "stars.chartTitle": "自 {startDate} 起的累计 GitHub 星标数",
       "stars.chartDesc": "该图表截至 {endDate}，共计 {count} 个星标。",
@@ -321,7 +321,7 @@
       "projects.title": "带来可衡量成果的系统",
       "projects.notePrefix": "星标最多的个人仓库 — 查看全部项目：",
       "projects.captionLabel": "精选系统",
-      "projects.captionStrong": "持续交付的自动化",
+      "projects.captionStrong": "能落地的自动化",
       "projects.captionSmall": "Agent · 集成 · 数据",
       "projects.viewRepository": "查看仓库 ↗",
 
@@ -382,7 +382,7 @@
       "contact.github": "GitHub ↗",
 
       "footer.copyright": "© axisrow · 2026",
-      "footer.effectsPrefix": "Canvas 效果技术支持：",
+      "footer.effectsPrefix": "Canvas 效果由 ",
       "footer.effectsLink": "Demoscene Classics ↗"
     },
     hi: {
@@ -391,7 +391,7 @@
       "meta.ogTitle": "axisrow — Python इंजीनियर",
       "meta.ogDescription": "AI एजेंट टूलिंग, ऑटोमेशन और डेटा सिस्टम। {prs} मर्ज किए गए अपस्ट्रीम PR · {stars} स्टार · {starred} स्टार-प्राप्त प्रोजेक्ट।",
       "meta.twitterTitle": "axisrow — Python इंजीनियर",
-      "meta.twitterDescription": "AI एजेंट टूलिंग और प्रोडक्शन Python सिस्टम।",
+      "meta.twitterDescription": "AI एजेंट टूलिंग, ऑटोमेशन और प्रोडक्शन Python सिस्टम।",
 
       "topbar.brand": "axisrow — शीर्ष पर वापस जाएं",
       "topbar.menuOpen": "सेक्शन नेविगेशन खोलें",
@@ -432,10 +432,10 @@
       "month.Jan": "जन",
       "month.Feb": "फ़र",
       "month.Mar": "मार्च",
-      "month.Apr": "अप्रैल",
+      "month.Apr": "अप्रै",
       "month.May": "मई",
       "month.Jun": "जून",
-      "month.Jul": "जुलाई",
+      "month.Jul": "जुल",
       "month.Aug": "अग",
       "month.Sep": "सित",
       "month.Oct": "अक्टू",
@@ -507,7 +507,7 @@
       "contact.github": "GitHub ↗",
 
       "footer.copyright": "© axisrow · 2026",
-      "footer.effectsPrefix": "Canvas इफ़ेक्ट्स के पीछे: ",
+      "footer.effectsPrefix": "Canvas इफ़ेक्ट्स का आधार: ",
       "footer.effectsLink": "Demoscene Classics ↗"
     }
   };
