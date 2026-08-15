@@ -1341,3 +1341,231 @@ test('a failed navigator.clipboard write still shows the copy toast via a fallba
   assert.ok(execCommandCalled, 'a rejected clipboard write must fall back to document.execCommand("copy")');
   assert.equal(toastClassList.contains('is-active'), true, 'the copy toast must still show after the fallback succeeds');
 });
+
+test('the scroll-progress bar guards against a zero-height scrollable range', async () => {
+  const script = await source('main.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const scrollBar = { style: {} };
+  let onScrollHandler = null;
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: Object.assign(root, { scrollTop: 0, scrollHeight: 800, clientHeight: 800 }),
+      body: { scrollTop: 0 },
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement() { return {}; },
+      getElementById(id) { return id === 'scroll-progress' ? scrollBar : null; },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') {
+          return { getAttribute() { return 'assets/demoscene'; } };
+        }
+        return null;
+      },
+      querySelectorAll() { return []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener(type, handler) { if (type === 'scroll') onScrollHandler = handler; },
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(await source('effect-skins.js'), sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  // scrollHeight === clientHeight -> a zero-height scrollable range.
+  assert.ok(onScrollHandler, 'a scroll listener must be registered');
+  onScrollHandler();
+  assert.notEqual(scrollBar.style.width, 'NaN%', 'the progress bar must not be set to NaN% on a non-overflowing page');
+});
+
+test('the stars chart tooltip shows an interpolated calendar date, not a shared month label', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const tooltipDate = { textContent: '' };
+  const tooltipValue = { textContent: '' };
+  const tooltip = {
+    classList: createClassList(),
+    querySelector(selector) {
+      if (selector === '.stars-tooltip-value') return tooltipValue;
+      if (selector === '.stars-tooltip-date') return tooltipDate;
+      return null;
+    }
+  };
+  const titleMeta = { getAttribute() { return JSON.stringify({ startDate: '2026-03-01' }); } };
+  const descMeta = { getAttribute() { return JSON.stringify({ endDate: '2026-08-15' }); } };
+  // Three points spanning the full chart width; hovering near the middle
+  // one should interpolate to a date roughly halfway between start and
+  // end, not just whichever of the 6 month labels happens to be nearest.
+  const polyline = { getAttribute() { return '54.0,298.0 495.0,160.0 936.0,22.0'; } };
+  const yLabel0 = { textContent: '0', getAttribute(attr) { return attr === 'y' ? '298.0' : null; } };
+  const yLabel1 = { textContent: '110', getAttribute(attr) { return attr === 'y' ? '22.0' : null; } };
+  let pointermoveHandler = null;
+  const hitArea = { addEventListener(type, handler) { if (type === 'pointermove') pointermoveHandler = handler; }, getBoundingClientRect() { return { left: 0, width: 960 }; } };
+  const starsSvg = {
+    viewBox: { baseVal: { width: 960 } },
+    getBoundingClientRect() { return { left: 0, width: 960 }; },
+    querySelector(selector) {
+      if (selector === '.stars-crosshair') return null;
+      if (selector === '.stars-hover-dot') return null;
+      if (selector === '.stars-hit-area') return hitArea;
+      if (selector === '.stars-line') return polyline;
+      if (selector === '#stars-chart-title') return titleMeta;
+      if (selector === '#stars-chart-desc') return descMeta;
+      return null;
+    },
+    querySelectorAll(selector) {
+      if (selector === '.stars-y-label') return [yLabel0, yLabel1];
+      if (selector === '.stars-x-label') return [];
+      return [];
+    }
+  };
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: root,
+      body: { appendChild() {}, removeChild() {} },
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement() { return {}; },
+      getElementById() { return null; },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') {
+          return { getAttribute() { return 'assets/demoscene'; } };
+        }
+        if (selector === '.stars-chart svg') return starsSvg;
+        if (selector === '.stars-chart .stars-tooltip') return tooltip;
+        return null;
+      },
+      querySelectorAll(selector) { return selector === '.copy-button' ? [] : []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(pointermoveHandler, 'a pointermove handler must be registered on the hit area');
+  pointermoveHandler({ clientX: 495 }); // roughly the chart's horizontal midpoint
+
+  assert.match(tooltipDate.textContent, /^\d{4}-\d{2}-\d{2}$/, 'the tooltip date must be a full ISO date, not a month name');
+  assert.notEqual(tooltipDate.textContent, '2026-03-01');
+  assert.notEqual(tooltipDate.textContent, '2026-08-15');
+});
+
+test('dragging the FX speed slider remounts effects so the new speed reaches active scenes', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const factoryCalls = [];
+  function makeController(name) {
+    return function () {
+      factoryCalls.push(name);
+      return { destroy() {}, start() {}, stop() {}, renderOnce() {}, getStats() { return { backend: 'webgl2' }; } };
+    };
+  }
+  // loadDemoscene() requires metaballs/plasma/mandelbrot to all be present
+  // (its API-v3 contract check) or it falls back without mounting anything;
+  // only metaballs's element resolves via querySelector below, so it's the
+  // only one that actually mounts.
+  const factories = { metaballs: makeController('metaballs'), plasma: makeController('plasma'), mandelbrot: makeController('mandelbrot') };
+  const heroElement = { id: 'hero-metaballs', dataset: { effect: 'metaballs' }, classList: createClassList() };
+  const fxSpeed = { value: '1', addEventListener(type, handler) { if (type === 'input') this._input = handler; } };
+  const fxSpeedVal = { textContent: '' };
+
+  const ioInstances = [];
+  class MockIO {
+    constructor(callback, options = {}) { this.callback = callback; this.options = options; this.observed = new Set(); ioInstances.push(this); }
+    observe(element) { this.observed.add(element); }
+    unobserve(element) { this.observed.delete(element); }
+    deliver(entries) { this.callback(entries.filter((entry) => this.observed.has(entry.target))); }
+  }
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: MockIO,
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: root,
+      head: { appendChild(element) { queueMicrotask(() => { sandbox.Demoscene = factories; element.onload(); }); } },
+      addEventListener() {},
+      createElement() { return {}; },
+      getElementById(id) {
+        if (id === 'fx-speed') return fxSpeed;
+        if (id === 'fx-speed-val') return fxSpeedVal;
+        return null;
+      },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') return { getAttribute() { return 'assets/demoscene'; } };
+        if (selector === '#hero-metaballs') return heroElement;
+        return null;
+      },
+      querySelectorAll() { return []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: true, async json() { return { version: 'x', apiVersion: 3, bundle: 'demoscene.js' }; } }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  // Force the hero scene into its first viewport intersection so it
+  // actually mounts (mountEffects() otherwise only observes it lazily).
+  const mountObserver = ioInstances.find((observer) => observer.options.threshold === 0);
+  assert.ok(mountObserver, 'a mount IntersectionObserver must exist');
+  mountObserver.deliver([{ target: heroElement, isIntersecting: true, intersectionRatio: 0.1 }]);
+  assert.deepEqual(factoryCalls, ['metaballs'], 'the hero effect must mount on first intersection');
+
+  assert.ok(fxSpeed._input, 'the fx-speed input handler must be registered');
+  fxSpeed.value = '2';
+  fxSpeed._input();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  assert.deepEqual(factoryCalls, ['metaballs', 'metaballs'],
+    'moving the speed slider must remount the already-active scene (a 2nd factory call), not just update a stored multiplier');
+});

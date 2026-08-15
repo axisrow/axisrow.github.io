@@ -552,7 +552,7 @@
         var doc = document.documentElement;
         var scrollTop = doc.scrollTop || document.body.scrollTop;
         var scrollHeight = doc.scrollHeight - doc.clientHeight;
-        var percent = (scrollTop / scrollHeight) * 100;
+        var percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
         scrollBar.style.width = percent + '%';
       };
       window.addEventListener('scroll', onScroll);
@@ -598,17 +598,29 @@
           }
         });
       }
-      // X-axis labels from the SVG text elements for month mapping
-      var monthLabels = [];
-      starsSvg.querySelectorAll('.stars-x-label').forEach(function (el) {
-        monthLabels.push({ x: +el.getAttribute('x'), label: el.textContent.trim() });
-      });
-      function getMonthForX(x) {
-        var best = monthLabels[0];
-        monthLabels.forEach(function (m) {
-          if (Math.abs(m.x - x) < Math.abs(best.x - x)) best = m;
-        });
-        return best ? best.label : '';
+      // Derive the actual calendar date for a hovered point by linearly
+      // interpolating between the chart's start/end dates (the generator
+      // spaces points evenly by day index across that range — see
+      // profile/sync/generate.py's x()) instead of snapping to one of the
+      // 6 coarse month-tick labels, which every point in that month would
+      // otherwise share.
+      var titleMeta = starsSvg.querySelector('#stars-chart-title');
+      var descMeta = starsSvg.querySelector('#stars-chart-desc');
+      var startDate = null, endDate = null;
+      try {
+        if (titleMeta) startDate = JSON.parse(titleMeta.getAttribute('data-i18n-vars') || '{}').startDate;
+        if (descMeta) endDate = JSON.parse(descMeta.getAttribute('data-i18n-vars') || '{}').endDate;
+      } catch (e) {}
+      var startX = polyline ? +polyline.getAttribute('points').trim().split(/\s+/)[0].split(',')[0] : null;
+      var pointsList = polyline ? polyline.getAttribute('points').trim().split(/\s+/) : [];
+      var endX = pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null;
+      var startMs = startDate ? Date.parse(startDate + 'T00:00:00Z') : null;
+      var endMs = endDate ? Date.parse(endDate + 'T00:00:00Z') : null;
+      function getDateForX(x) {
+        if (startMs === null || endMs === null || startX === null || endX === null || endX === startX) return '';
+        var ratio = Math.min(1, Math.max(0, (x - startX) / (endX - startX)));
+        var ms = startMs + ratio * (endMs - startMs);
+        return new Date(ms).toISOString().slice(0, 10);
       }
       var viewBox = starsSvg.viewBox.baseVal;
       function nearest(svgX) {
@@ -638,7 +650,7 @@
           hoverDot.setAttribute('opacity', '1');
         }
         if (tooltipValue) tooltipValue.textContent = n.stars + '★';
-        if (tooltipDate)  tooltipDate.textContent  = getMonthForX(n.x);
+        if (tooltipDate)  tooltipDate.textContent  = getDateForX(n.x);
         if (tooltip) tooltip.classList.add('is-active');
       });
       hoverTarget.addEventListener('pointerleave', function () {
@@ -667,16 +679,21 @@
       document.body.appendChild(textarea);
       textarea.select();
       var copied = false;
-      try { copied = document.execCommand('copy'); } catch (e) { copied = false; }
+      var execError = null;
+      try { copied = document.execCommand('copy'); } catch (e) { execError = e; copied = false; }
       document.body.removeChild(textarea);
       if (copied) showToast();
+      else console.error('Copy to clipboard failed.', execError || new Error('document.execCommand("copy") returned false'));
     }
     document.querySelectorAll('.copy-button').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var text = btn.dataset.copyText;
         if (!text) return;
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(showToast).catch(function () { legacyCopy(text); });
+          navigator.clipboard.writeText(text).then(showToast).catch(function (clipboardError) {
+            console.error('navigator.clipboard.writeText failed, falling back to execCommand.', clipboardError);
+            legacyCopy(text);
+          });
         } else {
           legacyCopy(text);
         }
@@ -714,19 +731,24 @@
       fxPanel.classList.remove('is-open');
     });
     if (fxSpeed && fxSpeedVal) {
-      var updateSpeed = function () {
+      var updateSpeed = function (remount) {
         var v = parseFloat(fxSpeed.value).toFixed(1);
         fxSpeedVal.textContent = v + 'x';
         window.__FX_SPEED_MULTIPLIER__ = function () { return parseFloat(fxSpeed.value); };
+        // Apply the new speed to already-mounted effects, not just the next
+        // unrelated remount (theme toggle, media-query change). remountEffects()
+        // is already debounced 180ms, so this is safe on every 'input' tick.
+        if (remount) remountEffects();
       };
-      fxSpeed.addEventListener('input', updateSpeed);
-      updateSpeed();
+      fxSpeed.addEventListener('input', function () { updateSpeed(true); });
+      updateSpeed(false);
     }
     if (fxReset) {
       fxReset.addEventListener('click', function () {
         if (fxSpeed) fxSpeed.value = '1';
         if (fxSpeed && fxSpeedVal) fxSpeedVal.textContent = '1.0x';
         window.__FX_SPEED_MULTIPLIER__ = function () { return 1; };
+        remountEffects();
       });
     }
   }
