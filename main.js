@@ -546,6 +546,8 @@
     if (starsSvg) {
       var crosshair = starsSvg.querySelector('.stars-crosshair');
       var hoverDot  = starsSvg.querySelector('.stars-hover-dot');
+      var hitArea   = starsSvg.querySelector('.stars-hit-area');
+      var hoverTarget = hitArea || starsSvg;
       var polyline  = starsSvg.querySelector('.stars-line');
       var points    = [];
       // Build data from polyline points
@@ -586,7 +588,7 @@
         var r = starsSvg.getBoundingClientRect();
         return ((clientX - r.left) / r.width) * viewBox.width;
       }
-      starsSvg.addEventListener('pointermove', function (e) {
+      hoverTarget.addEventListener('pointermove', function (e) {
         var svgX = clientToSvgX(e.clientX);
         var n = nearest(svgX);
         if (!n) return;
@@ -604,7 +606,7 @@
         if (tooltipDate)  tooltipDate.textContent  = getMonthForX(n.x);
         if (tooltip) tooltip.classList.add('is-active');
       });
-      starsSvg.addEventListener('pointerleave', function () {
+      hoverTarget.addEventListener('pointerleave', function () {
         if (crosshair) crosshair.setAttribute('opacity', '0');
         if (hoverDot)  hoverDot.setAttribute('opacity', '0');
         if (tooltip)   tooltip.classList.remove('is-active');

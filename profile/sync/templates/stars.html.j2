@@ -13,6 +13,7 @@
         <svg viewBox="0 0 {{ star_history.chart.width }} {{ star_history.chart.height }}" role="img" aria-labelledby="stars-chart-title stars-chart-desc">
           <title id="stars-chart-title" data-i18n-meta="stars.chartTitle" data-i18n-vars='{"startDate":"{{ star_history.start_date }}"}'>Cumulative GitHub stars since {{ star_history.start_date }}</title>
           <desc id="stars-chart-desc" data-i18n-meta="stars.chartDesc" data-i18n-vars='{"count":"{{ stats.stars_earned }}","endDate":"{{ star_history.chart.latest_date }}"}'>The chart ends at {{ stats.stars_earned }} stars on {{ star_history.chart.latest_date }}.</desc>
+          <rect class="stars-hit-area" x="{{ star_history.chart.left }}" y="0" width="{{ star_history.chart.width - star_history.chart.left - star_history.chart.right }}" height="{{ star_history.chart.height }}" fill="transparent" />
 {% for tick in star_history.chart.ticks %}          <line class="stars-grid" x1="{{ star_history.chart.left }}" x2="{{ star_history.chart.width - star_history.chart.right }}" y1="{{ tick.y }}" y2="{{ tick.y }}" />
           <text class="stars-y-label" x="44" y="{{ tick.y }}">{{ tick.value }}</text>
 {% endfor %}          <polyline class="stars-line" points="{{ star_history.chart.points }}" />

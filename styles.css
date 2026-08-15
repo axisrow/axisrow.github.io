@@ -1388,6 +1388,10 @@ main {
   overflow: visible;
 }
 
+.stars-hit-area {
+  cursor: crosshair;
+}
+
 .stars-grid {
   stroke: var(--line);
   stroke-width: 1;
