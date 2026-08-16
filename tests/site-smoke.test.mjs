@@ -41,22 +41,57 @@ test('content surfaces share one spacing and radius system', async () => {
   assert.ok((css.match(/var\(--surface-radius\)/g) || []).length >= 6);
   assert.match(css, /\.projects-field\s*\{[^}]*display:\s*flex[^}]*padding:/s);
   assert.match(css, /\.projects-field-copy \.section-title\s*\{[^}]*font-size:\s*clamp\(42px,\s*5vw,\s*64px\)/s);
-  assert.match(css, /@media \(max-width: 720px\)\s*\{\s*:root\s*\{[^}]*--panel-space:\s*24px/s);
-  assert.match(css, /@media \(max-width: 720px\)\s*\{\s*:root\s*\{[^}]*--effect-field-gutter:\s*24px/s);
+  assert.match(css, /@media \(max-width: 800px\)\s*\{\s*:root\s*\{[^}]*--panel-space:\s*24px/s);
+  assert.match(css, /@media \(max-width: 800px\)\s*\{\s*:root\s*\{[^}]*--effect-field-gutter:\s*24px/s);
   assert.doesNotMatch(css, /height:\s*clamp\(330px,\s*30vw,\s*(?:390|410)px\)/);
+});
+
+test('page surfaces share the liquid-glass and typography systems', async () => {
+  const css = await source('styles.css');
+  for (const token of [
+    '--glass-bg:',
+    '--glass-bg-strong:',
+    '--glass-shadow:',
+    '--glass-blur:',
+    '--glass-saturation:',
+    '--type-body:',
+    '--type-body-small:',
+    '--type-meta:',
+    '--type-label:',
+    '--type-card-title:'
+  ]) {
+    assert.match(css, new RegExp(token.replace(/[():]/g, '\\$&')));
+  }
+  assert.match(css, /\.veil-panel\s*\{[^}]*background:\s*var\(--glass-bg\)[^}]*backdrop-filter:\s*blur\(var\(--glass-blur\)\)/s);
+  for (const selector of ['\.topbar-inner', '\.hero-copy-plane', '\.stars-chart', '\.contact-card']) {
+    assert.match(css, new RegExp(`${selector}[\\s\\S]{0,420}var\\(--glass-`));
+  }
+  assert.match(css, /\.section-nav a\s*\{[^}]*font-size:\s*var\(--type-body-small\)/s);
+  assert.match(css, /\.card-desc\s*\{[^}]*font-size:\s*var\(--type-body-small\)/s);
+  assert.match(css, /\.proof-row > span\s*\{[^}]*font-size:\s*14px/);
+  assert.match(css, /\.proof-row small\s*\{[^}]*font:\s*700 13px\/1\.35\s+"IBM Plex Mono", monospace/s);
 });
 
 test('animated fields remain behind readable mobile cards', async () => {
   const css = await source('styles.css');
   assert.match(css, /\.projects-field-visual\s*\{[^}]*inset:\s*0 calc\(50% - 50vw\);/s);
   assert.match(css, /\.proof-field-visual\s*\{[^}]*inset:\s*0 calc\(50% - 50vw\);/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.visual-field\s*\{[^}]*width:\s*100vw;/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)[^}]*background:\s*var\(--panel-veil\)[^}]*backdrop-filter:\s*none;/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.projects-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none;/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.proof-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none;/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.proof-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)/s);
+  assert.match(css, /@media \(max-width: 800px\)[\s\S]*?\.visual-field\s*\{[^}]*width:\s*100vw;/s);
+  assert.match(css, /@media \(max-width: 800px\)[\s\S]*?\.projects-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)[^}]*background:\s*var\(--panel-veil\)[^}]*backdrop-filter:\s*none;/s);
+  assert.match(css, /@media \(max-width: 800px\)[\s\S]*?\.projects-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none;/s);
+  assert.match(css, /@media \(max-width: 800px\)[\s\S]*?\.proof-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none;/s);
+  assert.match(css, /@media \(max-width: 800px\)[\s\S]*?\.proof-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)/s);
   assert.doesNotMatch(css, /\.projects-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
   assert.doesNotMatch(css, /\.proof-field-visual\s*\{[^}]*inset:[^;}]*-\d+px[^;}]*-\d+px[^;}]*;/s);
+});
+
+test('tablet open-source glass panel uses the available width', async () => {
+  const css = await source('styles.css');
+  const tablet = css.slice(css.indexOf('@media (min-width: 801px) and (max-width: 1180px)'));
+  assert.match(tablet, /\.proof-field-copy\s*\{[^}]*width:\s*calc\(100% - \(var\(--effect-field-gutter\) \* 2\)\)[^}]*margin:\s*var\(--effect-field-gutter\)[^}]*background:\s*var\(--panel-veil\)/s);
+  assert.match(tablet, /\.proof-field-visual\s*\{[^}]*inset:\s*0[^}]*width:\s*auto[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none/s);
+  assert.match(tablet, /\.stars-field-visual,[\s\S]*?\.contact-field-visual\s*\{[^}]*inset:\s*0[^}]*opacity:\s*0\.9[^}]*mask-image:\s*none/s);
+  assert.match(tablet, /\.proof-row\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto/s);
 });
 
 /* Contrast of the small text that sits on a mobile veil panel, computed rather
@@ -113,7 +148,7 @@ test('mobile panel text clears WCAG AA over the worst backdrop the veil can comp
   assert.equal(lightStops.length, 5);
   assert.equal(darkStops.length, 5);
 
-  const mobile = css.slice(css.indexOf('@media (max-width: 720px)'));
+  const mobile = css.slice(css.indexOf('@media (max-width: 800px)'));
   const veil = (source, alphaPattern) => {
     const match = alphaPattern.exec(source);
     assert.ok(match, 'no --panel-veil declaration found');
@@ -230,9 +265,9 @@ test('mobile navigation uses an accessible menu with full-size links', async () 
   const script = await source('main.js');
   assert.match(html, /id="menu-toggle"[^>]*aria-controls="section-navigation"[^>]*aria-expanded="false"/);
   assert.match(html, /<nav id="section-navigation" class="section-nav"/);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.section-nav\.is-open\s*\{[^}]*display:\s*grid/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.section-nav a\s*\{[^}]*min-height:\s*44px/s);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.brand\s*\{[^}]*width:\s*44px[^}]*height:\s*44px/s);
+  assert.match(css, /@media \(max-width: 800px\)[\s\S]*?\.section-nav\.is-open\s*\{[^}]*display:\s*grid/s);
+  assert.match(css, /@media \(max-width: 800px\)[\s\S]*?\.section-nav a\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(css, /@media \(max-width: 800px\)[\s\S]*?\.brand\s*\{[^}]*width:\s*44px[^}]*height:\s*44px/s);
   assert.match(script, /function closeMenu\(\)/);
   assert.match(script, /event\.key === "Escape"/);
   assert.match(script, /link\.addEventListener\("click", closeMenu\)/);
@@ -1210,7 +1245,7 @@ test('both themes and reduced-motion rendering are present', async () => {
   assert.doesNotMatch(css, /\.plasma-frame \.effect-canvas\s*\{[^}]*filter:/s);
   assert.doesNotMatch(css, /proof-stage|clip-path 900ms|proof-shadow/);
   assert.doesNotMatch(css, /\.effect-canvas\s*\{\s*display: none;/);
-  assert.match(css, /min-width: 721px\) and \(max-width: 980px/);
+  assert.match(css, /min-width: 801px\) and \(max-width: 1180px/);
 });
 
 test('the collapsed theme select keeps its option labels readable', async () => {
