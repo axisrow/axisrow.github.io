@@ -37,9 +37,16 @@
 
   function applyTheme(choice, persist) {
     var next = choice === "dark" || choice === "light" ? choice : "system";
-    root.dataset.themeChoice = next;
-    root.dataset.theme = resolveTheme(next);
-    if (themeSelect) themeSelect.value = next;
+    var update = function () {
+      root.dataset.themeChoice = next;
+      root.dataset.theme = resolveTheme(next);
+      if (themeSelect) themeSelect.value = next;
+    };
+    if (typeof document !== "undefined" && document.startViewTransition && !reduceMotionQuery.matches) {
+      document.startViewTransition(update);
+    } else {
+      update();
+    }
     if (persist) {
       try { localStorage.setItem("theme-choice", next); } catch (error) {}
     }
@@ -75,6 +82,12 @@
       effectMountObserver.unobserve(scene.element);
       effectPlaybackObserver.unobserve(scene.element);
       if (scene.controller) scene.controller.destroy();
+      // A remount (theme toggle, FX speed slider, media-query change) must
+      // not eagerly recreate every effect a visitor has ever scrolled past.
+      // Only selectors still visible right now stay "activated"; scenes
+      // currently off-screen fall back to lazy (IntersectionObserver-gated)
+      // mounting on the next mountEffects() call, same as on first load.
+      if (!scene.visible) activatedEffectSelectors.delete(scene.definition.selector);
     });
     scenes = [];
   }
@@ -84,6 +97,24 @@
     var mobile = mobileQuery.matches;
     var reduced = reduceMotionQuery.matches;
     var skins = window.PortfolioEffectSkins.create(dark ? "dark" : "light", mobile);
+    var speedMul = typeof window.__FX_SPEED_MULTIPLIER__ === "function" ? window.__FX_SPEED_MULTIPLIER__() : 1;
+    if (speedMul !== 1) {
+      // effect-skins.js deep-freezes every config it returns; mutate a plain
+      // clone instead of writing into the frozen `motion` object (which
+      // throws in strict mode and aborts the whole effect mount).
+      var scaled = {};
+      Object.keys(skins).forEach(function (name) {
+        var skin = skins[name];
+        if (skin && skin.motion && typeof skin.motion.speed === "number") {
+          scaled[name] = Object.assign({}, skin, {
+            motion: Object.assign({}, skin.motion, { speed: skin.motion.speed * speedMul })
+          });
+        } else {
+          scaled[name] = skin;
+        }
+      });
+      skins = scaled;
+    }
     return [
       {
         name: "metaballs",
@@ -518,6 +549,228 @@
     }
   });
   window.addEventListener("beforeunload", destroyEffects);
+  // ==== Interactive UI Features ==== //
+  function initInteractiveFeatures() {
+    // Scroll progress bar
+    var scrollBar = document.getElementById('scroll-progress');
+    if (scrollBar) {
+      var onScroll = function () {
+        var doc = document.documentElement;
+        var scrollTop = doc.scrollTop || document.body.scrollTop;
+        var scrollHeight = doc.scrollHeight - doc.clientHeight;
+        var percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        scrollBar.style.width = percent + '%';
+      };
+      window.addEventListener('scroll', onScroll);
+      onScroll();
+    }
 
+    // Stars chart tooltip & crosshair
+    var starsSvg = document.querySelector('.stars-chart svg');
+    var tooltip = document.querySelector('.stars-chart .stars-tooltip');
+    var tooltipValue = tooltip && tooltip.querySelector('.stars-tooltip-value');
+    var tooltipDate  = tooltip && tooltip.querySelector('.stars-tooltip-date');
+    if (starsSvg) {
+      var crosshair = starsSvg.querySelector('.stars-crosshair');
+      var hoverDot  = starsSvg.querySelector('.stars-hover-dot');
+      var hitArea   = starsSvg.querySelector('.stars-hit-area');
+      var hoverTarget = hitArea || starsSvg;
+      var polyline  = starsSvg.querySelector('.stars-line');
+      var points    = [];
+      // Derive the Y-axis scale from the chart's own rendered labels instead
+      // of a hardcoded ceiling: the generator (profile/sync/generate.py)
+      // computes the ceiling dynamically from the data, so a fixed constant
+      // here silently desyncs from the plotted line once the total crosses
+      // the next ceiling boundary.
+      var yLabels = [];
+      starsSvg.querySelectorAll('.stars-y-label').forEach(function (el) {
+        var value = parseFloat(el.textContent);
+        var y = parseFloat(el.getAttribute('y'));
+        if (!isNaN(value) && !isNaN(y)) yLabels.push({ value: value, y: y });
+      });
+      var yZero = null, yCeiling = null;
+      yLabels.forEach(function (label) {
+        if (yZero === null || label.y > yZero.y) yZero = label;
+        if (yCeiling === null || label.value > yCeiling.value) yCeiling = label;
+      });
+      // Build data from polyline points
+      if (polyline && yZero && yCeiling && yCeiling.y !== yZero.y) {
+        polyline.getAttribute('points').trim().split(/\s+/).forEach(function (pt, i) {
+          var xy = pt.split(',');
+          if (xy.length === 2) {
+            var y = +xy[1];
+            var stars = Math.round(yZero.value + ((y - yZero.y) / (yCeiling.y - yZero.y)) * (yCeiling.value - yZero.value));
+            points.push({ x: +xy[0], y: y, stars: Math.max(0, stars), idx: i });
+          }
+        });
+      }
+      // Derive the actual calendar date for a hovered point by linearly
+      // interpolating between the chart's start/end dates (the generator
+      // spaces points evenly by day index across that range — see
+      // profile/sync/generate.py's x()) instead of snapping to one of the
+      // 6 coarse month-tick labels, which every point in that month would
+      // otherwise share.
+      var titleMeta = starsSvg.querySelector('#stars-chart-title');
+      var descMeta = starsSvg.querySelector('#stars-chart-desc');
+      var startDate = null, endDate = null;
+      try {
+        if (titleMeta) startDate = JSON.parse(titleMeta.getAttribute('data-i18n-vars') || '{}').startDate;
+        if (descMeta) endDate = JSON.parse(descMeta.getAttribute('data-i18n-vars') || '{}').endDate;
+      } catch (e) {}
+      var startX = polyline ? +polyline.getAttribute('points').trim().split(/\s+/)[0].split(',')[0] : null;
+      var pointsList = polyline ? polyline.getAttribute('points').trim().split(/\s+/) : [];
+      var endX = pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null;
+      var startMs = startDate ? Date.parse(startDate + 'T00:00:00Z') : null;
+      var endMs = endDate ? Date.parse(endDate + 'T00:00:00Z') : null;
+      function getDateForX(x) {
+        if (startMs === null || endMs === null || startX === null || endX === null || endX === startX) return '';
+        var ratio = Math.min(1, Math.max(0, (x - startX) / (endX - startX)));
+        var ms = startMs + ratio * (endMs - startMs);
+        return new Date(ms).toISOString().slice(0, 10);
+      }
+      var viewBox = starsSvg.viewBox.baseVal;
+      function nearest(svgX) {
+        var best = null, bestDist = Infinity;
+        points.forEach(function (p) {
+          var d = Math.abs(p.x - svgX);
+          if (d < bestDist) { bestDist = d; best = p; }
+        });
+        return best;
+      }
+      function clientToSvgX(clientX) {
+        var r = starsSvg.getBoundingClientRect();
+        return ((clientX - r.left) / r.width) * viewBox.width;
+      }
+      hoverTarget.addEventListener('pointermove', function (e) {
+        var svgX = clientToSvgX(e.clientX);
+        var n = nearest(svgX);
+        if (!n) return;
+        if (crosshair) {
+          crosshair.setAttribute('x1', n.x);
+          crosshair.setAttribute('x2', n.x);
+          crosshair.setAttribute('opacity', '1');
+        }
+        if (hoverDot) {
+          hoverDot.setAttribute('cx', n.x);
+          hoverDot.setAttribute('cy', n.y);
+          hoverDot.setAttribute('opacity', '1');
+        }
+        if (tooltipValue) tooltipValue.textContent = n.stars + '★';
+        if (tooltipDate)  tooltipDate.textContent  = getDateForX(n.x);
+        if (tooltip) tooltip.classList.add('is-active');
+      });
+      hoverTarget.addEventListener('pointerleave', function () {
+        if (crosshair) crosshair.setAttribute('opacity', '0');
+        if (hoverDot)  hoverDot.setAttribute('opacity', '0');
+        if (tooltip)   tooltip.classList.remove('is-active');
+      });
+    }
+
+    // Copy buttons & toast
+    var toast = document.getElementById('copy-toast');
+    function showToast() {
+      if (!toast) return;
+      toast.classList.add('is-active');
+      setTimeout(function () { toast.classList.remove('is-active'); }, 2000);
+    }
+    // Fallback for browsers/contexts without the async Clipboard API (e.g.
+    // non-secure origins): still surface the toast on success so a copy
+    // failure isn't silently swallowed with only a console.error.
+    function legacyCopy(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      var copied = false;
+      var execError = null;
+      try { copied = document.execCommand('copy'); } catch (e) { execError = e; copied = false; }
+      document.body.removeChild(textarea);
+      if (copied) showToast();
+      else console.error('Copy to clipboard failed.', execError || new Error('document.execCommand("copy") returned false'));
+    }
+    document.querySelectorAll('.copy-button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var text = btn.dataset.copyText;
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(showToast).catch(function (clipboardError) {
+            console.error('navigator.clipboard.writeText failed, falling back to execCommand.', clipboardError);
+            legacyCopy(text);
+          });
+        } else {
+          legacyCopy(text);
+        }
+      });
+    });
+
+    // Project filter pills
+    var pills = document.querySelectorAll('.filter-pill');
+    var groups = document.querySelectorAll('.project-group');
+    pills.forEach(function (pill) {
+      pill.addEventListener('click', function () {
+        var filter = pill.dataset.filter;
+        pills.forEach(function (p) { p.classList.toggle('is-active', p === pill); });
+        groups.forEach(function (g) {
+          var cat = g.dataset.category;
+          var hide = filter !== 'all' && cat !== filter;
+          g.classList.toggle('is-hidden', hide);
+        });
+      });
+    });
+
+    // FX Playground
+    var fxToggle = document.getElementById('fx-toggle');
+    var fxPanel = document.getElementById('fx-playground');
+    var fxClose = document.getElementById('fx-close');
+    var fxSpeed = document.getElementById('fx-speed');
+    var fxSpeedVal = document.getElementById('fx-speed-val');
+    var fxReset = document.getElementById('fx-reset');
+    function setFxPanelOpen(open) {
+      fxPanel.classList.toggle('is-open', open);
+      fxPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if (fxToggle) fxToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    if (fxToggle && fxPanel) {
+      fxToggle.addEventListener('click', function () {
+        setFxPanelOpen(!fxPanel.classList.contains('is-open'));
+      });
+    }
+    if (fxClose && fxPanel) fxClose.addEventListener('click', function () {
+      setFxPanelOpen(false);
+    });
+    if (fxSpeed && fxSpeedVal) {
+      var updateSpeed = function (remount) {
+        var v = parseFloat(fxSpeed.value).toFixed(1);
+        fxSpeedVal.textContent = v + 'x';
+        window.__FX_SPEED_MULTIPLIER__ = function () { return parseFloat(fxSpeed.value); };
+        // Apply the new speed to already-mounted effects, not just the next
+        // unrelated remount (theme toggle, media-query change). remountEffects()
+        // is already debounced 180ms, so this is safe on every 'input' tick.
+        if (remount) remountEffects();
+      };
+      fxSpeed.addEventListener('input', function () { updateSpeed(true); });
+      updateSpeed(false);
+    }
+    if (fxReset) {
+      fxReset.addEventListener('click', function () {
+        if (fxSpeed) fxSpeed.value = '1';
+        if (fxSpeed && fxSpeedVal) fxSpeedVal.textContent = '1.0x';
+        window.__FX_SPEED_MULTIPLIER__ = function () { return 1; };
+        remountEffects();
+      });
+    }
+  }
+
+  // Initialise UI features after DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initInteractiveFeatures);
+  } else {
+    initInteractiveFeatures();
+  }
+
+  // Load Demoscene after UI init
   loadDemoscene();
 }());

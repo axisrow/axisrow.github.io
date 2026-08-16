@@ -92,7 +92,10 @@ def chart_data(history: dict, fork_stars: int = 0) -> dict:
         "height": height,
         "left": left,
         "right": right,
+        "top": top,
         "bottom": bottom,
+        "plot_top_y": f"{top:.1f}",
+        "plot_bottom_y": f"{top + plot_height:.1f}",
     }
 
 

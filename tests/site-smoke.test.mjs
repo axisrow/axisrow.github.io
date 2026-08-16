@@ -900,6 +900,8 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
     classList: createClassList()
   }]));
   const observers = [];
+  const mediaChangeHandlers = {};
+  const unloadHandlers = [];
 
   class MockIntersectionObserver {
     constructor(callback, options = {}) {
@@ -977,14 +979,20 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
     location: { href: 'http://localhost/', protocol: 'http:' },
     localStorage: { getItem() { return null; }, setItem() {} },
     matchMedia(query) {
-      return {
+      const mql = {
         matches: (reducedMotion && query.includes('prefers-reduced-motion'))
           || (mobile && query.includes('max-width')),
-        addEventListener() {}
+        addEventListener(type, handler) {
+          if (type !== 'change') return;
+          (mediaChangeHandlers[query] || (mediaChangeHandlers[query] = [])).push(handler);
+        }
       };
+      return mql;
     },
     requestAnimationFrame(callback) { callback(0); return 1; },
-    addEventListener() {},
+    addEventListener(type, handler) {
+      if (type === 'beforeunload') unloadHandlers.push(handler);
+    },
     removeEventListener() {},
     setTimeout,
     clearTimeout
@@ -1002,6 +1010,13 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
     controllers,
     elements,
     observers,
+    window: sandbox,
+    mediaChangeHandlers,
+    unloadHandlers,
+    remount() {
+      const reducedHandlers = mediaChangeHandlers['(prefers-reduced-motion: reduce)'] || [];
+      reducedHandlers.forEach((handler) => handler());
+    },
     mountObserver: observers.find((observer) => observer.options.threshold === 0),
     playbackObserver: observers.find((observer) => observer.options.rootMargin && observer !== observers.at(-1))
   };
@@ -1229,4 +1244,426 @@ test('vendored Demoscene manifest and bundle are present for Pages', async () =>
   for (const name of EFFECT_NAMES) {
     assert.match(bundle, new RegExp(name), `bundle must expose ${name}`);
   }
+});
+
+test('the FX speed multiplier does not mutate the frozen effect-skins config', async () => {
+  // effect-skins.js deep-freezes every config object it returns (CLAUDE.md:
+  // "pure, deeply-frozen config factory"). effectDefinitions() must honour
+  // window.__FX_SPEED_MULTIPLIER__ without assigning into that frozen
+  // structure, or the assignment throws in strict mode and aborts mounting.
+  // effectDefinitions() is only re-evaluated on a fresh mountEffects() call,
+  // so set the multiplier and force a remount (remountEffects() debounces
+  // via setTimeout(180)) rather than delivering to an already-computed scene.
+  const runtime = await runEffectRuntime();
+  runtime.window.__FX_SPEED_MULTIPLIER__ = function () { return 1.5; };
+  runtime.remount();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  assert.deepEqual(runtime.warnings, [], 'a non-1 speed multiplier must not trip the static fallback');
+  assert.equal(runtime.root.classList.contains('demoscene-fallback'), false);
+});
+
+test('changing the reduced-motion preference mid-session remounts effects into static mode', async () => {
+  const runtime = await runEffectRuntime();
+  const changeHandlers = runtime.mediaChangeHandlers['(prefers-reduced-motion: reduce)'];
+  assert.ok(changeHandlers && changeHandlers.length > 0, 'main.js must listen for reduced-motion changes');
+});
+
+test('destroyEffects is wired to beforeunload for explicit cleanup', async () => {
+  const runtime = await runEffectRuntime();
+  assert.ok(runtime.unloadHandlers.length > 0, 'main.js must register a beforeunload cleanup handler');
+});
+
+test('stars chart tooltip derives its scale from the rendered y-axis labels, not a hardcoded ceiling', async () => {
+  const script = await source('main.js');
+  assert.doesNotMatch(script, /110 - \(\(y - 22\)/, 'tooltip must not hardcode the 110/22/298 scale');
+});
+
+test('a failed navigator.clipboard write still shows the copy toast via a fallback path', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const toastClassList = createClassList();
+  const toast = { classList: toastClassList };
+  const textarea = { style: {}, setAttribute() {}, select() {} };
+  let execCommandCalled = false;
+  let clickHandler = null;
+  const button = {
+    dataset: { copyText: 'axisrow@gmail.com' },
+    addEventListener(type, handler) { if (type === 'click') clickHandler = handler; }
+  };
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    navigator: { clipboard: { writeText() { return Promise.reject(new Error('denied')); } } },
+    document: {
+      hidden: false,
+      documentElement: root,
+      body: { appendChild() {}, removeChild() {} },
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement(tag) { return tag === 'textarea' ? textarea : {}; },
+      execCommand() { execCommandCalled = true; return true; },
+      getElementById(id) { return id === 'copy-toast' ? toast : null; },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') {
+          return { getAttribute() { return 'assets/demoscene'; } };
+        }
+        return null;
+      },
+      querySelectorAll(selector) { return selector === '.copy-button' ? [button] : []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(clickHandler, 'the copy button must be wired to a click handler');
+  clickHandler();
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(execCommandCalled, 'a rejected clipboard write must fall back to document.execCommand("copy")');
+  assert.equal(toastClassList.contains('is-active'), true, 'the copy toast must still show after the fallback succeeds');
+});
+
+test('the scroll-progress bar guards against a zero-height scrollable range', async () => {
+  const script = await source('main.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const scrollBar = { style: {} };
+  let onScrollHandler = null;
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: Object.assign(root, { scrollTop: 0, scrollHeight: 800, clientHeight: 800 }),
+      body: { scrollTop: 0 },
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement() { return {}; },
+      getElementById(id) { return id === 'scroll-progress' ? scrollBar : null; },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') {
+          return { getAttribute() { return 'assets/demoscene'; } };
+        }
+        return null;
+      },
+      querySelectorAll() { return []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener(type, handler) { if (type === 'scroll') onScrollHandler = handler; },
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(await source('effect-skins.js'), sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  // scrollHeight === clientHeight -> a zero-height scrollable range.
+  assert.ok(onScrollHandler, 'a scroll listener must be registered');
+  onScrollHandler();
+  assert.notEqual(scrollBar.style.width, 'NaN%', 'the progress bar must not be set to NaN% on a non-overflowing page');
+});
+
+test('the stars chart tooltip shows an interpolated calendar date, not a shared month label', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const tooltipDate = { textContent: '' };
+  const tooltipValue = { textContent: '' };
+  const tooltip = {
+    classList: createClassList(),
+    querySelector(selector) {
+      if (selector === '.stars-tooltip-value') return tooltipValue;
+      if (selector === '.stars-tooltip-date') return tooltipDate;
+      return null;
+    }
+  };
+  const titleMeta = { getAttribute() { return JSON.stringify({ startDate: '2026-03-01' }); } };
+  const descMeta = { getAttribute() { return JSON.stringify({ endDate: '2026-08-15' }); } };
+  // Three points spanning the full chart width; hovering near the middle
+  // one should interpolate to a date roughly halfway between start and
+  // end, not just whichever of the 6 month labels happens to be nearest.
+  const polyline = { getAttribute() { return '54.0,298.0 495.0,160.0 936.0,22.0'; } };
+  const yLabel0 = { textContent: '0', getAttribute(attr) { return attr === 'y' ? '298.0' : null; } };
+  const yLabel1 = { textContent: '110', getAttribute(attr) { return attr === 'y' ? '22.0' : null; } };
+  let pointermoveHandler = null;
+  const hitArea = { addEventListener(type, handler) { if (type === 'pointermove') pointermoveHandler = handler; }, getBoundingClientRect() { return { left: 0, width: 960 }; } };
+  const starsSvg = {
+    viewBox: { baseVal: { width: 960 } },
+    getBoundingClientRect() { return { left: 0, width: 960 }; },
+    querySelector(selector) {
+      if (selector === '.stars-crosshair') return null;
+      if (selector === '.stars-hover-dot') return null;
+      if (selector === '.stars-hit-area') return hitArea;
+      if (selector === '.stars-line') return polyline;
+      if (selector === '#stars-chart-title') return titleMeta;
+      if (selector === '#stars-chart-desc') return descMeta;
+      return null;
+    },
+    querySelectorAll(selector) {
+      if (selector === '.stars-y-label') return [yLabel0, yLabel1];
+      if (selector === '.stars-x-label') return [];
+      return [];
+    }
+  };
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: root,
+      body: { appendChild() {}, removeChild() {} },
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement() { return {}; },
+      getElementById() { return null; },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') {
+          return { getAttribute() { return 'assets/demoscene'; } };
+        }
+        if (selector === '.stars-chart svg') return starsSvg;
+        if (selector === '.stars-chart .stars-tooltip') return tooltip;
+        return null;
+      },
+      querySelectorAll(selector) { return selector === '.copy-button' ? [] : []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(pointermoveHandler, 'a pointermove handler must be registered on the hit area');
+  pointermoveHandler({ clientX: 495 }); // roughly the chart's horizontal midpoint
+
+  assert.match(tooltipDate.textContent, /^\d{4}-\d{2}-\d{2}$/, 'the tooltip date must be a full ISO date, not a month name');
+  assert.notEqual(tooltipDate.textContent, '2026-03-01');
+  assert.notEqual(tooltipDate.textContent, '2026-08-15');
+});
+
+test('dragging the FX speed slider remounts effects so the new speed reaches active scenes', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const factoryCalls = [];
+  function makeController(name) {
+    return function () {
+      factoryCalls.push(name);
+      return { destroy() {}, start() {}, stop() {}, renderOnce() {}, getStats() { return { backend: 'webgl2' }; } };
+    };
+  }
+  // loadDemoscene() requires metaballs/plasma/mandelbrot to all be present
+  // (its API-v3 contract check) or it falls back without mounting anything;
+  // only metaballs's element resolves via querySelector below, so it's the
+  // only one that actually mounts.
+  const factories = { metaballs: makeController('metaballs'), plasma: makeController('plasma'), mandelbrot: makeController('mandelbrot') };
+  const heroElement = { id: 'hero-metaballs', dataset: { effect: 'metaballs' }, classList: createClassList() };
+  const fxSpeed = { value: '1', addEventListener(type, handler) { if (type === 'input') this._input = handler; } };
+  const fxSpeedVal = { textContent: '' };
+
+  const ioInstances = [];
+  class MockIO {
+    constructor(callback, options = {}) { this.callback = callback; this.options = options; this.observed = new Set(); ioInstances.push(this); }
+    observe(element) { this.observed.add(element); }
+    unobserve(element) { this.observed.delete(element); }
+    deliver(entries) { this.callback(entries.filter((entry) => this.observed.has(entry.target))); }
+  }
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: MockIO,
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: root,
+      head: { appendChild(element) { queueMicrotask(() => { sandbox.Demoscene = factories; element.onload(); }); } },
+      addEventListener() {},
+      createElement() { return {}; },
+      getElementById(id) {
+        if (id === 'fx-speed') return fxSpeed;
+        if (id === 'fx-speed-val') return fxSpeedVal;
+        return null;
+      },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') return { getAttribute() { return 'assets/demoscene'; } };
+        if (selector === '#hero-metaballs') return heroElement;
+        return null;
+      },
+      querySelectorAll() { return []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: true, async json() { return { version: 'x', apiVersion: 3, bundle: 'demoscene.js' }; } }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  // Force the hero scene into its first viewport intersection so it
+  // actually mounts (mountEffects() otherwise only observes it lazily),
+  // then mark it currently visible via the playback observer — a remount
+  // must only eagerly re-mount scenes that are actually on screen right
+  // now, not every selector ever activated in the session.
+  const mountObserver = ioInstances.find((observer) => observer.options.threshold === 0);
+  const playbackObserver = ioInstances.find((observer) => Array.isArray(observer.options.threshold) && observer.options.threshold.length > 1);
+  assert.ok(mountObserver, 'a mount IntersectionObserver must exist');
+  assert.ok(playbackObserver, 'a playback IntersectionObserver must exist');
+  mountObserver.deliver([{ target: heroElement, isIntersecting: true, intersectionRatio: 0.1 }]);
+  assert.deepEqual(factoryCalls, ['metaballs'], 'the hero effect must mount on first intersection');
+  playbackObserver.deliver([{ target: heroElement, isIntersecting: true, intersectionRatio: 0.5 }]);
+
+  assert.ok(fxSpeed._input, 'the fx-speed input handler must be registered');
+  fxSpeed.value = '2';
+  fxSpeed._input();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  assert.deepEqual(factoryCalls, ['metaballs', 'metaballs'],
+    'moving the speed slider must remount the already-active, currently-visible scene (a 2nd factory call), not just update a stored multiplier');
+});
+
+test('a remount does not eagerly re-mount effects that are currently off-screen', async () => {
+  const runtime = await runEffectRuntime();
+  const hero = runtime.elements.get('#hero-metaballs');
+
+  // Mount the hero effect (first intersection), then scroll it back out of
+  // view (playback observer reports isIntersecting: false) before the next
+  // remount — e.g. from a later theme toggle or FX-speed slider tick.
+  runtime.mountObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.1 }]);
+  assert.deepEqual(runtime.factoryCalls, ['metaballs']);
+  runtime.playbackObserver.deliver([{ target: hero, isIntersecting: false, intersectionRatio: 0 }]);
+
+  runtime.window.__FX_SPEED_MULTIPLIER__ = function () { return 1.5; };
+  runtime.remount();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  assert.deepEqual(runtime.factoryCalls, ['metaballs'],
+    'a scene that is off-screen at remount time must not be eagerly re-created; it should fall back to lazy (IntersectionObserver-gated) mounting');
+});
+
+test('the FX playground panel toggles aria-hidden and aria-expanded when opened/closed', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const fxPanelClassList = createClassList();
+  let fxPanelAriaHidden = 'true';
+  let fxToggleAriaExpanded = 'false';
+  let toggleClickHandler = null;
+  let closeClickHandler = null;
+  const fxToggle = {
+    addEventListener(type, handler) { if (type === 'click') toggleClickHandler = handler; },
+    setAttribute(name, value) { if (name === 'aria-expanded') fxToggleAriaExpanded = value; }
+  };
+  const fxPanel = {
+    classList: fxPanelClassList,
+    setAttribute(name, value) { if (name === 'aria-hidden') fxPanelAriaHidden = value; }
+  };
+  const fxClose = { addEventListener(type, handler) { if (type === 'click') closeClickHandler = handler; } };
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: root,
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement() { return {}; },
+      getElementById(id) {
+        if (id === 'fx-toggle') return fxToggle;
+        if (id === 'fx-playground') return fxPanel;
+        if (id === 'fx-close') return fxClose;
+        return null;
+      },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') return { getAttribute() { return 'assets/demoscene'; } };
+        return null;
+      },
+      querySelectorAll() { return []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(toggleClickHandler, 'the fx-toggle click handler must be registered');
+  toggleClickHandler();
+  assert.equal(fxPanelClassList.contains('is-open'), true);
+  assert.equal(fxPanelAriaHidden, 'false', 'opening the panel must clear aria-hidden');
+  assert.equal(fxToggleAriaExpanded, 'true', 'opening the panel must set aria-expanded on the toggle');
+
+  assert.ok(closeClickHandler, 'the fx-close click handler must be registered');
+  closeClickHandler();
+  assert.equal(fxPanelClassList.contains('is-open'), false);
+  assert.equal(fxPanelAriaHidden, 'true', 'closing the panel must restore aria-hidden');
+  assert.equal(fxToggleAriaExpanded, 'false', 'closing the panel must clear aria-expanded on the toggle');
 });
