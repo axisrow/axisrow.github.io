@@ -349,6 +349,9 @@
       "projects.captionSmall": "Agent · 集成 · 数据",
       "projects.viewRepository": "查看仓库 ↗",
 
+      "projects.filterAll": "全部",
+      "projects.filterLabel": "按类别筛选项目",
+
       "projects.group.telegram-yandex": "Telegram 与 Yandex",
       "projects.group.ai-agent-tooling": "AI / Agent 工具",
       "projects.group.data-ml": "数据 / 机器学习",
@@ -407,7 +410,16 @@
 
       "footer.copyright": "© axisrow · 2026",
       "footer.effectsPrefix": "Canvas 效果由 ",
-      "footer.effectsLink": "Demoscene Classics ↗"
+      "footer.effectsLink": "Demoscene Classics ↗",
+      "common.copied": "已复制到剪贴板！",
+
+      "fx.title": "特效控制台",
+      "fx.close": "关闭面板",
+      "fx.toggle": "调整特效",
+      "fx.speed": "速度",
+      "fx.fps": "性能",
+      "fx.reset": "重置",
+      "contact.copyEmail": "复制邮箱地址"
     },
     hi: {
       "meta.title": "axisrow — Python इंजीनियर",
@@ -474,6 +486,9 @@
       "projects.captionSmall": "एजेंट · इंटीग्रेशन · डेटा",
       "projects.viewRepository": "रिपॉज़िटरी देखें ↗",
 
+      "projects.filterAll": "सभी",
+      "projects.filterLabel": "श्रेणी के अनुसार प्रोजेक्ट फ़िल्टर करें",
+
       "projects.group.telegram-yandex": "Telegram और Yandex",
       "projects.group.ai-agent-tooling": "AI / एजेंट टूलिंग",
       "projects.group.data-ml": "डेटा / ML",
@@ -532,7 +547,16 @@
 
       "footer.copyright": "© axisrow · 2026",
       "footer.effectsPrefix": "Canvas इफ़ेक्ट्स का आधार: ",
-      "footer.effectsLink": "Demoscene Classics ↗"
+      "footer.effectsLink": "Demoscene Classics ↗",
+      "common.copied": "क्लिपबोर्ड पर कॉपी हो गया!",
+
+      "fx.title": "FX प्लेग्राउंड",
+      "fx.close": "पैनल बंद करें",
+      "fx.toggle": "इफ़ेक्ट्स समायोजित करें",
+      "fx.speed": "गति",
+      "fx.fps": "प्रदर्शन",
+      "fx.reset": "रीसेट",
+      "contact.copyEmail": "ईमेल पता कॉपी करें"
     }
   };
 
