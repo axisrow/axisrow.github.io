@@ -302,10 +302,10 @@ test('i18n dictionaries cover every data-i18n / data-i18n-attr / data-i18n-meta 
   // i18n.js runs inside its own vm context, so its Array differs from this
   // file's Array — deepEqual across realms reports "same structure but not
   // reference-equal". Compare via a realm-neutral primitive instead.
-  assert.deepEqual(Array.from(i18n.SUPPORTED).sort().join(','), 'en,ru');
+  assert.deepEqual(Array.from(i18n.SUPPORTED).sort().join(','), 'en,hi,ru,zh');
 
   for (const key of usedKeys) {
-    for (const lang of ['en', 'ru']) {
+    for (const lang of ['en', 'ru', 'zh', 'hi']) {
       const value = i18n.translate(lang, key);
       assert.notEqual(value, key, `missing "${lang}" translation for key "${key}"`);
     }
@@ -336,8 +336,9 @@ test('i18n dictionaries carry the exact same key set in both languages', async (
   ), sandbox, { filename: 'i18n.js' });
   const dictionaries = sandbox.window.__I18N_DICTIONARIES__;
   const enKeys = Object.keys(dictionaries.en).sort();
-  const ruKeys = Object.keys(dictionaries.ru).sort();
-  assert.deepEqual(enKeys, ruKeys);
+  for (const lang of ['ru', 'zh', 'hi']) {
+    assert.deepEqual(Object.keys(dictionaries[lang]).sort(), enKeys, `"${lang}" key set differs from "en"`);
+  }
 });
 
 test('i18n switcher is wired into the topbar next to the theme toggle and GitHub link', async () => {
@@ -346,6 +347,8 @@ test('i18n switcher is wired into the topbar next to the theme toggle and GitHub
   assert.match(html, /<select id="lang-select" class="lang-select">/);
   assert.match(html, /<option value="ru">RU<\/option>/);
   assert.match(html, /<option value="en">EN<\/option>/);
+  assert.match(html, /<option value="zh">ZH<\/option>/);
+  assert.match(html, /<option value="hi">HI<\/option>/);
   // Same relative position as issue #41 requires: theme toggle, then
   // language switcher, then the GitHub link, all inside .topbar-actions.
   assert.match(html, /theme-select-label[\s\S]*?lang-select-label[\s\S]*?topbar-link icon-button/);

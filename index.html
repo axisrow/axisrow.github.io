@@ -12,7 +12,7 @@
        i18n.js loads) and i18n.js itself — see #42 follow-up: this used to
        be two independently hardcoded literals that could silently diverge
        if a language were ever added to one and not the other. -->
-  <meta name="i18n-languages" content="en,ru" data-default="ru" />
+  <meta name="i18n-languages" content="en,ru,zh,hi" data-default="ru" />
 
   <meta property="og:title" content="axisrow — Python engineer" data-i18n-meta="meta.ogTitle" />
   <meta property="og:description" content="AI agent tooling, automation, and data systems. 38 merged upstream PRs · 108 stars · 16 starred projects." data-i18n-meta="meta.ogDescription" />
@@ -57,7 +57,7 @@
       // i18n.js removes it even if translation throws, so a broken dictionary
       // never leaves the page permanently blank.
       var langMeta = document.querySelector('meta[name="i18n-languages"]');
-      var supportedLangs = (langMeta && langMeta.content ? langMeta.content : "en,ru").split(",");
+      var supportedLangs = (langMeta && langMeta.content ? langMeta.content : "en,ru,zh,hi").split(",");
       var defaultLang = (langMeta && langMeta.getAttribute("data-default")) || "ru";
       var lang = null;
       try { lang = localStorage.getItem("lang-choice"); } catch (error) {}
@@ -91,7 +91,7 @@
       }
     }());
   </script>
-  <link rel="stylesheet" href="styles.css?v=mobile-panel-aa-1" />
+  <link rel="stylesheet" href="styles.css?v=i18n-zh-hi-fonts-1" />
 </head>
 <body>
   <header class="topbar">
@@ -124,6 +124,8 @@
           <select id="lang-select" class="lang-select">
             <option value="ru">RU</option>
             <option value="en">EN</option>
+            <option value="zh">ZH</option>
+            <option value="hi">HI</option>
           </select>
         </label>
         <a class="topbar-link icon-button" href="https://github.com/axisrow" target="_blank" rel="noopener" data-i18n-attr="aria-label:topbar.github,title:topbar.github" aria-label="GitHub" title="GitHub">
@@ -401,7 +403,7 @@
   </main>
 
   <script src="effect-skins.js?v=field-energy-2"></script>
-  <script src="i18n.js?v=i18n-meta-interpolation-1"></script>
+  <script src="i18n.js?v=i18n-zh-hi-1"></script>
   <script src="main.js?v=i18n-menu-labels-1"></script>
 </body>
 </html>
