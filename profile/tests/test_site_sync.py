@@ -103,6 +103,52 @@ class SiteSyncTests(unittest.TestCase):
         self.assertIn("{{ star_history.chart.plot_top_y }}", stars)
         self.assertIn("{{ star_history.chart.plot_bottom_y }}", stars)
 
+    def test_committed_stars_block_is_reproducible_by_the_generator(self) -> None:
+        """The committed PROFILE:STARS block must match what the generator renders.
+
+        build_pages.py splices the generated stars.html fragment into the
+        deployed copy of index.html, so a hand-edited block (stale totals,
+        wrong date) is silently overwritten on the next publish. Render the
+        template from the committed profile/data/stars-history.json + fork_stars
+        and pin the count/date against the committed index.html block.
+        """
+        import json
+        import re
+        import sys
+
+        project_root = Path(__file__).resolve().parents[2]
+        if str(project_root) not in sys.path:
+            sys.path.insert(0, str(project_root))
+        from profile.sync.generate import chart_data, make_env
+
+        data_dir = project_root / "profile" / "data"
+        history = json.loads((data_dir / "stars-history.json").read_text())
+        cfg = json.loads((project_root / "profile" / "projects.json").read_text())
+        fork_stars = int(cfg["stats"]["fork_stars"])
+        chart = chart_data(history, fork_stars)
+        render_cfg = {
+            "stats": {"stars_earned": history["entries"][-1]["total"] + fork_stars},
+            "star_history": {**history, "chart": chart},
+        }
+        env = make_env(project_root / "profile" / "sync" / "templates", autoescape=True)
+        rendered = env.get_template("stars.html.j2").render(**render_cfg)
+
+        def count_date(html: str) -> tuple[str, str]:
+            m = re.search(
+                r'data-i18n-vars=\'{"count":"(\d+)","endDate":"([^"]+)"}\'', html
+            )
+            self.assertIsNotNone(m, "stars chart desc must carry count/endDate vars")
+            assert m is not None
+            return m.group(1), m.group(2)
+
+        rendered_count, rendered_date = count_date(rendered)
+        index = (project_root / "index.html").read_text()
+        start = index.index("<!-- PROFILE:STARS:START -->")
+        end = index.index("<!-- PROFILE:STARS:END -->")
+        committed_count, committed_date = count_date(index[start:end])
+        self.assertEqual(committed_count, rendered_count)
+        self.assertEqual(committed_date, rendered_date)
+
     def test_chart_data_plot_y_bounds_match_top_bottom_margins(self) -> None:
         import sys
 
