@@ -593,6 +593,34 @@ test('SVG stars chart title/desc are translated and interpolated, in both index.
   }
 });
 
+test('the source stars chart keeps its interactive overlay in sync with the bot template', async () => {
+  const html = await source('index.html');
+  const starsTemplate = await source('profile/sync/templates/stars.html.j2');
+  for (const markup of [
+    'class="stars-hit-area"',
+    'class="stars-crosshair"',
+    'class="stars-hover-dot"',
+    'class="stars-tooltip"',
+    'class="stars-tooltip-value"',
+    'class="stars-tooltip-date"'
+  ]) {
+    assert.ok(html.includes(markup), `index.html must contain ${markup}`);
+    assert.ok(starsTemplate.includes(markup), `stars.html.j2 must contain ${markup}`);
+  }
+});
+
+test('the stars chart tooltip default and current total stay in sync with the hero counter', async () => {
+  const html = await source('index.html');
+  const tooltip = /class="stars-tooltip-value">(\d+)★/.exec(html);
+  const current = /class="stars-current"><strong>(\d+)★/.exec(html);
+  const hero = /data-profile-value="stars_earned" data-target="(\d+)">\1/.exec(html);
+  assert.ok(tooltip, 'index.html must contain a stars-tooltip-value');
+  assert.ok(current, 'index.html must contain a stars-current total');
+  assert.ok(hero, 'index.html must contain the hero stars_earned counter');
+  assert.equal(tooltip[1], current[1], 'tooltip default must match the current total');
+  assert.equal(current[1], hero[1], 'current total must match the hero stars_earned counter');
+});
+
 test('main.js keeps the mobile-menu aria-label translated via PortfolioI18n', async () => {
   const script = await source('main.js');
   assert.match(script, /window\.PortfolioI18n\.translate/);
