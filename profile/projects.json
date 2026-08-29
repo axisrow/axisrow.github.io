@@ -62,7 +62,11 @@
       "yandex-direct-mcp-plugin",
       "direct-cli"
     ],
+    "Automation": [
+      "hhru"
+    ],
     "AI / Agent Tooling": [
+      "gemini-webapi-mcp",
       "clihost",
       "claude-code-cycle-review-skill",
       "claude_code_gmail_plugin",
@@ -78,6 +82,8 @@
     "tg_content_factory": "Content-factory pipeline for Telegram — flagship project.",
     "yandex-direct-mcp-plugin": "Claude Code plugin for Yandex.Direct — MCP server + skills + OAuth.",
     "direct-cli": "CLI for Yandex.Direct.",
+    "hhru": "Job-search automation for hh.ru — vacancies, responses, and resume boosting via Playwright.",
+    "gemini-webapi-mcp": "MCP server for Google Gemini — image generation, editing, and chat via browser cookies, no API keys.",
     "clihost": "Self-hosting / proxy CLI, security-hardened.",
     "claude-code-cycle-review-skill": "Automated PR review cycle for Claude Code.",
     "claude_code_gmail_plugin": "Gmail plugin for Claude Code.",
