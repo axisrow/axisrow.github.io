@@ -855,7 +855,7 @@ main {
 
 .project-surface {
   margin-top: 42px;
-  padding: clamp(10px, 2vw, 18px) 0 0;
+  padding: clamp(10px, 2vw, 18px) var(--card-space) 0;
   border: 0;
   border-radius: 0;
   background: transparent;
