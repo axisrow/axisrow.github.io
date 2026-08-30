@@ -95,6 +95,18 @@ jobs:
           GH_TOKEN: ${{ steps.token.outputs.token }}
         run: python3 profile/sync/generate.py
 
+      # stars_history.py may have extended the history (a new day or new star
+      # events since the last run), so re-splice the committed index.html from
+      # the fresh render BEFORE testing: test_site_sync pins the committed
+      # stars block against a render of the current history, and the node
+      # smoke tests pin the same markup.
+      - name: Splice fresh fragments into index.html
+        run: |
+          python3 profile/sync/apply_site_fragments.py index.html \
+            --projects .build/profile/site/projects.html \
+            --stars .build/profile/site/stars.html \
+            --stats .build/profile/site/stats.json
+
       - name: Test and build
         run: |
           npm test
@@ -121,18 +133,18 @@ jobs:
             git -C "$tmp/repo" -c credential.helper='' push origin HEAD:main
           fi
 
-      - name: Persist star history
+      - name: Persist star history and re-spliced index.html
         env:
           TOKEN: ${{ steps.token.outputs.token }}
         run: |
           test -n "$TOKEN" || { echo "::error::TOKEN is empty"; exit 1; }
-          if git diff --quiet -- profile/data/stars-history.json; then
-            echo "Star history unchanged."
+          if git diff --quiet -- profile/data/stars-history.json index.html; then
+            echo "Generated files unchanged."
           else
-            git add profile/data/stars-history.json
+            git add profile/data/stars-history.json index.html
             git -c user.email="4278593+axisrow-ci[bot]@users.noreply.github.com" \
               -c user.name="axisrow-ci[bot]" commit -m \
-              "bot: update star history ($(date -u +%Y-%m-%d)) [skip ci]"
+              "bot: sync portfolio projects and stars ($(date -u +%Y-%m-%d)) [skip ci]"
             # -c credential.helper='' neutralises any stored credential helper so
             # git uses the App token embedded in the push URL, never a stored
             # GITHUB_TOKEN. See publish.yml checkout step for the full rationale.
