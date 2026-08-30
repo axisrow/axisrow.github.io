@@ -125,11 +125,12 @@
         // composition — stable.
         particles: { particleCount: mobile ? 180 : 240 }
       },
-      tunnel: {
-        // The library defaults (forwardSpeed 0.9 / rotationSpeed 0.25) are demo
-        // pace. Behind the experience timeline the corridor is slowed to a
-        // drift so the copy remains the focus.
-        motion: { speed: 1, forwardSpeed: mobile ? 0.45 : 0.55, rotationSpeed: mobile ? 0.08 : 0.12, colorCycleSpeed: 0.05 }
+      feedback: {
+        // Keep the ring travelling: near-default orbit speeds spread the
+        // trails across the panel; slower speeds let the loop re-strike one
+        // spot and burn out. The recursive loop itself (geometry/feedback
+        // groups) is config-routed in main.js.
+        motion: { speed: 1, orbitSpeedX: 0.5, orbitSpeedY: 0.62, polygonRotationSpeed: 0.8, colorCycleSpeed: 0.15 }
       },
       rotozoom: {
         motion: {
@@ -181,7 +182,7 @@
     copperBars: [],
     mandelbrot: ["interiorColor", "colorScale", "colorCurve", "colorOffset", "cycleSpeed"],
     starfield: ["trailFade", "minAlpha", "maxAlpha", "minLineWidth", "maxLineWidth"],
-    tunnel: ["fogColor"],
+    feedback: ["strokeAlpha"],
     rotozoom: ["contrast"]
   });
 
@@ -239,8 +240,12 @@
       minLineWidth: 1,
       maxLineWidth: mobile ? 1.6 : 2.2
     });
-    // The corridor recedes into the page background rather than a foreign navy.
-    effects.tunnel.appearance = appearance(themeColors, "tunnel", { fogColor: backdrop });
+    // Dark reads the raw glow (comet ribbons on ink); light runs a softer
+    // stroke because multiply compositing only shows the warm halo anyway —
+    // a firm stroke there would just re-blow the cores to white.
+    effects.feedback.appearance = appearance(themeColors, "feedback", {
+      strokeAlpha: theme === "dark" ? 0.75 : 0.6
+    });
     effects.rotozoom.appearance = appearance(themeColors, "rotozoom", null);
     return deepFreeze(effects);
   }

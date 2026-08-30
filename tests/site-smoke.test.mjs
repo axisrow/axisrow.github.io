@@ -211,7 +211,7 @@ test('every section accent is mounted in document order and nothing else is', as
   // Document order, which is NOT the effectDefinitions() order in main.js —
   // that one is asserted separately below.
   assert.deepEqual(effects, [
-    'metaballs', 'starfield', 'plasma', 'mandelbrot', 'tunnel', 'rotozoom', 'copperBars'
+    'metaballs', 'starfield', 'plasma', 'mandelbrot', 'feedback', 'rotozoom', 'copperBars'
   ]);
   // The point of this guard was always to keep animation libraries and vendored
   // bundles out of the page; the section accent names are now first-party
@@ -656,7 +656,7 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
   // missing factory, so requiring them here would turn a partial bundle into a
   // whole-site fallback instead of four missing accents.
   assert.match(script, /var requiredEffects = \["metaballs", "plasma", "mandelbrot"\];/);
-  for (const name of ['starfield', 'tunnel', 'rotozoom', 'copperBars']) {
+  for (const name of ['starfield', 'feedback', 'rotozoom', 'copperBars']) {
     assert.match(script, new RegExp(`name: "${name}",\\s*selector: "#[a-z-]+",\\s*surface: "preview",\\s*staticOnly: reduced`));
   }
   assert.match(html, /effect-skins\.js/);
@@ -670,7 +670,7 @@ test('loader uses the version manifest and retains explicit fallbacks', async ()
 });
 
 const EFFECT_NAMES = [
-  'metaballs', 'plasma', 'mandelbrot', 'starfield', 'tunnel', 'rotozoom', 'copperBars'
+  'metaballs', 'plasma', 'mandelbrot', 'starfield', 'feedback', 'rotozoom', 'copperBars'
 ];
 
 test('all seven effects use one exact palette in each theme', async () => {
@@ -698,7 +698,7 @@ test('all seven effects use one exact palette in each theme', async () => {
     }
     assert.equal(skins.mandelbrot.appearance.interiorColor, expected.dark[0]);
     // Colour-typed modifiers must reference the palette, never a fresh literal.
-    assert.equal(skins.tunnel.appearance.fogColor, expected[theme][0]);
+    assert.equal(typeof skins.feedback.appearance.strokeAlpha, 'number');
     assert.ok(Object.isFrozen(skins.metaballs.appearance.palette));
   }
   for (const color of [...expected.light, ...expected.dark]) {
@@ -724,7 +724,7 @@ test('no effect carries an appearance key its library defaults would reject', as
     copperBars: [],
     mandelbrot: ['interiorColor', 'colorScale', 'colorCurve', 'colorOffset', 'cycleSpeed'],
     starfield: ['trailFade', 'minAlpha', 'maxAlpha', 'minLineWidth', 'maxLineWidth'],
-    tunnel: ['fogColor'],
+    feedback: ['strokeAlpha'],
     rotozoom: ['contrast']
   };
   for (const mobile of [false, true]) {
@@ -889,7 +889,7 @@ async function runLoader({
                 plasma() {},
                 mandelbrot() {},
                 starfield() {},
-                tunnel() {},
+                feedback() {},
                 rotozoom() {},
                 copperBars() {}
               };
@@ -953,7 +953,7 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
     ['plasma', '#projects-plasma'],
     ['mandelbrot', '#opensource-mandelbrot'],
     ['starfield', '#stars-starfield'],
-    ['tunnel', '#experience-tunnel'],
+    ['feedback', '#experience-feedback'],
     ['rotozoom', '#about-rotozoom'],
     ['copperBars', '#contact-copper-bars']
   ];

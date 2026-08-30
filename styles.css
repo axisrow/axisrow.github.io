@@ -623,12 +623,40 @@ main {
    chart and contact panels. The masks pull each field away from its copy:
    right for the timeline, left for the about grid. */
 .experience-field-visual {
-  opacity: 0.62;
-  -webkit-mask-image: radial-gradient(ellipse at 88% 50%, #000 0 26%, rgba(0, 0, 0, 0.66) 44%, transparent 72%);
-  mask-image: radial-gradient(ellipse at 88% 50%, #000 0 26%, rgba(0, 0, 0, 0.66) 44%, transparent 72%);
+  opacity: 0.5;
+  /* Horizontal fade matched to the experience effect in main.js: the orbit
+     centre sits at ~78% of the shifted canvas, so the copy column is masked
+     out entirely and the trails surface toward the right edge. The mask
+     never reaches full opacity — the effect stays a veil, not a subject. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 36%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.8) 80%, rgba(0, 0, 0, 0.8) 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 36%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.8) 80%, rgba(0, 0, 0, 0.8) 100%);
   background:
     radial-gradient(circle at 86% 50%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 44%),
     var(--field-solid);
+}
+
+.experience-field-visual .effect-canvas {
+  /* Shift the polygon ring's orbit centre into the mask's clear zone on the
+     right; the canvas element itself stays full-bleed for the renderer. */
+  transform: translateX(28%);
+}
+
+/* Feedback paints luminous trails, which on the light theme's cream field
+   only wash out into a pale cloud. Multiply compositing keeps just the
+   darker strokes — and pairing it with a very fast trail decay means the
+   buffer holds mostly fresh, still-saturated line-work while faded strokes
+   decay to the canvas's cream background, which multiplies as neutral.
+   Bright accumulation never gets a chance to pool into a cloud. The dark
+   theme keeps normal compositing so the glow shows. */
+:root:not([data-theme="dark"]) .experience-field-visual {
+  opacity: 0.8;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 36%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.9) 80%, rgba(0, 0, 0, 0.9) 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 36%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.9) 80%, rgba(0, 0, 0, 0.9) 100%);
+}
+
+:root:not([data-theme="dark"]) .experience-field-visual .effect-canvas {
+  transform: translateX(14%);
+  mix-blend-mode: multiply;
 }
 
 .about-field-visual {
@@ -1099,7 +1127,7 @@ main {
   isolation: isolate;
   border-block: 1px solid var(--veil-border);
   /* The decorative radials stay, but the --field wash underneath them is gone:
-     it sat between the page and the tunnel canvas and muted it. The canvas
+     it sat between the page and the feedback canvas and muted it. The canvas
      layer carries --field-solid itself, which also covers the fallback state. */
   background:
     radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--accent-cool) 24%, transparent), transparent 31%),
@@ -1283,7 +1311,7 @@ main {
 }
 
 .timeline {
-  /* Lifted above the tunnel layer that now sits inside the panel. */
+  /* Lifted above the feedback layer that now sits inside the panel. */
   position: relative;
   z-index: 1;
   border-top: 1px solid var(--line);
@@ -1688,6 +1716,15 @@ main {
     mask-image: none;
   }
 
+  /* The feedback trails read as a muddy full-bleed wash behind the timeline
+     at tablet widths; keep them pinned to the right edge with the same capped
+     horizontal fade the desktop rule uses. */
+  .experience-field-visual {
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 36%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.8) 80%, rgba(0, 0, 0, 0.8) 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, transparent 36%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.8) 80%, rgba(0, 0, 0, 0.8) 100%);
+  }
+
   .proof-field-copy {
     width: calc(100% - (var(--effect-field-gutter) * 2));
     margin: var(--effect-field-gutter);
@@ -2085,6 +2122,14 @@ main {
     opacity: 0.9;
     -webkit-mask-image: none;
     mask-image: none;
+  }
+
+  /* Same right-pinned fade as the tablet band: the timeline stacks
+     full-width here, so the effect may only surface along the right edge. */
+  .experience-field-visual {
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 30%, rgba(0, 0, 0, 0.5) 52%, rgba(0, 0, 0, 0.8) 74%, rgba(0, 0, 0, 0.8) 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, transparent 30%, rgba(0, 0, 0, 0.5) 52%, rgba(0, 0, 0, 0.8) 74%, rgba(0, 0, 0, 0.8) 100%);
   }
 
   .stars-field .stars-chart {

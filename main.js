@@ -148,13 +148,13 @@
         staticOnly: reduced,
         options: skins.starfield
       },
-      {
-        name: "tunnel",
-        selector: "#experience-tunnel",
-        surface: "preview",
-        staticOnly: reduced,
-        options: skins.tunnel
-      },
+  {
+    name: "feedback",
+    selector: "#experience-feedback",
+    surface: "preview",
+    staticOnly: reduced,
+    options: skins.feedback
+  },
       {
         name: "rotozoom",
         selector: "#about-rotozoom",
@@ -232,6 +232,42 @@
         var palette = config.appearance.palette;
         config.appearance.palette = [palette[4], palette[2], palette[0], palette[3], palette[4]];
         config.appearance.colorOffset = 0.35;
+      }
+    } else if (name === "feedback") {
+      if (!config.geometry) config.geometry = {};
+      if (!config.feedback) config.feedback = {};
+      // The ring must keep travelling: a slow orbit lets the recursive loop
+      // re-strike the same spot and blow out into a white blob. Wider orbit
+      // excursions and thinner strokes spread the trails into ribbons
+      // instead. The orbit centre sits in the right half (with the CSS
+      // canvas shift) where the mask clears room for the copy.
+      config.geometry.sides = 6;
+      config.geometry.passes = 3;
+      config.geometry.radius = 0.14;
+      config.geometry.orbitX = 0.22;
+      config.geometry.orbitY = 0.22;
+      config.feedback.scalePerSecond = 0.8;
+      config.feedback.rotationPerSecond = 0.6;
+      if (root.dataset.theme === "dark") {
+        // Approved dark look: glowing comet ribbons on ink.
+        config.geometry.strokeWidth = 0.0035;
+        config.geometry.shadowBlur = 0.03;
+        config.feedback.decayPerSecond = 0.35;
+      } else {
+        // Light theme composites the canvas with the CSS `multiply` blend.
+        // The renderer's strokes are additive glow — their hot cores blow
+        // out brighter than the cream buffer background, and bright content
+        // is invisible under multiply — so the light theme deliberately
+        // reads only the warm halo: a soft, slowly breathing tint along the
+        // right edge. Fast decay and a soft stroke keep that halo smooth
+        // (no pooled cloud, no blown-out holes); the palette re-anchor
+        // (same colours, mandelbrot precedent) keeps the tint warm instead
+        // of grey.
+        var lightRamp = config.appearance.palette;
+        config.appearance.palette = [lightRamp[0], lightRamp[1], lightRamp[2], lightRamp[4], lightRamp[3]];
+        config.geometry.strokeWidth = 0.004;
+        config.geometry.shadowBlur = 0.008;
+        config.feedback.decayPerSecond = 0.75;
       }
     }
     return config;

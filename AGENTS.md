@@ -33,7 +33,7 @@ No dev server or lint. To view locally, open `index.html` directly or `python3 -
 `tests/site-smoke.test.mjs` asserts on the **source text** of `index.html`, `main.js`, `effect-skins.js`, and `styles.css` via regex — expect lockstep test updates when editing them.
 
 - Section order fixed: `hero → stars → projects → opensource → experience → about → contact`.
-- Exactly 7 `data-effect` canvases in document order: `metaballs`, `starfield`, `plasma`, `mandelbrot`, `tunnel`, `rotozoom`, `copperBars`.
+- Exactly 7 `data-effect` canvases in document order: `metaballs`, `starfield`, `plasma`, `mandelbrot`, `feedback`, `rotozoom`, `copperBars`.
 - `PROFILE:*:START/END` markers appear exactly once each.
 - `mandelbrot-proof-fallback.jpg` must be a real JPEG > 40 KB; `og.png` must be 1200×630.
 

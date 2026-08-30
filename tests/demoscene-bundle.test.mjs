@@ -24,14 +24,14 @@ import vm from 'node:vm';
 
 const root = new URL('../', import.meta.url);
 const EFFECTS = [
-  'metaballs', 'plasma', 'mandelbrot', 'starfield', 'tunnel', 'rotozoom', 'copperBars'
+  'metaballs', 'plasma', 'mandelbrot', 'starfield', 'feedback', 'rotozoom', 'copperBars'
 ];
 const SURFACES = {
   metaballs: 'fullscreen',
   plasma: 'preview',
   mandelbrot: 'preview',
   starfield: 'preview',
-  tunnel: 'preview',
+  feedback: 'preview',
   rotozoom: 'preview',
   copperBars: 'preview'
 };
