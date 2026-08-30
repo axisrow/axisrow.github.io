@@ -57,23 +57,21 @@
   ],
 
   "projects": {
-    "Telegram & Yandex": [
+    "Integrations": [
       "tg_content_factory",
+      "hhru",
       "yandex-direct-mcp-plugin",
-      "direct-cli"
-    ],
-    "Automation": [
-      "hhru"
-    ],
-    "AI / Agent Tooling": [
-      "gemini-webapi-mcp",
-      "clihost",
-      "claude-code-cycle-review-skill",
+      "direct-cli",
       "claude_code_gmail_plugin",
-      "zai-codex-helper",
-      "ccusage-dashboard"
+      "gemini-webapi-mcp"
     ],
-    "Data / ML": [
+    "Agent Tooling": [
+      "claude-code-cycle-review-skill",
+      "clihost",
+      "zai-codex-helper"
+    ],
+    "Evaluation & Data": [
+      "ccusage-dashboard",
       "llm_benchmark"
     ]
   },
