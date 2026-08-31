@@ -9,6 +9,7 @@ from profile.sync.apply_site_fragments import (
     _summary_regex,
     apply_site_fragments,
     replace_marker,
+    update_contribution_stars,
 )
 
 
@@ -51,6 +52,12 @@ class SiteSyncTests(unittest.TestCase):
     def test_missing_marker_fails_without_guessing(self) -> None:
         with self.assertRaisesRegex(ValueError, "PROFILE:PROJECTS"):
             replace_marker("<main></main>", "projects", "<section></section>")
+
+    def test_contribution_stars_update_and_failure_preserves_last_value(self) -> None:
+        html = '<span class="proof-row-stars" data-contribution-repo="foo/bar">★ 7</span> <span data-contribution-repo="missing/repo">★ 8</span>'
+        updated = update_contribution_stars(html, {"foo/bar": 42})
+        self.assertIn('data-contribution-repo="foo/bar">★ 42</span>', updated)
+        self.assertIn('data-contribution-repo="missing/repo">★ 8</span>', updated)
 
     def test_duplicate_marker_fails_without_partial_replacement(self) -> None:
         duplicated = self.html.replace("</body>", self.html.split("<body>", 1)[1])

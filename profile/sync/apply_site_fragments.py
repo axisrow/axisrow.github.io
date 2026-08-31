@@ -63,15 +63,34 @@ def update_profile_values(html: str, stats: dict[str, int]) -> str:
     return updated
 
 
+def update_contribution_stars(html: str, stats: object) -> str:
+    """Update known contribution star badges, preserving them on API failure."""
+    if not isinstance(stats, dict):
+        return html
+
+    def replace_badge(match: re.Match[str]) -> str:
+        repo = match.group(2)
+        value = stats.get(repo)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            return match.group(0)
+        return f"{match.group(1)}★ {value}{match.group(3)}"
+
+    pattern = re.compile(
+        r'(?s)(<span\b[^>]*\bdata-contribution-repo="([^"]+)"[^>]*>).*?(</span>)'
+    )
+    return pattern.sub(replace_badge, html)
+
+
 def apply_site_fragments(
     html: str,
     projects_fragment: str,
     stars_fragment: str,
-    stats: dict[str, int],
+    stats: dict[str, object],
 ) -> str:
     updated = replace_marker(html, "projects", projects_fragment)
     updated = replace_marker(updated, "stars", stars_fragment)
-    return update_profile_values(updated, stats)
+    updated = update_profile_values(updated, stats)
+    return update_contribution_stars(updated, stats.get("contribution_stars"))
 
 
 def main() -> int:

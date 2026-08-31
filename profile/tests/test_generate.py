@@ -32,6 +32,19 @@ class MakeEnvTests(unittest.TestCase):
         self.assertTrue(env.autoescape)
 
 
+class ContributionStarsTests(unittest.TestCase):
+    def test_fetches_external_repo_stars_and_omits_failed_requests(self) -> None:
+        def api_get(path: str):
+            if path == "repos/foo/bar":
+                return {"stargazers_count": 42}, 200
+            raise RuntimeError("temporary failure")
+
+        with mock.patch.object(generate.github, "api_get", side_effect=api_get):
+            stars = generate.get_contribution_stars(["foo/bar", "missing/repo"])
+
+        self.assertEqual(stars, {"foo/bar": 42})
+
+
 class WriteOutputTests(unittest.TestCase):
     def test_creates_nested_parent_dirs(self) -> None:
         with TemporaryDirectory() as tmp:

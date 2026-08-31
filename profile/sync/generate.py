@@ -120,6 +120,25 @@ def get_stars(handle: str, repos: list[str]) -> dict[str, int]:
     return stars
 
 
+def get_contribution_stars(repos: list[str]) -> dict[str, int]:
+    """Return live star counts for external repositories used in contributions.
+
+    Failed requests are omitted so the site sync can retain the last committed
+    badge instead of replacing a known value with a misleading zero.
+    """
+    stars: dict[str, int] = {}
+    for repo in repos:
+        try:
+            data, _ = github.api_get(f"repos/{repo}")
+            if not isinstance(data, dict) or not isinstance(data.get("stargazers_count"), int):
+                raise ValueError("missing integer stargazers_count")
+            stars[repo] = int(data["stargazers_count"])
+            print(f"  {repo}: {stars[repo]}★", file=sys.stderr)
+        except Exception as e:
+            print(f"  WARNING: {repo}: could not fetch stars ({e})", file=sys.stderr)
+    return stars
+
+
 def make_env(templates_dir: Path, *, autoescape: bool) -> Environment:
     """Build a Jinja2 Environment sharing the project's common loader/options."""
     return Environment(
@@ -161,6 +180,9 @@ def main() -> int:
     all_repos = [r for group in cfg["projects"].values() for r in group]
     print(f"Fetching live star counts for {len(all_repos)} repos…", file=sys.stderr)
     cfg["stars"] = get_stars(handle, all_repos)  # consumed by templates
+    contribution_repos = [str(c["project"]) for c in cfg["contributions"]]
+    cfg["contribution_stars"] = get_contribution_stars(contribution_repos)
+    cfg["stats"] = dict(cfg["stats"], contribution_stars=cfg["contribution_stars"])
 
     history = load_history(cfg)
     if history is not None:

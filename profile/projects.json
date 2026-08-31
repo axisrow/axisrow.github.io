@@ -17,11 +17,11 @@
 
   "contributions": [
     {
-      "project": "ccusage/ccusage",
-      "url": "https://github.com/ccusage/ccusage",
-      "desc": "Co-authored the merged ZCode SQLite usage adapter and report/test integration",
-      "pr": "#1675",
-      "pr_url": "https://github.com/ccusage/ccusage/pull/1675"
+      "project": "steipete/CodexBar",
+      "url": "https://github.com/steipete/CodexBar",
+      "desc": "Feature and documentation contributions to Peter Steinberger's desktop utility",
+      "pr": "#2814",
+      "pr_url": "https://github.com/steipete/CodexBar/pull/2814"
     },
     {
       "project": "ranaroussi/yfinance",
@@ -38,18 +38,18 @@
       "pr_url": "https://github.com/IBM/mcp-cli/pull/227"
     },
     {
-      "project": "etopro/ai-resto",
-      "url": "https://github.com/etopro/ai-resto",
-      "desc": "23 merged PRs across v0.2–v1.0 (auth, Redis caching, DB optimization, E2E/Playwright, PWA push, security)",
-      "pr": null,
-      "pr_url": "https://github.com/etopro/ai-resto/pulls?q=is%3Apr+author%3Aaxisrow+is%3Amerged"
-    },
-    {
       "project": "AgentWrapper/agent-orchestrator",
       "url": "https://github.com/AgentWrapper/agent-orchestrator",
       "desc": "Multiline prompt submit + safer permission-dialog handling",
       "pr": "#2357",
       "pr_url": "https://github.com/AgentWrapper/agent-orchestrator/pull/2357"
+    },
+    {
+      "project": "ccusage/ccusage",
+      "url": "https://github.com/ccusage/ccusage",
+      "desc": "Co-authored the merged ZCode SQLite usage adapter and report/test integration",
+      "pr": "#1675",
+      "pr_url": "https://github.com/ccusage/ccusage/pull/1675"
     }
   ],
 
