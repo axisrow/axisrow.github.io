@@ -241,7 +241,7 @@ test('Open Source uses the asymmetric R1 field without duplicated cards', async 
   // (see the PROFILE:* markers in CLAUDE.md), so check the pattern instead.
   assert.match(html, /data-profile-value="merged_upstream_prs" data-target="(\d+)">\1/);
   assert.match(html, /class="proof-field-visual"/);
-  assert.equal((html.match(/class="proof-row"/g) || []).length, 5);
+  assert.equal((html.match(/class="proof-row"/g) || []).length, 6);
   assert.equal((html.match(/github\.com\/steipete\/CodexBar\/pull\/2814/g) || []).length, 1);
   assert.equal((html.match(/github\.com\/ranaroussi\/yfinance\/pull\/2627/g) || []).length, 1);
   assert.doesNotMatch(html, /proof-stage|contribution-card|proof-layout|mandelbrot-frame|Iteration \/ proof/i);

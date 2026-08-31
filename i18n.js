@@ -107,6 +107,8 @@
       "opensource.row4Status": "23 merged PRs ↗",
       "opensource.row5Desc": "Multiline submit and safer permission handling.",
       "opensource.row5Status": "Merged · PR #2357 ↗",
+      "opensource.row6Desc": "Co-authored the ZCode SQLite usage adapter and report/test integration.",
+      "opensource.row6Status": "Co-authored · Merged · PR #1675 ↗",
 
       "experience.eyebrow": "Experience",
       "experience.title": "Built, shipped, maintained",
@@ -247,6 +249,8 @@
       "opensource.row4Status": "23 принятых PR ↗",
       "opensource.row5Desc": "Многострочный ввод и безопасная обработка разрешений.",
       "opensource.row5Status": "Принят · PR #2357 ↗",
+      "opensource.row6Desc": "Соавторство в адаптере ZCode для SQLite и интеграции отчётов и тестов.",
+      "opensource.row6Status": "Соавтор · принят · PR #1675 ↗",
 
       "experience.eyebrow": "Опыт",
       "experience.title": "Создано, выпущено, поддерживается",
@@ -386,6 +390,8 @@
       "opensource.row4Status": "23 个已合并的 PR ↗",
       "opensource.row5Desc": "多行提交与更安全的权限处理。",
       "opensource.row5Status": "已合并 · PR #2357 ↗",
+      "opensource.row6Desc": "共同完成 ZCode SQLite 使用适配器以及报告和测试集成。",
+      "opensource.row6Status": "共同作者 · 已合并 · PR #1675 ↗",
 
       "experience.eyebrow": "经历",
       "experience.title": "构建、发布、持续维护",
@@ -525,6 +531,8 @@
       "opensource.row4Status": "23 मर्ज किए गए PR ↗",
       "opensource.row5Desc": "मल्टीलाइन सबमिट और सुरक्षित परमिशन हैंडलिंग।",
       "opensource.row5Status": "मर्ज किया गया · PR #2357 ↗",
+      "opensource.row6Desc": "ZCode SQLite उपयोग एडाप्टर और रिपोर्ट/टेस्ट इंटीग्रेशन में सह-लेखन।",
+      "opensource.row6Status": "सह-लेखक · मर्ज किया गया · PR #1675 ↗",
 
       "experience.eyebrow": "अनुभव",
       "experience.title": "बनाया, रिलीज़ किया, बनाए रखा",

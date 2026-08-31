@@ -10,12 +10,19 @@
     "stars_earned": 104,
     "fork_stars": 5,
     "star_history_start": "2026-03-01",
-    "merged_upstream_prs": 38,
+    "merged_upstream_prs": 39,
     "starred_projects": 16,
     "_note": "stars_earned includes 5 stars on forks; the daily history (stars-history.json) tracks only original-repository events (GitHub has no reliable per-day fork-star signal), so the rendered chart adds fork_stars as a constant offset to every point — the line's endpoint always equals stars_earned, matching the 'all repositories' copy next to it"
   },
 
   "contributions": [
+    {
+      "project": "ccusage/ccusage",
+      "url": "https://github.com/ccusage/ccusage",
+      "desc": "Co-authored the merged ZCode SQLite usage adapter and report/test integration",
+      "pr": "#1675",
+      "pr_url": "https://github.com/ccusage/ccusage/pull/1675"
+    },
     {
       "project": "ranaroussi/yfinance",
       "url": "https://github.com/ranaroussi/yfinance",
