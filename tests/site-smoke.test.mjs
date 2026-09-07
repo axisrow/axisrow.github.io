@@ -46,6 +46,19 @@ test('content surfaces share one spacing and radius system', async () => {
   assert.doesNotMatch(css, /height:\s*clamp\(330px,\s*30vw,\s*(?:390|410)px\)/);
 });
 
+test('contact heading fits the narrow-column text without clipping', async () => {
+  const css = await source('styles.css');
+  // Desktop rule keeps its size but gains a long-word safety net.
+  assert.match(css, /\.contact-card h2\s*\{[^}]*font-size:\s*clamp\(44px,\s*7\.5vw,\s*92px\)[^}]*overflow-wrap:\s*break-word/s);
+  // Mobile floor must stay low enough that the longest locale word
+  // (RU "действительно") fits the ~246px column at 320px; the old
+  // clamp(42px, 13vw, 62px) overflowed it by ~24px.
+  const mobile = css.slice(css.indexOf('@media (max-width: 800px)'));
+  assert.match(mobile, /\.contact-card h2\s*\{[^}]*font-size:\s*clamp\(34px,\s*10\.5vw,\s*62px\)/s);
+  // The fix must come from sizing, not from hiding the overflow.
+  assert.doesNotMatch(css, /\.contact-card[^{]*\{[^}]*overflow-x:\s*hidden/s);
+});
+
 test('page surfaces share the liquid-glass and typography systems', async () => {
   const css = await source('styles.css');
   for (const token of [
