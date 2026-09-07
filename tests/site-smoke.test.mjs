@@ -59,6 +59,20 @@ test('contact heading fits the narrow-column text without clipping', async () =>
   assert.doesNotMatch(css, /\.contact-card[^{]*\{[^}]*overflow-x:\s*hidden/s);
 });
 
+test('hero stats share one value horizon and keep readable mobile captions', async () => {
+  const css = await source('styles.css');
+  // Values must sit on one horizontal line regardless of caption wrapping:
+  // explicit two-row grid cells, not column-reverse flow, and no per-stat
+  // top/margin compensation is allowed anywhere in the hero-stats rules.
+  assert.match(css, /\.hero-stats div\s*\{[^}]*display:\s*grid[^}]*grid-template-rows:\s*auto auto[^}]*align-content:\s*start/s);
+  assert.match(css, /\.hero-stats dd\s*\{[^}]*grid-row:\s*1/s);
+  assert.match(css, /\.hero-stats dt\s*\{[^}]*grid-row:\s*2/s);
+  assert.doesNotMatch(css, /\.hero-stats[^{]*\{[^}]*column-reverse/s);
+  assert.doesNotMatch(css, /\.hero-stats (?:dd|dt|div)[^{]*\{[^}]*(?:^\s*top:|[^-]margin-top:)/m);
+  // Mobile captions stay at the 12px readability floor, wrapping instead of clipping.
+  assert.match(css, /\.hero-stats dt\s*\{[^}]*font-size:\s*12px[^}]*overflow-wrap:\s*anywhere/s);
+});
+
 test('page surfaces share the liquid-glass and typography systems', async () => {
   const css = await source('styles.css');
   for (const token of [
