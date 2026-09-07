@@ -706,7 +706,11 @@
           }
           function renderChart(cssW) {
             cssW = Math.round(cssW);
-            if (!cssW || cssW < 60 || cssW === renderW) return;
+            // If the container is collapsed/hidden at init (cssW 0), keep the
+            // hover interactive against the static markup until the observer
+            // delivers a usable width — points would otherwise stay empty.
+            if (!cssW || cssW < 60) { buildStaticPoints(); return; }
+            if (cssW === renderW) return;
             renderW = cssW;
             var count = series.length;
             var maximum = Math.max.apply(null, series);
@@ -733,7 +737,10 @@
             ticks.forEach(function (value) {
               var y = yAt(value).toFixed(1);
               addLayer(make('line', { class: 'stars-grid', x1: left, x2: left + plotW, y1: y, y2: y }));
-              var label = make('text', { class: 'stars-y-label', x: left - 8, y: y });
+              // text-anchor end keeps 3-digit ceilings from spilling a few
+              // px into the plot area (the default 'start' would draw from
+              // x rightwards into the grid).
+              var label = make('text', { class: 'stars-y-label', x: left - 6, y: y, 'text-anchor': 'end' });
               label.textContent = value;
               addLayer(label);
             });
@@ -793,11 +800,17 @@
           console.warn('stars chart adaptive layout failed; keeping static markup', e);
         }
       } else if (polyline) {
-        // Static fallback (no-JS-shaped markup or missing ResizeObserver):
-        // reverse-engineer the values from the rendered y labels and
-        // polyline coordinates, deriving the scale from the chart's own
-        // labels instead of a hardcoded ceiling — the generator computes it
-        // dynamically, so a fixed constant silently desyncs.
+        // Static fallback (no-JS-shaped markup or missing ResizeObserver).
+        buildStaticPoints();
+      }
+      // Static fallback (no-JS-shaped markup, missing ResizeObserver, or a
+      // collapsed container before the first usable width): reverse-engineer
+      // the values from the rendered y labels and polyline coordinates,
+      // deriving the scale from the chart's own labels instead of a hardcoded
+      // ceiling — the generator computes it dynamically, so a fixed constant
+      // silently desyncs.
+      function buildStaticPoints() {
+        if (!polyline || points.length) return;
         var yLabels = [];
         starsSvg.querySelectorAll('.stars-y-label').forEach(function (el) {
           var value = parseFloat(el.textContent);
