@@ -1762,3 +1762,126 @@ test('the FX playground panel toggles aria-hidden and aria-expanded when opened/
   assert.equal(fxPanelAriaHidden, 'true', 'closing the panel must restore aria-hidden');
   assert.equal(fxToggleAriaExpanded, 'false', 'closing the panel must clear aria-expanded on the toggle');
 });
+
+test('the closed FX panel is excluded from keyboard navigation and Escape closes it', async () => {
+  const html = await source('index.html');
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+
+  // Initial markup: the panel ships hidden+inert so no invisible controls are
+  // reachable by Tab before any JS runs.
+  const asideMatch = html.match(/<aside id="fx-playground"[^>]*>/);
+  assert.ok(asideMatch, 'the fx-playground aside must exist in the markup');
+  assert.match(asideMatch[0], /\bhidden\b/, 'the panel must ship hidden in the source HTML');
+  assert.match(asideMatch[0], /\binert\b/, 'the panel must ship inert in the source HTML');
+
+  const root = { dataset: { theme: 'dark' }, classList: createClassList() };
+  const fxPanelClassList = createClassList();
+  let fxPanelAriaHidden = 'true';
+  let fxToggleAriaExpanded = 'false';
+  let toggleClickHandler = null;
+  let closeClickHandler = null;
+  let keydownHandler = null;
+  const focusLog = [];
+  let activeElement = null;
+
+  const fxToggle = {
+    addEventListener(type, handler) { if (type === 'click') toggleClickHandler = handler; },
+    setAttribute(name, value) { if (name === 'aria-expanded') fxToggleAriaExpanded = value; },
+    focus() { focusLog.push('fx-toggle'); activeElement = fxToggle; }
+  };
+  const fxClose = {
+    addEventListener(type, handler) { if (type === 'click') closeClickHandler = handler; },
+    focus() { focusLog.push('fx-close'); activeElement = fxClose; }
+  };
+  const fxPanel = {
+    classList: fxPanelClassList,
+    hidden: true,
+    inert: true,
+    setAttribute(name, value) { if (name === 'aria-hidden') fxPanelAriaHidden = value; },
+    contains(node) { return node === fxClose; }
+  };
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: root,
+      head: { appendChild() {} },
+      addEventListener(type, handler) { if (type === 'keydown') keydownHandler = handler; },
+      createElement() { return {}; },
+      get activeElement() { return activeElement; },
+      getElementById(id) {
+        if (id === 'fx-toggle') return fxToggle;
+        if (id === 'fx-playground') return fxPanel;
+        if (id === 'fx-close') return fxClose;
+        return null;
+      },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') return { getAttribute() { return 'assets/demoscene'; } };
+        return null;
+      },
+      querySelectorAll() { return []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(keydownHandler, 'a keydown handler for Escape must be registered on the document');
+
+  // Open: hidden/inert lifted, focus moves to the panel's close control.
+  toggleClickHandler();
+  assert.equal(fxPanel.hidden, false, 'opening must remove hidden');
+  assert.equal(fxPanel.inert, false, 'opening must remove inert');
+  assert.equal(fxPanelAriaHidden, 'false');
+  assert.equal(fxToggleAriaExpanded, 'true');
+  assert.deepEqual(focusLog, ['fx-close'], 'opening must focus the panel close control');
+
+  // Close via Escape while focus is inside the panel: inert applies
+  // immediately, focus returns to the toggle.
+  keydownHandler({ key: 'Escape' });
+  assert.equal(fxPanelClassList.contains('is-open'), false, 'Escape must close the panel');
+  assert.equal(fxPanel.inert, true, 'closing must apply inert immediately (tab order)');
+  assert.equal(fxPanelAriaHidden, 'true');
+  assert.equal(fxToggleAriaExpanded, 'false');
+  assert.deepEqual(focusLog, ['fx-close', 'fx-toggle'],
+    'closing while focus is inside the panel must return focus to the fx-toggle');
+
+  // The hidden attribute arrives via the timer fallback (no transitionend in
+  // this sandbox), and only while the panel is actually closed.
+  await new Promise((resolve) => setTimeout(resolve, 320));
+  assert.equal(fxPanel.hidden, true, 'the timer fallback must set hidden after the close transition window');
+
+  // Reopening before the fallback fires must not re-hide the panel.
+  toggleClickHandler();
+  assert.equal(fxPanel.hidden, false);
+  assert.equal(fxPanel.inert, false);
+  assert.equal(fxPanelClassList.contains('is-open'), true);
+
+  // Escape with another key does nothing; closing via the close button with
+  // focus outside the panel does not steal focus.
+  keydownHandler({ key: 'Enter' });
+  assert.equal(fxPanelClassList.contains('is-open'), true, 'non-Escape keys must not close the panel');
+  activeElement = null; // focus elsewhere, outside the panel
+  closeClickHandler();
+  assert.equal(fxToggleAriaExpanded, 'false');
+  assert.equal(focusLog[focusLog.length - 1], 'fx-close',
+    'closing with focus outside the panel must not move focus');
+});
