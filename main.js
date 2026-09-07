@@ -764,14 +764,61 @@
     var fxSpeed = document.getElementById('fx-speed');
     var fxSpeedVal = document.getElementById('fx-speed-val');
     var fxReset = document.getElementById('fx-reset');
+    // The closed panel must be absent from the tab order and from the
+    // accessibility tree until it is opened: `inert` immediately on close,
+    // `hidden` after the close transition ends (timer fallback covers
+    // reduced motion and a missing/cancelled transitionend).
+    var fxHideTimer = null;
+    function focusFxToggle() {
+      if (fxToggle && typeof fxToggle.focus === 'function') fxToggle.focus();
+    }
     function setFxPanelOpen(open) {
-      fxPanel.classList.toggle('is-open', open);
-      fxPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
-      if (fxToggle) fxToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (fxHideTimer) {
+        clearTimeout(fxHideTimer);
+        fxHideTimer = null;
+      }
+      if (open) {
+        fxPanel.hidden = false;
+        fxPanel.inert = false;
+        // Force a style flush so the open transition actually plays after
+        // un-hiding the panel in the same tick.
+        if (typeof fxPanel.getBoundingClientRect === 'function') fxPanel.getBoundingClientRect();
+        fxPanel.classList.add('is-open');
+        fxPanel.setAttribute('aria-hidden', 'false');
+        if (fxToggle) fxToggle.setAttribute('aria-expanded', 'true');
+        if (fxClose && typeof fxClose.focus === 'function') fxClose.focus();
+      } else {
+        fxPanel.classList.remove('is-open');
+        fxPanel.setAttribute('aria-hidden', 'true');
+        fxPanel.inert = true;
+        if (fxToggle) fxToggle.setAttribute('aria-expanded', 'false');
+        var active = document.activeElement;
+        if (active && typeof fxPanel.contains === 'function' && fxPanel.contains(active)) focusFxToggle();
+        var hidePanel = function () {
+          fxHideTimer = null;
+          if (!fxPanel.classList.contains('is-open')) fxPanel.hidden = true;
+        };
+        fxHideTimer = setTimeout(hidePanel, 280);
+        if (typeof fxPanel.addEventListener === 'function') {
+          fxPanel.addEventListener('transitionend', function onFxClose(e) {
+            if (e && e.target !== fxPanel) return;
+            fxPanel.removeEventListener('transitionend', onFxClose);
+            if (fxHideTimer) {
+              clearTimeout(fxHideTimer);
+              fxHideTimer = null;
+            }
+            hidePanel();
+          });
+        }
+      }
     }
     if (fxToggle && fxPanel) {
       fxToggle.addEventListener('click', function () {
         setFxPanelOpen(!fxPanel.classList.contains('is-open'));
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (fxPanel.classList.contains('is-open')) setFxPanelOpen(false);
       });
     }
     if (fxClose && fxPanel) fxClose.addEventListener('click', function () {
