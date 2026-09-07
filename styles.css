@@ -723,6 +723,13 @@ main {
   border-bottom: 1px solid var(--line);
 }
 
+/* Projects keeps a deliberately shorter intro: the section is reached by
+   anchor (#projects) and the first cards must clear the fold on a 390x844
+   viewport without a second scroll. */
+.section-projects {
+  padding: clamp(52px, 6vw, 88px) 0;
+}
+
 .section-heading {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(270px, 0.75fr);
@@ -810,7 +817,7 @@ main {
 .projects-field {
   display: flex;
   justify-content: flex-end;
-  padding: 24px max(16px, calc((100% - var(--max-width)) / 2));
+  padding: 14px max(16px, calc((100% - var(--max-width)) / 2));
 }
 
 .projects-field-visual,
@@ -851,7 +858,7 @@ main {
   flex-direction: column;
   justify-content: flex-start;
   margin: 0;
-  padding: var(--panel-space);
+  padding: clamp(18px, 2.5vw, 28px) var(--panel-space) var(--panel-space);
 }
 
 .projects-field-copy .eyebrow,
@@ -861,6 +868,11 @@ main {
   margin: 0 0 20px;
 }
 
+/* Compact intro: tighter eyebrow gap than the shared rule above gives. */
+.projects-field-copy .eyebrow {
+  margin-bottom: 12px;
+}
+
 .projects-field-copy .section-title {
   max-width: 590px;
   font-size: clamp(42px, 5vw, 64px);
@@ -868,37 +880,11 @@ main {
 
 .projects-field-copy .section-note {
   max-width: 530px;
-  margin-top: 20px;
-}
-
-.field-caption {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-top: var(--card-space);
-  padding-top: var(--card-space);
-  border-top: 1px solid var(--line);
-}
-
-.field-caption span,
-.field-caption small {
-  color: var(--ink-faint);
-  font: 500 9px/1.4 "IBM Plex Mono", monospace;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.field-caption strong {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.field-caption small {
-  margin-left: auto;
+  margin-top: 12px;
 }
 
 .project-surface {
-  margin-top: 42px;
+  margin-top: 20px;
   padding: clamp(10px, 2vw, 18px) var(--card-space) var(--card-space);
   border: 0;
   border-radius: 0;
@@ -1703,7 +1689,7 @@ main {
   .projects-field-copy {
     width: calc(100% - (var(--effect-field-gutter) * 2));
     margin: var(--effect-field-gutter);
-    padding: var(--panel-space);
+    padding: 18px var(--panel-space) var(--panel-space);
     background: var(--panel-veil);
     backdrop-filter: none;
   }
@@ -2059,6 +2045,10 @@ main {
     padding: 82px 0;
   }
 
+  .section-projects {
+    padding: 52px 0;
+  }
+
   .section-heading {
     margin-bottom: 34px;
   }
@@ -2105,13 +2095,13 @@ main {
     height: auto;
     min-height: 0;
     margin: var(--effect-field-gutter);
-    padding: var(--panel-space);
+    padding: 18px var(--panel-space) var(--panel-space);
     background: var(--panel-veil);
     backdrop-filter: none;
   }
 
   .projects-field-copy .section-title {
-    font-size: clamp(38px, 11vw, 54px);
+    font-size: clamp(32px, 9vw, 44px);
   }
 
   .projects-field-visual {
@@ -2124,18 +2114,8 @@ main {
     mask-image: none;
   }
 
-  .field-caption {
-    flex-wrap: wrap;
-    margin-top: 28px;
-  }
-
-  .field-caption small {
-    width: 100%;
-    margin-left: 0;
-  }
-
   .project-surface {
-    margin-top: 24px;
+    margin-top: 12px;
     padding: var(--card-space);
   }
 
@@ -2444,7 +2424,7 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .filter-pill {
