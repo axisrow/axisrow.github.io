@@ -1486,7 +1486,11 @@ main {
 .stars-y-label,
 .stars-x-label {
   fill: var(--ink-faint);
-  font: 11px "IBM Plex Mono", monospace;
+  /* 12px floor: below this, month/y labels get hard to read. The adaptive
+     layout in main.js redraws the chart geometry in CSS pixels so these
+     sizes hold on every container width (the static 960x340 no-JS markup
+     scales this value with its viewBox instead). */
+  font: 12px "IBM Plex Mono", monospace;
 }
 
 .stars-y-label {

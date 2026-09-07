@@ -73,6 +73,11 @@ def chart_data(history: dict, fork_stars: int = 0) -> dict:
 
     points = " ".join(f"{x(i):.1f},{y(total):.1f}" for i, total in enumerate(totals))
     ticks = [0, ceiling // 2, ceiling]
+    # Raw totals, shared with main.js's adaptive re-layout (ResizeObserver):
+    # the static polyline below is drawn in the 960x340 viewBox and would
+    # shrink to ~4px text on phones, so the client rebuilds the geometry in
+    # CSS pixels from this series. One source of truth for the data.
+    series = " ".join(str(total) for total in totals)
     month_labels = []
     for index, entry in enumerate(entries):
         current = date.fromisoformat(entry["date"])
@@ -80,6 +85,7 @@ def chart_data(history: dict, fork_stars: int = 0) -> dict:
             month_labels.append({"x": f"{x(index):.1f}", "label": current.strftime("%b")})
     return {
         "points": points,
+        "series": series,
         "end_x": f"{x(len(entries) - 1):.1f}",
         "end_y": f"{y(totals[-1]):.1f}",
         "latest_total": totals[-1],

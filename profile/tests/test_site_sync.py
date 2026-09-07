@@ -109,6 +109,10 @@ class SiteSyncTests(unittest.TestCase):
         self.assertNotIn('y1="22" y2="298"', stars)
         self.assertIn("{{ star_history.chart.plot_top_y }}", stars)
         self.assertIn("{{ star_history.chart.plot_bottom_y }}", stars)
+        # The polyline must carry the raw totals so main.js's adaptive
+        # re-layout redraws the same data (not a reverse-engineered scale)
+        # in CSS pixels for narrow containers.
+        self.assertIn('data-series="{{ star_history.chart.series }}"', stars)
 
     def test_committed_stars_block_is_reproducible_by_the_generator(self) -> None:
         """The committed PROFILE:STARS block must match what the generator renders.
