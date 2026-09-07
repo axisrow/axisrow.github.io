@@ -15,6 +15,25 @@
   var libraryReady = false;
   var remountTimer = null;
 
+  // Explicit user pause for the background animation, stored separately from
+  // the FX speed multiplier (a 0.2x speed still keeps render loops alive; a
+  // pause must stop them). Storage failures degrade to an in-memory pause:
+  // the toggle keeps working, the choice just isn't remembered across reloads.
+  var FX_PAUSE_STORAGE_KEY = "fx-paused";
+  function readStoredFxPause() {
+    try {
+      var saved = localStorage.getItem(FX_PAUSE_STORAGE_KEY);
+      if (saved === "1") return true;
+      if (saved === "0") return false;
+    } catch (error) {}
+    return false;
+  }
+  var fxPaused = readStoredFxPause();
+  function storeFxPause(value) {
+    fxPaused = value;
+    try { localStorage.setItem(FX_PAUSE_STORAGE_KEY, value ? "1" : "0"); } catch (error) {}
+  }
+
   function readStoredThemeChoice() {
     // The <head> bootstrap script already resolved this (and migrated the
     // legacy "theme" key) before main.js loaded; reuse it instead of
@@ -174,7 +193,12 @@
 
   function syncEffectPlayback() {
     var allowed = mobileQuery.matches ? 1 : 2;
-    var active = document.hidden ? [] : scenes
+    // A user pause routes through the same budget: nothing counts as active,
+    // so every mounted controller gets stop() instead of idling at low speed.
+    // Every path that could otherwise revive motion (lazy mount, remount,
+    // theme change, resize, tab visibility) ends in syncEffectPlayback(), so
+    // a paused choice is never self-resumed.
+    var active = document.hidden || fxPaused ? [] : scenes
       .filter(function (scene) { return scene.controller && !scene.staticOnly && scene.visible; })
       .sort(function (left, right) { return right.ratio - left.ratio; })
       .slice(0, allowed);
@@ -339,6 +363,24 @@
         scenes.splice(scenes.indexOf(scene), 1);
       }
     } else {
+      if (fxPaused) {
+        // A scene lazily mounted under the user pause: the library controller
+        // may start its own loop on creation, so stop it explicitly and paint
+        // a single frame so the paused canvas isn't blank. The playback
+        // observer is kept so a later resume still works through the usual
+        // budget.
+        controller.stop();
+        if (typeof controller.renderOnce === "function") {
+          try {
+            controller.renderOnce(0);
+          } catch (error) {
+            controller.destroy();
+            scene.controller = null;
+            scenes.splice(scenes.indexOf(scene), 1);
+            throw error;
+          }
+        }
+      }
       effectPlaybackObserver.observe(element);
     }
   }
@@ -908,6 +950,8 @@
     var fxSpeed = document.getElementById('fx-speed');
     var fxSpeedVal = document.getElementById('fx-speed-val');
     var fxReset = document.getElementById('fx-reset');
+    var fxPause = document.getElementById('fx-pause');
+    var fxPauseState = document.getElementById('fx-pause-state');
     // The closed panel must be absent from the tab order and from the
     // accessibility tree until it is opened: `inert` immediately on close,
     // `hidden` after the close transition ends (timer fallback covers
@@ -986,8 +1030,33 @@
         if (fxSpeed) fxSpeed.value = '1';
         if (fxSpeed && fxSpeedVal) fxSpeedVal.textContent = '1.0x';
         window.__FX_SPEED_MULTIPLIER__ = function () { return 1; };
+        // Reset restores speed only. An explicit pause is a separate user
+        // choice; resetting the speed must not silently unpause the page.
         remountEffects();
       });
+    }
+    if (fxPause) {
+      // The switch reads "animation running": unchecked = user pause.
+      var updatePauseUi = function () {
+        fxPause.checked = !fxPaused;
+        if (fxPauseState) {
+          var key = fxPaused ? 'fx.state.paused' : 'fx.state.running';
+          // Keep the key in the attribute so a later language switch
+          // re-translates the state through the ordinary data-i18n pass.
+          fxPauseState.setAttribute('data-i18n', key);
+          fxPauseState.textContent = menuLabel(key, fxPaused ? 'Paused' : 'Running');
+        }
+      };
+      fxPause.addEventListener('change', function () {
+        storeFxPause(!fxPause.checked);
+        updatePauseUi();
+        // No remount: appearance and speed are untouched, so routing through
+        // the existing playback mechanism is enough — pausing stops every
+        // controller, resuming restarts at most the current scene budget
+        // (2 desktop / 1 mobile), and reduced-motion scenes stay static.
+        syncEffectPlayback();
+      });
+      updatePauseUi();
     }
   }
 

@@ -1037,7 +1037,7 @@ async function runLoader({
   return { root, appendedScripts, warnings, fetchCalls };
 }
 
-async function runEffectRuntime({ reducedMotion = false, mobile = false, throwingEffect = null, renderOnceThrows = null } = {}) {
+async function runEffectRuntime({ reducedMotion = false, mobile = false, throwingEffect = null, renderOnceThrows = null, fxControls = false, storedFxPause = null } = {}) {
   const script = await source('main.js');
   const skinScript = await source('effect-skins.js');
   const root = { dataset: { theme: 'dark' }, classList: createClassList() };
@@ -1061,6 +1061,34 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
   const observers = [];
   const mediaChangeHandlers = {};
   const unloadHandlers = [];
+
+  // A working localStorage mock so FX-pause persistence can be exercised:
+  // `breakStorage()` simulates a full/quota-failed store (setItem must throw)
+  // without touching getItem, mirroring real storage failure modes.
+  const localStorageData = {};
+  if (storedFxPause !== null) localStorageData['fx-paused'] = storedFxPause;
+  let storageBroken = false;
+  const localStorageMock = {
+    getItem(key) { return Object.prototype.hasOwnProperty.call(localStorageData, key) ? localStorageData[key] : null; },
+    setItem(key, value) {
+      if (storageBroken) throw new Error('quota exceeded');
+      localStorageData[key] = String(value);
+    }
+  };
+
+  // FX panel controls (only resolved from getElementById when fxControls is
+  // set, so existing sandboxes that return null keep their behaviour).
+  const fxSpeed = { value: '1', addEventListener(type, handler) { if (type === 'input') this._input = handler; } };
+  const fxSpeedVal = { textContent: '' };
+  const fxReset = { addEventListener(type, handler) { if (type === 'click') this._click = handler; } };
+  const fxPause = { checked: true, addEventListener(type, handler) { if (type === 'change') this._change = handler; } };
+  const fxPauseState = {
+    textContent: '',
+    attrs: {},
+    setAttribute(name, value) { this.attrs[name] = value; },
+    getAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attrs, name) ? this.attrs[name] : null; }
+  };
+  const fxElements = { 'fx-speed': fxSpeed, 'fx-speed-val': fxSpeedVal, 'fx-reset': fxReset, 'fx-pause': fxPause, 'fx-pause-state': fxPauseState };
 
   class MockIntersectionObserver {
     constructor(callback, options = {}) {
@@ -1122,7 +1150,7 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
         assert.equal(tag, 'script');
         return {};
       },
-      getElementById() { return null; },
+      getElementById(id) { return fxControls && fxElements[id] ? fxElements[id] : null; },
       querySelector(selector) {
         if (selector === 'meta[name="demoscene-base"]') {
           return { getAttribute() { return 'assets/demoscene'; } };
@@ -1136,7 +1164,7 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
       async json() { return { version: 'lazy123', apiVersion: 3, bundle: 'demoscene.js' }; }
     }),
     location: { href: 'http://localhost/', protocol: 'http:' },
-    localStorage: { getItem() { return null; }, setItem() {} },
+    localStorage: localStorageMock,
     matchMedia(query) {
       const mql = {
         matches: (reducedMotion && query.includes('prefers-reduced-motion'))
@@ -1172,6 +1200,12 @@ async function runEffectRuntime({ reducedMotion = false, mobile = false, throwin
     window: sandbox,
     mediaChangeHandlers,
     unloadHandlers,
+    fxPause,
+    fxPauseState,
+    fxReset,
+    fxSpeed,
+    localStorageData,
+    breakStorage() { storageBroken = true; },
     remount() {
       const reducedHandlers = mediaChangeHandlers['(prefers-reduced-motion: reduce)'] || [];
       reducedHandlers.forEach((handler) => handler());
@@ -2138,4 +2172,195 @@ test('the closed FX panel is excluded from keyboard navigation and Escape closes
   assert.equal(fxToggleAriaExpanded, 'false');
   assert.equal(focusLog[focusLog.length - 1], 'fx-close',
     'closing with focus outside the panel must not move focus');
+});
+
+// All seven effects scrolled into view with distinct ratios, mirroring how
+// the playback observer reports a full-page render at load time.
+function deliverAllScenesVisible(runtime) {
+  const ratios = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3];
+  const entries = [...runtime.elements.values()].map((element, index) => ({
+    target: element,
+    isIntersecting: true,
+    intersectionRatio: ratios[index]
+  }));
+  runtime.mountObserver.deliver(entries);
+  runtime.playbackObserver.deliver(entries);
+}
+
+test('the FX pause switch stops every running controller and resume obeys the scene budget', async () => {
+  const runtime = await runEffectRuntime({ fxControls: true });
+  assert.ok(runtime.fxPause._change, 'the fx-pause change handler must be registered');
+  assert.equal(runtime.fxPause.checked, true, 'animation defaults to running');
+
+  deliverAllScenesVisible(runtime);
+  let running = runtime.controllers.filter((controller) => controller.running);
+  assert.equal(running.length, 2, 'the desktop budget of 2 running scenes must hold before pausing');
+
+  // Pausing: flip the switch to "off" and fire the change event. No remount
+  // is involved — the controllers must be stopped through the playback path.
+  runtime.fxPause.checked = false;
+  runtime.fxPause._change();
+  running = runtime.controllers.filter((controller) => controller.running);
+  assert.equal(running.length, 0, 'pausing must stop every controller — no render loop may idle at low speed');
+
+  // The pause must also survive the events that normally drive playback:
+  // tab visibility, scroll-driven ratio updates, and a remount.
+  runtime.playbackObserver.deliver([...runtime.elements.values()].map((element, index) => ({
+    target: element,
+    isIntersecting: true,
+    intersectionRatio: [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3][index]
+  })));
+  runtime.remount();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  runtime.mountObserver.deliver([...runtime.elements.values()].map((element) => ({
+    target: element,
+    isIntersecting: true,
+    intersectionRatio: 0.5
+  })));
+  // A real IntersectionObserver reports the current intersection when an
+  // element is (re)observed; the mock needs the entries delivered explicitly.
+  runtime.playbackObserver.deliver([...runtime.elements.values()].map((element, index) => ({
+    target: element,
+    isIntersecting: true,
+    intersectionRatio: [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3][index]
+  })));
+  running = runtime.controllers.filter((controller) => controller.running);
+  assert.equal(running.length, 0, 'visibility changes and remounts must not self-resume a paused page');
+
+  // Resuming restarts at most the budget (2 desktop), picking the highest
+  // intersectionRatio scenes via the same playback mechanism.
+  runtime.fxPause.checked = true;
+  runtime.fxPause._change();
+  running = runtime.controllers.filter((controller) => controller.running);
+  assert.equal(running.length, 2, 'resuming must restart at most 2 scenes on desktop');
+});
+
+test('a scene lazily mounted while paused stays stopped and paints one static frame', async () => {
+  const runtime = await runEffectRuntime({ fxControls: true });
+  const hero = runtime.elements.get('#hero-metaballs');
+
+  // Pause first, before anything has mounted.
+  runtime.fxPause.checked = false;
+  runtime.fxPause._change();
+
+  // Now scroll the hero into view for the first time: it must lazily mount
+  // (so resuming works later) but never start its loop.
+  runtime.mountObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.4 }]);
+  runtime.playbackObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.4 }]);
+  assert.equal(runtime.factoryCalls.length, 1, 'the lazy mount must still happen under pause');
+  const controller = runtime.controllers[0];
+  assert.equal(controller.running, false, 'a lazily mounted scene under pause must not run');
+  assert.deepEqual(controller.renderTimes, [0], 'it must paint exactly one static frame instead');
+
+  // Resuming starts the already-mounted controller without a new mount.
+  runtime.fxPause.checked = true;
+  runtime.fxPause._change();
+  assert.equal(controller.running, true, 'resume must start the lazily mounted controller');
+  assert.equal(runtime.factoryCalls.length, 1, 'resume must not remount the scene');
+});
+
+test('the FX pause choice persists to storage and a reset keeps it', async () => {
+  const runtime = await runEffectRuntime({ fxControls: true });
+  const hero = runtime.elements.get('#hero-metaballs');
+  runtime.mountObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.4 }]);
+  runtime.playbackObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.4 }]);
+  assert.equal(runtime.controllers[0].running, true);
+
+  runtime.fxPause.checked = false;
+  runtime.fxPause._change();
+  assert.equal(runtime.localStorageData['fx-paused'], '1', 'pausing must persist the choice to storage');
+
+  // Reset restores the speed but must not silently undo the user's pause.
+  assert.ok(runtime.fxReset._click, 'the fx-reset click handler must be registered');
+  runtime.fxReset._click();
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  assert.equal(runtime.controllers[0].running, false, 'reset must keep an explicit pause in place');
+  assert.equal(runtime.fxPause.checked, false, 'reset must keep the switch reflecting the pause');
+  assert.equal(runtime.localStorageData['fx-paused'], '1');
+
+  // A fresh page (new runtime) with the stored choice starts paused.
+  const reloaded = await runEffectRuntime({ fxControls: true, storedFxPause: '1' });
+  assert.equal(reloaded.fxPause.checked, false, 'a reload must restore the paused switch state');
+  deliverAllScenesVisible(reloaded);
+  assert.equal(reloaded.controllers.filter((controller) => controller.running).length, 0,
+    'a reloaded page with a stored pause must not run any scene');
+});
+
+test('a failing storage backend must not break pausing', async () => {
+  const runtime = await runEffectRuntime({ fxControls: true });
+  const hero = runtime.elements.get('#hero-metaballs');
+  runtime.mountObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.4 }]);
+  runtime.playbackObserver.deliver([{ target: hero, isIntersecting: true, intersectionRatio: 0.4 }]);
+
+  runtime.breakStorage();
+  runtime.fxPause.checked = false;
+  runtime.fxPause._change();
+  assert.equal(runtime.controllers[0].running, false,
+    'pausing must still stop the controller when localStorage.setItem throws');
+  runtime.fxPause.checked = true;
+  runtime.fxPause._change();
+  assert.equal(runtime.controllers[0].running, true,
+    'resuming must still work when localStorage.setItem throws');
+});
+
+test('a stored pause coexists with reduced motion and the mobile budget', async () => {
+  // Reduced motion keeps priority: even after un-pausing, scenes stay static.
+  const reduced = await runEffectRuntime({ fxControls: true, reducedMotion: true });
+  const reducedHero = reduced.elements.get('#hero-metaballs');
+  reduced.mountObserver.deliver([{ target: reducedHero, isIntersecting: true, intersectionRatio: 0.4 }]);
+  assert.deepEqual(reduced.controllers[0].renderTimes, [0], 'reduced motion must render one static frame');
+  reduced.fxPause.checked = false;
+  reduced.fxPause._change();
+  reduced.fxPause.checked = true;
+  reduced.fxPause._change();
+  assert.equal(reduced.controllers[0].running, false,
+    'resume must not override reduced motion — reduced motion keeps priority');
+
+  // Mobile budget: resume starts at most 1 scene.
+  const mobile = await runEffectRuntime({ fxControls: true, mobile: true });
+  deliverAllScenesVisible(mobile);
+  mobile.fxPause.checked = false;
+  mobile.fxPause._change();
+  assert.equal(mobile.controllers.filter((controller) => controller.running).length, 0);
+  mobile.fxPause.checked = true;
+  mobile.fxPause._change();
+  assert.equal(mobile.controllers.filter((controller) => controller.running).length, 1,
+    'resuming on mobile must restart at most 1 scene');
+});
+
+test('the FX pause switch is accessible and translated in all four languages', async () => {
+  const html = await source('index.html');
+  const asideMatch = html.match(/<aside id="fx-playground"[\s\S]*?<\/aside>/);
+  assert.ok(asideMatch, 'the fx-playground aside must exist');
+  const aside = asideMatch[0];
+  assert.match(aside, /<label for="fx-pause" class="fx-label" data-i18n="fx\.animation">/);
+  assert.match(aside, /<input id="fx-pause" class="fx-switch" type="checkbox" role="switch" checked \/>/);
+  assert.match(aside, /<span id="fx-pause-state" class="fx-val" data-i18n="fx\.state\.running">/);
+
+  const i18nScript = await source('i18n.js');
+  const sandbox = {
+    window: {},
+    document: {
+      querySelectorAll: () => [],
+      documentElement: fakeDocumentElement(),
+      getElementById() { return null; },
+      querySelector() { return null; }
+    },
+    navigator: { languages: ['en'] },
+    localStorage: { getItem: () => null, setItem() {} }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(i18nScript.replace(
+    'window.PortfolioI18n = {',
+    'window.__I18N_DICTIONARIES__ = DICTIONARIES;\n  window.PortfolioI18n = {'
+  ), sandbox, { filename: 'i18n.js' });
+  const dictionaries = sandbox.window.__I18N_DICTIONARIES__;
+  for (const lang of ['en', 'ru', 'zh', 'hi']) {
+    for (const key of ['fx.animation', 'fx.state.running', 'fx.state.paused']) {
+      const value = dictionaries[lang][key];
+      assert.ok(value && typeof value === 'string' && value !== key,
+        `${lang} must carry a real translation for "${key}"`);
+    }
+  }
 });
