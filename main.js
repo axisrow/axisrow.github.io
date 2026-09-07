@@ -667,7 +667,7 @@
           hoverDot.setAttribute('opacity', '1');
         }
         if (tooltipValue) tooltipValue.textContent = n.stars + '★';
-        if (tooltipDate)  tooltipDate.textContent  = n.date || getDateForX(n.idx, n.x);
+        if (tooltipDate)  tooltipDate.textContent  = n.date || getDateForX(n.x);
         if (tooltip) tooltip.classList.add('is-active');
       });
       hoverTarget.addEventListener('pointerleave', function () {
@@ -835,7 +835,7 @@
       }
       // Shared by the static fallback above: map a polyline x back to the
       // calendar date via the chart's own x extents.
-      function getDateForX(idx, x) {
+      function getDateForX(x) {
         var pointsList = polyline ? polyline.getAttribute('points').trim().split(/\s+/) : [];
         var startX = pointsList.length ? +pointsList[0].split(',')[0] : null;
         var endX = pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null;
