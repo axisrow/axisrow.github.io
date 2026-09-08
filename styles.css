@@ -633,7 +633,7 @@ main {
 
 /* Experience and About are text-heavy, so their fields stay dimmer than the
    chart and contact panels. The masks pull each field away from its copy:
-   right for the timeline, left for the about grid. */
+   both surfaces toward the right edge, where no reading happens. */
 .experience-field-visual {
   opacity: 0.5;
   /* Horizontal fade matched to the experience effect in main.js: the orbit
@@ -671,12 +671,16 @@ main {
   mix-blend-mode: multiply;
 }
 
+/* Rotozoom paints high-contrast luminous bands that no text can sit on, so it
+   only surfaces along the right edge, clear of the copy column: the same
+   capped horizontal fade the experience field uses. The mask never reaches
+   full opacity -- the effect stays a veil, not a subject. */
 .about-field-visual {
-  opacity: 0.62;
-  -webkit-mask-image: radial-gradient(ellipse at 12% 50%, #000 0 26%, rgba(0, 0, 0, 0.66) 44%, transparent 72%);
-  mask-image: radial-gradient(ellipse at 12% 50%, #000 0 26%, rgba(0, 0, 0, 0.66) 44%, transparent 72%);
+  opacity: 0.55;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 40%, rgba(0, 0, 0, 0.5) 62%, rgba(0, 0, 0, 0.8) 84%, rgba(0, 0, 0, 0.8) 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 40%, rgba(0, 0, 0, 0.5) 62%, rgba(0, 0, 0, 0.8) 84%, rgba(0, 0, 0, 0.8) 100%);
   background:
-    radial-gradient(circle at 14% 50%, color-mix(in srgb, var(--accent-cool) 24%, transparent), transparent 44%),
+    radial-gradient(circle at 86% 50%, color-mix(in srgb, var(--accent-cool) 24%, transparent), transparent 44%),
     var(--field-solid);
 }
 
@@ -1132,8 +1136,11 @@ main {
 
 .about-field {
   transform: translateX(-50%);
+  /* Mirror of the old composition: the near-opaque veil now backs the copy
+     column on the left and only dissolves under the masked right edge, so the
+     rotozoom reads through where no reading happens. */
   background:
-    linear-gradient(270deg, color-mix(in srgb, var(--accent-cool) 8%, var(--veil)), var(--veil) 50%, transparent 100%);
+    linear-gradient(90deg, var(--veil) 0%, var(--veil) 55%, color-mix(in srgb, var(--accent-cool) 8%, var(--veil)) 78%, transparent 100%);
 }
 
 .contact-field {
@@ -1750,6 +1757,15 @@ main {
     mask-image: linear-gradient(90deg, transparent 0%, transparent 36%, rgba(0, 0, 0, 0.5) 58%, rgba(0, 0, 0, 0.8) 80%, rgba(0, 0, 0, 0.8) 100%);
   }
 
+  /* The about grid stacks at tablet widths, so its copy has the full panel
+     width behind it -- the rotozoom gets the same right-pinned fade rather
+     than the shared unmasked 0.9 wash. */
+  .about-field-visual {
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 44%, rgba(0, 0, 0, 0.5) 66%, rgba(0, 0, 0, 0.8) 86%, rgba(0, 0, 0, 0.8) 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, transparent 44%, rgba(0, 0, 0, 0.5) 66%, rgba(0, 0, 0, 0.8) 86%, rgba(0, 0, 0, 0.8) 100%);
+  }
+
   .proof-field-copy {
     width: calc(100% - (var(--effect-field-gutter) * 2));
     margin: var(--effect-field-gutter);
@@ -2158,6 +2174,15 @@ main {
     opacity: 0.5;
     -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 30%, rgba(0, 0, 0, 0.5) 52%, rgba(0, 0, 0, 0.8) 74%, rgba(0, 0, 0, 0.8) 100%);
     mask-image: linear-gradient(90deg, transparent 0%, transparent 30%, rgba(0, 0, 0, 0.5) 52%, rgba(0, 0, 0, 0.8) 74%, rgba(0, 0, 0, 0.8) 100%);
+  }
+
+  /* Same right-pinned fade as the tablet band, pushed further right: the copy
+     spans the full panel here, and unlike the other fields there is no veil
+     card between it and the canvas. */
+  .about-field-visual {
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 56%, rgba(0, 0, 0, 0.5) 76%, rgba(0, 0, 0, 0.8) 92%, rgba(0, 0, 0, 0.8) 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, transparent 56%, rgba(0, 0, 0, 0.5) 76%, rgba(0, 0, 0, 0.8) 92%, rgba(0, 0, 0, 0.8) 100%);
   }
 
   .stars-field .stars-chart {

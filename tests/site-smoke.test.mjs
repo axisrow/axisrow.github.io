@@ -232,6 +232,70 @@ test('mobile panel text clears WCAG AA over the worst backdrop the veil can comp
   }
 });
 
+test('about copy stays readable over the rotozoom in every band and both themes', async () => {
+  const css = await source('styles.css');
+  const skins = await source('effect-skins.js');
+
+  // The copy column keeps the near-opaque veil; only the masked right edge
+  // dissolves so the effect can read through where no reading happens.
+  assert.match(css, /\.about-field\s*\{[^}]*linear-gradient\(90deg, var\(--veil\) 0%, var\(--veil\) 55%/s);
+
+  // Desktop, tablet and mobile each pin the rotozoom to the right edge -- the
+  // shared narrow-band rules otherwise unmask the field at 0.9, and unlike
+  // the other panels there is no veil card between the copy and the canvas.
+  const masked = [...css.matchAll(/\.about-field-visual\s*\{([^}]*)\}/g)]
+    .map((match) => match[1])
+    .filter((block) => /mask-image:\s*linear-gradient\(90deg, transparent 0%/.test(block));
+  assert.equal(masked.length, 3, 'expected a masked .about-field-visual in each of the three bands');
+  for (const block of masked) {
+    const opacity = Number(/opacity:\s*([\d.]+);/.exec(block)[1]);
+    assert.ok(opacity <= 0.55, `field opacity ${opacity} is too hot for a text panel`);
+    // The fade must not start inside the copy column.
+    const start = /transparent 0%, transparent (\d+)%/.exec(block);
+    assert.ok(start && Number(start[1]) >= 40, 'mask fade starts too early');
+  }
+
+  // Worst-case backdrop under the copy, computed rather than pinned: the
+  // canvas layer (any palette stop over the page, at layer opacity) under the
+  // veil tint. Generous by design -- the mask is fully transparent over the
+  // copy, so this models the fade's first percent bleeding under the text.
+  const stops = (theme) => {
+    const block = new RegExp(`${theme}:\\s*\\{\\s*colors:\\s*colors\\(\\[([^\\]]+)\\]`).exec(skins);
+    assert.ok(block, `no ${theme} palette in effect-skins.js`);
+    return block[1].match(/#[0-9a-f]{6}/gi) ?? [];
+  };
+  const layerOpacity = Number(/opacity:\s*([\d.]+);/.exec(masked[0])[1]);
+
+  const themeCase = (rootBlock, inkNames) => {
+    const veil = /--veil:\s*rgba\((\d+), (\d+), (\d+), ([\d.]+)\)/.exec(rootBlock);
+    const page = /--page:\s*(#[0-9a-f]{6})/.exec(rootBlock);
+    assert.ok(veil && page, 'no --veil / --page in :root');
+    return {
+      tint: [Number(veil[1]), Number(veil[2]), Number(veil[3])],
+      alpha: Number(veil[4]),
+      page: parseHex(page[1]),
+      inks: inkNames.map((name) => parseHex(new RegExp(`${name}:\\s*(#[0-9a-f]{6})`).exec(rootBlock)[1]))
+    };
+  };
+  const lightRoot = /:root\s*\{([\s\S]*?)\}/.exec(css)[1];
+  const darkRoot = /:root\[data-theme="dark"\]\s*\{([\s\S]*?)\}/.exec(css)[1];
+  const cases = [
+    { stops: [...stops('light'), /--field-solid:\s*(#[0-9a-f]{6})/.exec(lightRoot)[1]], ...themeCase(lightRoot, ['--ink', '--ink-soft']) },
+    { stops: ['#090b0f', ...stops('dark')], ...themeCase(darkRoot, ['--ink', '--ink-soft']) }
+  ];
+
+  for (const { stops: palette, tint, alpha, page, inks } of cases) {
+    // canvas layer: worst palette tone at layer opacity over the page ...
+    const inner = paletteRamp(palette).map((tone) => composite(tone, page, layerOpacity));
+    // ... under the veil tint at its declared alpha.
+    const backdrops = inner.map((bg) => composite(tint, bg, alpha));
+    for (const colour of inks) {
+      const worst = Math.min(...backdrops.map((bg) => contrastRatio(colour, bg)));
+      assert.ok(worst >= 4.5, `#${colour.map((c) => Math.round(c).toString(16).padStart(2, '0')).join('')} only reaches ${worst.toFixed(2)}:1`);
+    }
+  }
+});
+
 test('every section accent is mounted in document order and nothing else is', async () => {
   const html = await source('index.html');
   const effects = Array.from(html.matchAll(/data-effect="([^"]+)"/g), (match) => match[1]);
