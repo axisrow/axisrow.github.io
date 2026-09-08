@@ -164,6 +164,37 @@ def write_output(path: Path, content: str) -> Path:
     return path
 
 
+def contributions_registry(cfg: dict) -> dict:
+    """Validate the contributions registry and derive its aggregates.
+
+    The registry in projects.json is the single source of truth for merged
+    upstream PRs: every entry carries a unique ``repo + pr_number`` key, a
+    confirmed ``merged`` flag and the contributor's ``role``. The counter is
+    derived from the same set the site renders, so they can never disagree.
+    Raises on duplicate keys instead of silently double counting.
+
+    Deliberately offline: merge status is verified data committed to the
+    registry, not re-fetched here, so a transient GitHub API failure can
+    never replace the confirmed list/counter with zero or a partial result.
+    """
+    contributions = cfg["contributions"]
+    seen: set[tuple[str, int]] = set()
+    for entry in contributions:
+        key = (str(entry["repo"]), int(entry["pr_number"]))
+        if key in seen:
+            raise ValueError(f"duplicate contribution key: {key[0]}#{key[1]}")
+        seen.add(key)
+        if entry.get("merged") and entry.get("role") not in ("author", "coauthor"):
+            raise ValueError(f"{key[0]}#{key[1]}: unknown role {entry.get('role')!r}")
+    merged = [entry for entry in contributions if entry.get("merged")]
+    featured = [entry for entry in merged if entry.get("featured")]
+    return {
+        "merged": merged,
+        "featured": featured,
+        "merged_count": len(merged),
+    }
+
+
 def load_history(cfg: dict) -> dict | None:
     """Load stars-history.json, attach chart data, and recompute stars_earned."""
     history_path = ROOT.parent / "data" / "stars-history.json"
@@ -185,10 +216,16 @@ def main() -> int:
 
     cfg["cases_by_project"] = {c["project"]: c for c in cfg.get("cases", [])}
 
+    # Counter first: it must come from the same verified registry the site
+    # and README render, never from a hand-maintained number in projects.json.
+    registry = contributions_registry(cfg)
+    cfg["stats"] = dict(cfg["stats"], merged_upstream_prs=registry["merged_count"])
+    cfg["contributions_registry"] = registry
+
     all_repos = [r for group in cfg["projects"].values() for r in group]
     print(f"Fetching live star counts for {len(all_repos)} repos…", file=sys.stderr)
     cfg["stars"] = get_stars(handle, all_repos)  # consumed by templates
-    contribution_repos = [str(c["project"]) for c in cfg["contributions"]]
+    contribution_repos = [str(c["repo"]) for c in registry["featured"]]
     cfg["contribution_stars"] = get_contribution_stars(contribution_repos)
     cfg["stats"] = dict(cfg["stats"], contribution_stars=cfg["contribution_stars"])
 
@@ -207,6 +244,12 @@ def main() -> int:
     html_env = make_env(TEMPLATES, autoescape=True)
     html = html_env.get_template("projects.html.j2").render(**cfg)
     write_output(args.out_dir / "site" / "projects.html", html)
+
+    # Full merged-PR registry, rendered from the same verified set the
+    # counter is derived from (apply_site_fragments splices it into the
+    # PROFILE:CONTRIBUTIONS markers on the Open Source section).
+    contributions_html = html_env.get_template("contributions.html.j2").render(**cfg)
+    write_output(args.out_dir / "site" / "contributions.html", contributions_html)
 
     if history is not None:
         stars_html = html_env.get_template("stars.html.j2").render(**cfg)

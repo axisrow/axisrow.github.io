@@ -10,11 +10,13 @@
 
 ### 🔨 Proof of Work
 
-**Open-Source Contributions** — merged upstream
+**Open-Source Contributions** — {{ contributions_registry.merged_count }} merged upstream PRs ([full registry]({{ portfolio_url }}#opensource))
+
+Featured examples:
 
 | Project | Contribution | PR |
 |---|---|---|
-{% for c in contributions %}| [{{ c.project }}]({{ c.url }}) | {{ c.desc }} | {% if c.pr %}[{{ c.pr }}]({{ c.pr_url }}){% else %}—{% endif %} |
+{% for c in contributions_registry.featured %}| [{{ c.repo }}](https://github.com/{{ c.repo }}) | {{ c.desc }} | {% if c.role == "coauthor" %}Co-authored · {% endif %}[#{{ c.pr_number }}](https://github.com/{{ c.repo }}/pull/{{ c.pr_number }}) |
 {% endfor %}
 
 ---

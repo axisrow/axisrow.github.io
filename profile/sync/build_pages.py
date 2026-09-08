@@ -120,6 +120,7 @@ def _write_artifact_files(
         (generated_site / "projects.html").read_text(),
         (generated_site / "stars.html").read_text(),
         json.loads((generated_site / "stats.json").read_text()),
+        (generated_site / "contributions.html").read_text(),
     )
     _atomic_write(canonical / "index.html", index_html)
 

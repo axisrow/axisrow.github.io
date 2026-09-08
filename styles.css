@@ -1183,6 +1183,90 @@ main {
   white-space: nowrap;
 }
 
+/* Label marking the five proof rows as a selection, plus the collapsible
+   full registry of merged PRs generated into PROFILE:CONTRIBUTIONS. */
+.proof-note {
+  padding: 10px var(--card-space);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.proof-all {
+  border-bottom: 1px solid var(--line);
+}
+
+.proof-all summary {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: var(--row-space) var(--card-space);
+  cursor: pointer;
+  color: var(--ink-soft);
+  font: 700 13px/1.35 "IBM Plex Mono", monospace;
+  list-style: none;
+}
+
+.proof-all summary::-webkit-details-marker {
+  display: none;
+}
+
+.proof-all summary::before {
+  content: "+";
+  margin-right: 10px;
+  color: var(--accent);
+}
+
+.proof-all[open] summary::before {
+  content: "−";
+}
+
+.proof-all-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0 var(--card-space) var(--row-space);
+  border-top: 1px dashed var(--line);
+}
+
+.proof-all-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 13px;
+}
+
+.proof-all-list li:last-child {
+  border-bottom: 0;
+}
+
+.proof-all-list a {
+  color: var(--ink);
+  font: 500 13px/1.35 "IBM Plex Mono", monospace;
+  white-space: nowrap;
+}
+
+.proof-all-number {
+  color: var(--accent);
+}
+
+.proof-all-title {
+  color: var(--ink-soft);
+}
+
+.proof-all-role {
+  color: var(--success);
+  font: 700 11px/1.35 "IBM Plex Mono", monospace;
+  white-space: nowrap;
+}
+
+.proof-all-featured {
+  color: var(--accent);
+}
+
 /* Every field runs edge to edge: no side gutter, so no vertical border or
    corner radius either -- those only read as a panel when there is page around
    them. Horizontal rules stay, matching what contact already did. */

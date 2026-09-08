@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections.abc import Mapping
 from pathlib import Path
 
 # Single source of truth for the profile snapshot counters: the order also
@@ -39,10 +40,10 @@ def replace_marker(html: str, name: str, fragment: str) -> str:
     return updated
 
 
-def update_profile_values(html: str, stats: dict[str, int]) -> str:
+def update_profile_values(html: str, stats: Mapping[str, object]) -> str:
     updated = html
     for key in PROFILE_VALUE_KEYS:
-        value = str(int(stats[key]))
+        value = int(str(stats[key]))
         pattern = re.compile(
             rf'(?s)(<span\b[^>]*\bdata-profile-value="{re.escape(key)}"[^>]*>).*?(</span>)'
         )
@@ -55,7 +56,7 @@ def update_profile_values(html: str, stats: dict[str, int]) -> str:
         if count < 1:
             raise ValueError(f"missing data-profile-value for {key}")
 
-    summary = SUMMARY_FORMAT.format(**{k: int(stats[k]) for k in PROFILE_VALUE_KEYS})
+    summary = SUMMARY_FORMAT.format(**{k: int(str(stats[k])) for k in PROFILE_VALUE_KEYS})
     summary_pattern = re.compile(_summary_regex(SUMMARY_FORMAT))
     updated, count = summary_pattern.subn(summary, updated)
     if count < 1:
@@ -85,10 +86,12 @@ def apply_site_fragments(
     html: str,
     projects_fragment: str,
     stars_fragment: str,
-    stats: dict[str, object],
+    stats: Mapping[str, object],
+    contributions_fragment: str,
 ) -> str:
     updated = replace_marker(html, "projects", projects_fragment)
     updated = replace_marker(updated, "stars", stars_fragment)
+    updated = replace_marker(updated, "contributions", contributions_fragment)
     updated = update_profile_values(updated, stats)
     return update_contribution_stars(updated, stats.get("contribution_stars"))
 
@@ -98,6 +101,7 @@ def main() -> int:
     parser.add_argument("target", type=Path)
     parser.add_argument("--projects", type=Path, required=True)
     parser.add_argument("--stars", type=Path, required=True)
+    parser.add_argument("--contributions", type=Path, required=True)
     parser.add_argument("--stats", type=Path, required=True)
     args = parser.parse_args()
 
@@ -107,6 +111,7 @@ def main() -> int:
         args.projects.read_text(),
         args.stars.read_text(),
         json.loads(args.stats.read_text()),
+        args.contributions.read_text(),
     )
     if updated != original:
         args.target.write_text(updated)

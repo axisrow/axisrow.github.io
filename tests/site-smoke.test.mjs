@@ -18,7 +18,7 @@ test('page keeps the approved proof-first section order and sync markers', async
     assert.ok(position > previous, `${id} must follow the previous section`);
     previous = position;
   }
-  for (const name of ['PROJECTS', 'STARS']) {
+  for (const name of ['PROJECTS', 'STARS', 'CONTRIBUTIONS']) {
     assert.equal((html.match(new RegExp(`PROFILE:${name}:START`, 'g')) || []).length, 1);
     assert.equal((html.match(new RegExp(`PROFILE:${name}:END`, 'g')) || []).length, 1);
   }
@@ -333,13 +333,10 @@ test('Open Source uses the asymmetric R1 field without duplicated cards', async 
   assert.match(html, /data-profile-value="merged_upstream_prs" data-target="(\d+)">\1/);
   assert.match(html, /class="proof-field-visual"/);
   assert.equal((html.match(/class="proof-row"/g) || []).length, 5);
-  assert.doesNotMatch(html, /ai-resto/);
   assert.equal((html.match(/data-contribution-repo=/g) || []).length, 5);
   for (const repo of ['steipete/CodexBar', 'ranaroussi/yfinance', 'IBM/mcp-cli', 'AgentWrapper/agent-orchestrator', 'ccusage/ccusage']) {
     assert.ok(html.includes(`data-contribution-repo="${repo}"`));
   }
-  assert.equal((html.match(/github\.com\/steipete\/CodexBar\/pull\/2814/g) || []).length, 1);
-  assert.equal((html.match(/github\.com\/ranaroussi\/yfinance\/pull\/2627/g) || []).length, 1);
   assert.doesNotMatch(html, /proof-stage|contribution-card|proof-layout|mandelbrot-frame|Iteration \/ proof/i);
 });
 
@@ -382,6 +379,33 @@ test('featured case studies live in the bot-managed template with sized, lazy fi
     assert.ok(buildPages.includes(`"${src}"`), `case asset ${src} must be in the build_pages.py allowlist`);
     assert.ok(html.includes(`src="${src}"`));
   }
+});
+
+test('the five proof rows are labelled as a sample and backed by a full registry', async () => {
+  const html = await source('index.html');
+  const start = html.indexOf('<!-- PROFILE:CONTRIBUTIONS:START -->');
+  const end = html.indexOf('<!-- PROFILE:CONTRIBUTIONS:END -->');
+  assert.ok(start !== -1 && end > start, 'registry markers must wrap the generated full list');
+  const registry = html.slice(start, end);
+  const outside = html.slice(0, start) + html.slice(end);
+  // The proof rows are a selection, not the whole set: the page must say so.
+  assert.match(outside, /class="proof-note" data-i18n="opensource\.featuredNote"/);
+  // Featured PRs are linked once as proof rows and again inside the registry,
+  // but nowhere else; every other registry link stays inside the disclosure.
+  for (const url of ['github.com/steipete/CodexBar/pull/2814', 'github.com/ranaroussi/yfinance/pull/2627']) {
+    assert.equal((outside.match(new RegExp(url.replaceAll('.', '\\.'), 'g')) || []).length, 1);
+    assert.ok(registry.includes(url));
+  }
+  // The registry the user can open must be the same set the counter claims:
+  // compare the summary's i18n count var against the rendered list length
+  // dynamically — no total is pinned here.
+  const countVar = /"count":"(\d+)"/.exec(registry);
+  assert.ok(countVar, 'registry summary must carry the counter as an i18n var');
+  assert.equal(Number(countVar[1]), (registry.match(/<li>/g) || []).length);
+  assert.equal(Number(countVar[1]), Number(/data-profile-value="merged_upstream_prs" data-target="(\d+)">/.exec(html)[1]));
+  // Author and co-authored contributions must be distinguishable.
+  assert.match(registry, /data-i18n="opensource\.roleCoauthor"/);
+  assert.match(registry, /data-i18n="opensource\.roleFeatured"/);
 });
 
 test('navigation and generated values are data-driven', async () => {
