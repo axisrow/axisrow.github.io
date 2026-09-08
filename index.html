@@ -91,7 +91,7 @@
       }
     }());
   </script>
-  <link rel="stylesheet" href="styles.css?v=projects-compact-4" />
+  <link rel="stylesheet" href="styles.css?v=fx-pause-1" />
 </head>
 <body>
   <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
@@ -454,6 +454,11 @@
         <input id="fx-speed" class="fx-range" type="range" min="0.2" max="3" step="0.1" value="1" />
         <span id="fx-speed-val" class="fx-val">1.0x</span>
       </div>
+      <div class="fx-row">
+        <label for="fx-pause" class="fx-label" data-i18n="fx.animation">Background animation</label>
+        <input id="fx-pause" class="fx-switch" type="checkbox" role="switch" checked />
+        <span id="fx-pause-state" class="fx-val" data-i18n="fx.state.running">Running</span>
+      </div>
       <div class="fx-stats-row">
         <span class="fx-label" data-i18n="fx.fps">Performance</span>
         <span id="fx-stats-val" class="fx-stats-badge">WebGL2 · Active</span>
@@ -465,7 +470,7 @@
   </aside>
 
   <script src="effect-skins.js?v=fx-feedback-1"></script>
-  <script src="i18n.js?v=drop-caption-1"></script>
-  <script src="main.js?v=stars-adaptive-3"></script>
+  <script src="i18n.js?v=fx-pause-1"></script>
+  <script src="main.js?v=fx-pause-2"></script>
 </body>
 </html>

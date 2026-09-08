@@ -2636,6 +2636,13 @@ main {
   text-align: right;
 }
 
+.fx-switch {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  margin: 0 0 0 auto;
+}
+
 .fx-stats-row {
   display: flex;
   align-items: center;

@@ -15,6 +15,25 @@
   var libraryReady = false;
   var remountTimer = null;
 
+  // Explicit user pause for the background animation, stored separately from
+  // the FX speed multiplier (a 0.2x speed still keeps render loops alive; a
+  // pause must stop them). Storage failures degrade to an in-memory pause:
+  // the toggle keeps working, the choice just isn't remembered across reloads.
+  var FX_PAUSE_STORAGE_KEY = "fx-paused";
+  function readStoredFxPause() {
+    try {
+      var saved = localStorage.getItem(FX_PAUSE_STORAGE_KEY);
+      if (saved === "1") return true;
+      if (saved === "0") return false;
+    } catch (error) {}
+    return false;
+  }
+  var fxPaused = readStoredFxPause();
+  function storeFxPause(value) {
+    fxPaused = value;
+    try { localStorage.setItem(FX_PAUSE_STORAGE_KEY, value ? "1" : "0"); } catch (error) {}
+  }
+
   function readStoredThemeChoice() {
     // The <head> bootstrap script already resolved this (and migrated the
     // legacy "theme" key) before main.js loaded; reuse it instead of
@@ -174,7 +193,12 @@
 
   function syncEffectPlayback() {
     var allowed = mobileQuery.matches ? 1 : 2;
-    var active = document.hidden ? [] : scenes
+    // A user pause routes through the same budget: nothing counts as active,
+    // so every mounted controller gets stop() instead of idling at low speed.
+    // Every path that could otherwise revive motion (lazy mount, remount,
+    // theme change, resize, tab visibility) ends in syncEffectPlayback(), so
+    // a paused choice is never self-resumed.
+    var active = (document.hidden || fxPaused) ? [] : scenes
       .filter(function (scene) { return scene.controller && !scene.staticOnly && scene.visible; })
       .sort(function (left, right) { return right.ratio - left.ratio; })
       .slice(0, allowed);
@@ -339,6 +363,24 @@
         scenes.splice(scenes.indexOf(scene), 1);
       }
     } else {
+      if (fxPaused) {
+        // A scene lazily mounted under the user pause: the library controller
+        // may start its own loop on creation, so stop it explicitly and paint
+        // a single frame so the paused canvas isn't blank. The playback
+        // observer is kept so a later resume still works through the usual
+        // budget.
+        controller.stop();
+        if (typeof controller.renderOnce === "function") {
+          try {
+            controller.renderOnce(0);
+          } catch (error) {
+            controller.destroy();
+            scene.controller = null;
+            scenes.splice(scenes.indexOf(scene), 1);
+            throw error;
+          }
+        }
+      }
       effectPlaybackObserver.observe(element);
     }
   }
@@ -834,13 +876,23 @@
         }
       }
       // Shared by the static fallback above: map a polyline x back to the
-      // calendar date via the chart's own x extents.
+      // calendar date via the chart's own x extents. The x extents are cached
+      // on first use — this runs on every pointermove, so re-parsing the full
+      // polyline points string per event would be wasteful. (The adaptive
+      // path rebuilds the polyline but resolves dates from n.date directly,
+      // so the cache never goes stale there.)
+      var chartXExtent = null;
       function getDateForX(x) {
-        var pointsList = polyline ? polyline.getAttribute('points').trim().split(/\s+/) : [];
-        var startX = pointsList.length ? +pointsList[0].split(',')[0] : null;
-        var endX = pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null;
-        if (startMs === null || endMs === null || startX === null || endX === null || endX === startX) return '';
-        var ratio = Math.min(1, Math.max(0, (x - startX) / (endX - startX)));
+        if (!polyline) return '';
+        if (chartXExtent === null) {
+          var pointsList = polyline.getAttribute('points').trim().split(/\s+/);
+          chartXExtent = {
+            startX: pointsList.length ? +pointsList[0].split(',')[0] : null,
+            endX: pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null
+          };
+        }
+        if (startMs === null || endMs === null || chartXExtent.startX === null || chartXExtent.endX === null || chartXExtent.endX === chartXExtent.startX) return '';
+        var ratio = Math.min(1, Math.max(0, (x - chartXExtent.startX) / (chartXExtent.endX - chartXExtent.startX)));
         var ms = startMs + ratio * (endMs - startMs);
         return new Date(ms).toISOString().slice(0, 10);
       }
@@ -908,6 +960,8 @@
     var fxSpeed = document.getElementById('fx-speed');
     var fxSpeedVal = document.getElementById('fx-speed-val');
     var fxReset = document.getElementById('fx-reset');
+    var fxPause = document.getElementById('fx-pause');
+    var fxPauseState = document.getElementById('fx-pause-state');
     // The closed panel must be absent from the tab order and from the
     // accessibility tree until it is opened: `inert` immediately on close,
     // `hidden` after the close transition ends (timer fallback covers
@@ -915,6 +969,25 @@
     var fxHideTimer = null;
     function focusFxToggle() {
       if (fxToggle && typeof fxToggle.focus === 'function') fxToggle.focus();
+    }
+    // Registered once, not per close: a per-close listener only removes
+    // itself when the transition actually fires, so reduced motion / zero-
+    // duration transitions (where the 280ms timer wins) would accumulate a
+    // listener per open/close cycle.
+    var hidePanel = function () {
+      fxHideTimer = null;
+      if (!fxPanel.classList.contains('is-open')) fxPanel.hidden = true;
+    };
+    var onFxClose = function (e) {
+      if (e && e.target !== fxPanel) return;
+      if (fxHideTimer) {
+        clearTimeout(fxHideTimer);
+        fxHideTimer = null;
+      }
+      hidePanel();
+    };
+    if (fxPanel && typeof fxPanel.addEventListener === 'function') {
+      fxPanel.addEventListener('transitionend', onFxClose);
     }
     function setFxPanelOpen(open) {
       if (fxHideTimer) {
@@ -938,22 +1011,7 @@
         if (fxToggle) fxToggle.setAttribute('aria-expanded', 'false');
         var active = document.activeElement;
         if (active && typeof fxPanel.contains === 'function' && fxPanel.contains(active)) focusFxToggle();
-        var hidePanel = function () {
-          fxHideTimer = null;
-          if (!fxPanel.classList.contains('is-open')) fxPanel.hidden = true;
-        };
         fxHideTimer = setTimeout(hidePanel, 280);
-        if (typeof fxPanel.addEventListener === 'function') {
-          fxPanel.addEventListener('transitionend', function onFxClose(e) {
-            if (e && e.target !== fxPanel) return;
-            fxPanel.removeEventListener('transitionend', onFxClose);
-            if (fxHideTimer) {
-              clearTimeout(fxHideTimer);
-              fxHideTimer = null;
-            }
-            hidePanel();
-          });
-        }
       }
     }
     if (fxToggle && fxPanel) {
@@ -986,8 +1044,33 @@
         if (fxSpeed) fxSpeed.value = '1';
         if (fxSpeed && fxSpeedVal) fxSpeedVal.textContent = '1.0x';
         window.__FX_SPEED_MULTIPLIER__ = function () { return 1; };
+        // Reset restores speed only. An explicit pause is a separate user
+        // choice; resetting the speed must not silently unpause the page.
         remountEffects();
       });
+    }
+    if (fxPause) {
+      // The switch reads "animation running": unchecked = user pause.
+      var updatePauseUi = function () {
+        fxPause.checked = !fxPaused;
+        if (fxPauseState) {
+          var key = fxPaused ? 'fx.state.paused' : 'fx.state.running';
+          // Keep the key in the attribute so a later language switch
+          // re-translates the state through the ordinary data-i18n pass.
+          fxPauseState.setAttribute('data-i18n', key);
+          fxPauseState.textContent = menuLabel(key, fxPaused ? 'Paused' : 'Running');
+        }
+      };
+      fxPause.addEventListener('change', function () {
+        storeFxPause(!fxPause.checked);
+        updatePauseUi();
+        // No remount: appearance and speed are untouched, so routing through
+        // the existing playback mechanism is enough — pausing stops every
+        // controller, resuming restarts at most the current scene budget
+        // (2 desktop / 1 mobile), and reduced-motion scenes stay static.
+        syncEffectPlayback();
+      });
+      updatePauseUi();
     }
   }
 
