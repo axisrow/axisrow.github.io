@@ -876,13 +876,23 @@
         }
       }
       // Shared by the static fallback above: map a polyline x back to the
-      // calendar date via the chart's own x extents.
+      // calendar date via the chart's own x extents. The x extents are cached
+      // on first use — this runs on every pointermove, so re-parsing the full
+      // polyline points string per event would be wasteful. (The adaptive
+      // path rebuilds the polyline but resolves dates from n.date directly,
+      // so the cache never goes stale there.)
+      var chartXExtent = null;
       function getDateForX(x) {
-        var pointsList = polyline ? polyline.getAttribute('points').trim().split(/\s+/) : [];
-        var startX = pointsList.length ? +pointsList[0].split(',')[0] : null;
-        var endX = pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null;
-        if (startMs === null || endMs === null || startX === null || endX === null || endX === startX) return '';
-        var ratio = Math.min(1, Math.max(0, (x - startX) / (endX - startX)));
+        if (!polyline) return '';
+        if (chartXExtent === null) {
+          var pointsList = polyline.getAttribute('points').trim().split(/\s+/);
+          chartXExtent = {
+            startX: pointsList.length ? +pointsList[0].split(',')[0] : null,
+            endX: pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null
+          };
+        }
+        if (startMs === null || endMs === null || chartXExtent.startX === null || chartXExtent.endX === null || chartXExtent.endX === chartXExtent.startX) return '';
+        var ratio = Math.min(1, Math.max(0, (x - chartXExtent.startX) / (chartXExtent.endX - chartXExtent.startX)));
         var ms = startMs + ratio * (endMs - startMs);
         return new Date(ms).toISOString().slice(0, 10);
       }
@@ -960,6 +970,25 @@
     function focusFxToggle() {
       if (fxToggle && typeof fxToggle.focus === 'function') fxToggle.focus();
     }
+    // Registered once, not per close: a per-close listener only removes
+    // itself when the transition actually fires, so reduced motion / zero-
+    // duration transitions (where the 280ms timer wins) would accumulate a
+    // listener per open/close cycle.
+    var hidePanel = function () {
+      fxHideTimer = null;
+      if (!fxPanel.classList.contains('is-open')) fxPanel.hidden = true;
+    };
+    var onFxClose = function (e) {
+      if (e && e.target !== fxPanel) return;
+      if (fxHideTimer) {
+        clearTimeout(fxHideTimer);
+        fxHideTimer = null;
+      }
+      hidePanel();
+    };
+    if (fxPanel && typeof fxPanel.addEventListener === 'function') {
+      fxPanel.addEventListener('transitionend', onFxClose);
+    }
     function setFxPanelOpen(open) {
       if (fxHideTimer) {
         clearTimeout(fxHideTimer);
@@ -982,22 +1011,7 @@
         if (fxToggle) fxToggle.setAttribute('aria-expanded', 'false');
         var active = document.activeElement;
         if (active && typeof fxPanel.contains === 'function' && fxPanel.contains(active)) focusFxToggle();
-        var hidePanel = function () {
-          fxHideTimer = null;
-          if (!fxPanel.classList.contains('is-open')) fxPanel.hidden = true;
-        };
         fxHideTimer = setTimeout(hidePanel, 280);
-        if (typeof fxPanel.addEventListener === 'function') {
-          fxPanel.addEventListener('transitionend', function onFxClose(e) {
-            if (e && e.target !== fxPanel) return;
-            fxPanel.removeEventListener('transitionend', onFxClose);
-            if (fxHideTimer) {
-              clearTimeout(fxHideTimer);
-              fxHideTimer = null;
-            }
-            hidePanel();
-          });
-        }
       }
     }
     if (fxToggle && fxPanel) {
