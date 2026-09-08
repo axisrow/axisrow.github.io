@@ -1580,6 +1580,196 @@ test('the stars chart tooltip shows an interpolated calendar date, not a shared 
   assert.notEqual(tooltipDate.textContent, '2026-08-15');
 });
 
+test('the stars chart ships the raw series and a 12px label floor for the adaptive layout', async () => {
+  const html = await source('index.html');
+  const starsTemplate = await source('profile/sync/templates/stars.html.j2');
+  const styles = await source('styles.css');
+  // The generator template pins the data source; the deployed index.html
+  // carries the rendered totals on the polyline itself.
+  assert.ok(
+    starsTemplate.includes('data-series="{{ star_history.chart.series }}"'),
+    'stars.html.j2 must bind the generator series onto the polyline'
+  );
+  assert.match(
+    html,
+    /class="stars-line"[^>]*data-series="[\d ]+"/,
+    'index.html must ship the rendered data-series on the stars polyline'
+  );
+  assert.match(
+    styles,
+    /\.stars-y-label,\s*\.stars-x-label\s*\{[^}]*font:\s*12px/s,
+    'stars labels must not render below 12 CSS px'
+  );
+});
+
+test('the stars chart rebuilds its geometry in CSS pixels under ResizeObserver and keeps the tooltip exact after resize', async () => {
+  const script = await source('main.js');
+  const skinScript = await source('effect-skins.js');
+  const rootEl = { dataset: { theme: 'dark', lang: 'en' }, classList: createClassList() };
+  const tooltipDate = { textContent: '' };
+  const tooltipValue = { textContent: '' };
+  const tooltip = {
+    classList: createClassList(),
+    querySelector(selector) {
+      if (selector === '.stars-tooltip-value') return tooltipValue;
+      if (selector === '.stars-tooltip-date') return tooltipDate;
+      return null;
+    }
+  };
+  const titleMeta = { getAttribute() { return JSON.stringify({ startDate: '2026-03-01' }); } };
+  const descMeta = { getAttribute() { return JSON.stringify({ count: '100', endDate: '2026-04-01' }); } };
+
+  // Minimal fake SVG element factory: enough shape (attributes, parent
+  // wiring, tag) for main.js's createElementNS-based rebuild.
+  function makeNode(tag) {
+    return {
+      tag,
+      attrs: {},
+      textContent: '',
+      parentNode: null,
+      addEventListener() {},
+      setAttribute(key, value) { this.attrs[key] = String(value); },
+      getAttribute(key) { return key in this.attrs ? this.attrs[key] : null; }
+    };
+  }
+  const staticPolyline = Object.assign(makeNode('polyline'), {
+    // Seven daily points spanning 2026-03-01 → 2026-04-01 so two month
+    // anchors (Mar at index 0, Apr at the last day-1 index) exist.
+    attrs: { points: '54.0,298.0 200.0,270.0 340.0,240.0 495.0,160.0 640.0,110.0 790.0,80.0 936.0,22.0', 'data-series': '0 10 20 30 60 60 100' }
+  });
+  let crosshair = Object.assign(makeNode('line'), { attrs: { class: 'stars-crosshair', y1: '22', y2: '298' } });
+  let hoverDot = Object.assign(makeNode('circle'), { attrs: { class: 'stars-hover-dot' } });
+  const children = [crosshair, hoverDot, staticPolyline];
+  const starsSvg = {
+    attrs: {},
+    children,
+    // addLayer() inserts before crosshair only when it is a real child.
+    viewBox: { baseVal: { width: 960, height: 340 } },
+    setAttribute(key, value) {
+      this.attrs[key] = String(value);
+      if (key === 'viewBox') {
+        const parts = String(value).split(' ');
+        this.viewBox.baseVal.width = +parts[2];
+        this.viewBox.baseVal.height = +parts[3];
+      }
+    },
+    getAttribute(key) { return key in this.attrs ? this.attrs[key] : null; },
+    getBoundingClientRect() { return { left: 0, width: this.viewBox.baseVal.width }; },
+    insertBefore(el, ref) {
+      el.parentNode = this;
+      this.children.splice(Math.max(0, this.children.indexOf(ref)), 0, el);
+    },
+    removeChild(el) {
+      el.parentNode = null;
+      this.children.splice(this.children.indexOf(el), 1);
+    },
+    querySelector(selector) {
+      if (selector === '.stars-crosshair') return crosshair;
+      if (selector === '.stars-hover-dot') return hoverDot;
+      if (selector === '.stars-hit-area') return null;
+      if (selector === '.stars-line') return staticPolyline;
+      if (selector === '#stars-chart-title') return titleMeta;
+      if (selector === '#stars-chart-desc') return descMeta;
+      return null;
+    },
+    querySelectorAll(selector) {
+      const cls = selector.split(',').map((s) => s.trim().replace(/^\./, ''));
+      return this.children.filter((el) => el.attrs.class && cls.includes(el.attrs.class));
+    }
+  };
+  crosshair.parentNode = starsSvg;
+  hoverDot.parentNode = starsSvg;
+  staticPolyline.parentNode = starsSvg;
+  let pointermoveHandler = null;
+  starsSvg.addEventListener = function (type, handler) { if (type === 'pointermove') pointermoveHandler = handler; };
+  let resizeCallback = null;
+  class MockResizeObserver {
+    constructor(callback) { resizeCallback = callback; }
+    observe() {} unobserve() {} disconnect() {}
+  }
+
+  const sandbox = {
+    AbortController,
+    Demoscene: {},
+    URL,
+    IntersectionObserver: class { observe() {} unobserve() {} },
+    ResizeObserver: MockResizeObserver,
+    console: { warn() {}, error() {} },
+    document: {
+      hidden: false,
+      documentElement: rootEl,
+      body: { appendChild() {}, removeChild() {} },
+      head: { appendChild() {} },
+      addEventListener() {},
+      createElement() { return {}; },
+      createElementNS: (ns, tag) => makeNode(tag),
+      getElementById() { return null; },
+      querySelector(selector) {
+        if (selector === 'meta[name="demoscene-base"]') {
+          return { getAttribute() { return 'assets/demoscene'; } };
+        }
+        if (selector === '.stars-chart svg') return starsSvg;
+        if (selector === '.stars-chart .stars-tooltip') return tooltip;
+        return null;
+      },
+      querySelectorAll() { return []; },
+      readyState: 'complete'
+    },
+    fetch: async () => ({ ok: false }),
+    location: { href: 'http://localhost/', protocol: 'http:' },
+    localStorage: { getItem() { return null; }, setItem() {} },
+    matchMedia() { return { matches: false, addEventListener() {} }; },
+    requestAnimationFrame(callback) { callback(0); return 1; },
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout,
+    clearTimeout
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
+  vm.runInContext(script, sandbox, { filename: 'main.js' });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  assert.ok(resizeCallback, 'a ResizeObserver must watch the stars svg');
+
+  // Phone width: the geometry must be rebuilt in CSS pixels…
+  resizeCallback([{ contentRect: { width: 320 } }]);
+  assert.equal(starsSvg.attrs.viewBox, '0 0 320 180', 'viewBox must switch to CSS-pixel geometry');
+  const line = starsSvg.children.filter((el) => el.attrs.class === 'stars-line' && el !== staticPolyline)[0];
+  assert.ok(line, 'the polyline must be redrawn');
+  const xs = line.attrs.points.split(' ').map((pt) => +pt.split(',')[0]);
+  assert.ok(xs.every((x) => x >= 0 && x <= 320), 're plotted coordinates must live inside the 320px viewBox');
+  const yLabels = starsSvg.children.filter((el) => el.attrs.class === 'stars-y-label').map((el) => String(el.textContent));
+  assert.deepEqual(yLabels, ['0', '50', '100'], 'ticks must be 0/half/ceiling of the dynamic ceiling');
+  const xLabels = starsSvg.children.filter((el) => el.attrs.class === 'stars-x-label');
+  assert.ok(xLabels.length >= 2, 'at least the first and last month anchors survive thinning');
+  assert.ok(xLabels.every((el) => /^month\./.test(el.attrs['data-i18n'])), 'rebuilt month labels must keep their i18n keys');
+  assert.ok(xLabels.every((el) => +el.attrs.x >= 0 && +el.attrs.x <= 320), 'month labels must not spill outside the chart');
+
+  // …and the tooltip must stay exact at the series' start, middle, and end.
+  assert.ok(pointermoveHandler, 'a pointermove handler must be registered');
+  pointermoveHandler({ clientX: 1 });
+  assert.equal(tooltipValue.textContent, '0★');
+  assert.equal(tooltipDate.textContent, '2026-03-01');
+  pointermoveHandler({ clientX: 125 });
+  assert.equal(tooltipValue.textContent, '20★');
+  assert.equal(tooltipDate.textContent, '2026-03-11');
+  pointermoveHandler({ clientX: 319 });
+  assert.equal(tooltipValue.textContent, '100★');
+  assert.equal(tooltipDate.textContent, '2026-04-01');
+
+  // Desktop width: geometry re-derives, tooltip endpoints remain correct.
+  resizeCallback([{ contentRect: { width: 900 } }]);
+  assert.match(starsSvg.attrs.viewBox, /^0 0 900 /, 'the viewBox must track the wider container');
+  pointermoveHandler({ clientX: 899 });
+  assert.equal(tooltipValue.textContent, '100★');
+  assert.equal(tooltipDate.textContent, '2026-04-01');
+  pointermoveHandler({ clientX: 1 });
+  assert.equal(tooltipValue.textContent, '0★');
+  assert.equal(tooltipDate.textContent, '2026-03-01');
+});
+
 test('dragging the FX speed slider remounts effects so the new speed reaches active scenes', async () => {
   const script = await source('main.js');
   const skinScript = await source('effect-skins.js');

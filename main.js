@@ -610,36 +610,15 @@
       var crosshair = starsSvg.querySelector('.stars-crosshair');
       var hoverDot  = starsSvg.querySelector('.stars-hover-dot');
       var hitArea   = starsSvg.querySelector('.stars-hit-area');
-      var hoverTarget = hitArea || starsSvg;
       var polyline  = starsSvg.querySelector('.stars-line');
       var points    = [];
-      // Derive the Y-axis scale from the chart's own rendered labels instead
-      // of a hardcoded ceiling: the generator (profile/sync/generate.py)
-      // computes the ceiling dynamically from the data, so a fixed constant
-      // here silently desyncs from the plotted line once the total crosses
-      // the next ceiling boundary.
-      var yLabels = [];
-      starsSvg.querySelectorAll('.stars-y-label').forEach(function (el) {
-        var value = parseFloat(el.textContent);
-        var y = parseFloat(el.getAttribute('y'));
-        if (!isNaN(value) && !isNaN(y)) yLabels.push({ value: value, y: y });
-      });
-      var yZero = null, yCeiling = null;
-      yLabels.forEach(function (label) {
-        if (yZero === null || label.y > yZero.y) yZero = label;
-        if (yCeiling === null || label.value > yCeiling.value) yCeiling = label;
-      });
-      // Build data from polyline points
-      if (polyline && yZero && yCeiling && yCeiling.y !== yZero.y) {
-        polyline.getAttribute('points').trim().split(/\s+/).forEach(function (pt, i) {
-          var xy = pt.split(',');
-          if (xy.length === 2) {
-            var y = +xy[1];
-            var stars = Math.round(yZero.value + ((y - yZero.y) / (yCeiling.y - yZero.y)) * (yCeiling.value - yZero.value));
-            points.push({ x: +xy[0], y: y, stars: Math.max(0, stars), idx: i });
-          }
-        });
-      }
+      // The adaptive rebuild below replaces the static hit-area rect, so
+      // hover listeners must live on the svg itself when it is active.
+      var seriesAttr = polyline ? polyline.getAttribute('data-series') : null;
+      var series = seriesAttr ? seriesAttr.trim().split(/\s+/).map(function (v) { return +v; }) : null;
+      var adaptive = !!(series && series.length > 1 && !series.some(isNaN) &&
+        typeof ResizeObserver !== 'undefined' && document.createElementNS);
+      var hoverTarget = adaptive ? starsSvg : (hitArea || starsSvg);
       // Derive the actual calendar date for a hovered point by linearly
       // interpolating between the chart's start/end dates (the generator
       // spaces points evenly by day index across that range — see
@@ -653,15 +632,11 @@
         if (titleMeta) startDate = JSON.parse(titleMeta.getAttribute('data-i18n-vars') || '{}').startDate;
         if (descMeta) endDate = JSON.parse(descMeta.getAttribute('data-i18n-vars') || '{}').endDate;
       } catch (e) {}
-      var startX = polyline ? +polyline.getAttribute('points').trim().split(/\s+/)[0].split(',')[0] : null;
-      var pointsList = polyline ? polyline.getAttribute('points').trim().split(/\s+/) : [];
-      var endX = pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null;
       var startMs = startDate ? Date.parse(startDate + 'T00:00:00Z') : null;
       var endMs = endDate ? Date.parse(endDate + 'T00:00:00Z') : null;
-      function getDateForX(x) {
-        if (startMs === null || endMs === null || startX === null || endX === null || endX === startX) return '';
-        var ratio = Math.min(1, Math.max(0, (x - startX) / (endX - startX)));
-        var ms = startMs + ratio * (endMs - startMs);
+      function getDateForIdx(idx, count) {
+        if (startMs === null || endMs === null || count < 2) return '';
+        var ms = startMs + (idx / (count - 1)) * (endMs - startMs);
         return new Date(ms).toISOString().slice(0, 10);
       }
       var viewBox = starsSvg.viewBox.baseVal;
@@ -692,7 +667,7 @@
           hoverDot.setAttribute('opacity', '1');
         }
         if (tooltipValue) tooltipValue.textContent = n.stars + '★';
-        if (tooltipDate)  tooltipDate.textContent  = getDateForX(n.x);
+        if (tooltipDate)  tooltipDate.textContent  = n.date || getDateForX(n.x);
         if (tooltip) tooltip.classList.add('is-active');
       });
       hoverTarget.addEventListener('pointerleave', function () {
@@ -700,6 +675,175 @@
         if (hoverDot)  hoverDot.setAttribute('opacity', '0');
         if (tooltip)   tooltip.classList.remove('is-active');
       });
+
+      // Adaptive geometry. The static markup is a 960x340 viewBox that scales
+      // down as an image: on a ~370px phone its 11-unit labels render at ~4px.
+      // When the generator's data-series attribute (raw daily totals — same
+      // source as the polyline) and platform ResizeObserver are available,
+      // rebuild the geometry in CSS pixels so text stays >=12px, margins and
+      // tick spacing recompute for the available width, and fewer month
+      // labels show on narrow containers (the data series itself is never
+      // dropped). Any failure here falls back to the static no-JS markup.
+      if (adaptive) {
+        try {
+          var SVG_NS = 'http://www.w3.org/2000/svg';
+          var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          var FONT_PX = 12;
+          var MIN_MONTH_GAP = 40; // ~3-char 12px mono label + breathing room
+          var renderW = 0;
+          function monthLabel(key, fallback) {
+            return window.PortfolioI18n ? window.PortfolioI18n.translate(root.dataset.lang, key) : fallback;
+          }
+          function make(tag, attrs) {
+            var el = document.createElementNS(SVG_NS, tag);
+            for (var name in attrs) el.setAttribute(name, attrs[name]);
+            return el;
+          }
+          // Insert every rebuilt layer before the crosshair so the overlay
+          // (crosshair + hover dot) stays on top; title/desc stay first.
+          function addLayer(el) {
+            starsSvg.insertBefore(el, crosshair && crosshair.parentNode === starsSvg ? crosshair : starsSvg.lastChild);
+          }
+          function renderChart(cssW) {
+            cssW = Math.round(cssW);
+            // If the container is collapsed/hidden at init (cssW 0), keep the
+            // hover interactive against the static markup until the observer
+            // delivers a usable width — points would otherwise stay empty.
+            if (!cssW || cssW < 60) { buildStaticPoints(); return; }
+            if (cssW === renderW) return;
+            renderW = cssW;
+            var count = series.length;
+            var maximum = Math.max.apply(null, series);
+            var ceiling = Math.max(10, Math.ceil(maximum / 10) * 10);
+            var cssH = Math.round(Math.max(180, Math.min(340, cssW * 340 / 960)));
+            // Left margin sized for the widest y label at FONT_PX (IBM Plex
+            // Mono is ~0.62em per glyph) plus padding; bottom fits the 12px
+            // month labels below the axis.
+            var left = Math.ceil(String(ceiling).length * FONT_PX * 0.62) + 10;
+            var right = 10, top = 10, bottom = FONT_PX + 18;
+            var plotW = Math.max(10, cssW - left - right);
+            var plotH = Math.max(40, cssH - top - bottom);
+            function xAt(i) { return left + plotW * i / (count - 1); }
+            function yAt(v) { return top + plotH * (1 - v / ceiling); }
+
+            // Drop the previous layout (static or rebuilt) before redrawing.
+            starsSvg.querySelectorAll('.stars-hit-area, .stars-grid, .stars-y-label, .stars-line, .stars-end, .stars-x-label').forEach(function (el) {
+              if (el.parentNode) el.parentNode.removeChild(el);
+            });
+
+            addLayer(make('rect', { class: 'stars-hit-area', x: left, y: 0, width: plotW, height: cssH, fill: 'transparent' }));
+
+            var ticks = [0, Math.ceil(ceiling / 2), ceiling];
+            ticks.forEach(function (value) {
+              var y = yAt(value).toFixed(1);
+              addLayer(make('line', { class: 'stars-grid', x1: left, x2: left + plotW, y1: y, y2: y }));
+              // text-anchor end keeps 3-digit ceilings from spilling a few
+              // px into the plot area (the default 'start' would draw from
+              // x rightwards into the grid).
+              var label = make('text', { class: 'stars-y-label', x: left - 6, y: y, 'text-anchor': 'end' });
+              label.textContent = value;
+              addLayer(label);
+            });
+
+            points = series.map(function (value, i) {
+              return { x: xAt(i), y: yAt(value), stars: value, date: getDateForIdx(i, count), idx: i };
+            });
+            addLayer(make('polyline', {
+              class: 'stars-line',
+              points: points.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' '),
+              'data-series': seriesAttr
+            }));
+            var last = points[points.length - 1];
+            addLayer(make('circle', { class: 'stars-end', cx: last.x.toFixed(1), cy: last.y.toFixed(1), r: 5 }));
+
+            // Month labels: same day-1 (plus series start) anchors as the
+            // generator, thinned to MIN_MONTH_GAP so narrow containers show
+            // fewer labels instead of overlapping ones; first/last kept.
+            var candidates = [];
+            for (var i = 0; i < count; i++) {
+              var d = new Date(startMs + (i / (count - 1)) * (endMs - startMs));
+              if (i === 0 || d.getUTCDate() === 1) candidates.push({ x: xAt(i), month: d.getUTCMonth() });
+            }
+            var kept = [];
+            candidates.forEach(function (candidate) {
+              if (!kept.length || candidate.x - kept[kept.length - 1].x >= MIN_MONTH_GAP) kept.push(candidate);
+            });
+            var lastCandidate = candidates[candidates.length - 1];
+            if (lastCandidate && kept[kept.length - 1] !== lastCandidate &&
+                kept.length > 1 && lastCandidate.x - kept[kept.length - 2].x < MIN_MONTH_GAP) {
+              kept[kept.length - 1] = lastCandidate;
+            }
+            kept.forEach(function (candidate, i) {
+              var x = Math.min(Math.max(candidate.x, left), cssW - right);
+              var attrs = { class: 'stars-x-label', x: x.toFixed(1), y: cssH - bottom + FONT_PX + 6, 'data-i18n': 'month.' + MONTHS[candidate.month] };
+              // Keep edge labels from being clipped by the container.
+              if (i === 0 && x - left < 14) attrs['text-anchor'] = 'start';
+              else if (i === kept.length - 1 && (cssW - right) - x < 14) attrs['text-anchor'] = 'end';
+              else attrs['text-anchor'] = 'middle';
+              var label = make('text', attrs);
+              label.textContent = monthLabel(attrs['data-i18n'], MONTHS[candidate.month]);
+              addLayer(label);
+            });
+
+            if (crosshair) {
+              crosshair.setAttribute('y1', top.toFixed(1));
+              crosshair.setAttribute('y2', (top + plotH).toFixed(1));
+            }
+            starsSvg.setAttribute('viewBox', '0 0 ' + cssW + ' ' + cssH);
+          }
+          renderChart(starsSvg.getBoundingClientRect().width);
+          var starsResizeObserver = new ResizeObserver(function (entries) {
+            entries.forEach(function (entry) { renderChart(entry.contentRect.width); });
+          });
+          starsResizeObserver.observe(starsSvg);
+        } catch (e) {
+          console.warn('stars chart adaptive layout failed; keeping static markup', e);
+        }
+      } else if (polyline) {
+        // Static fallback (no-JS-shaped markup or missing ResizeObserver).
+        buildStaticPoints();
+      }
+      // Static fallback (no-JS-shaped markup, missing ResizeObserver, or a
+      // collapsed container before the first usable width): reverse-engineer
+      // the values from the rendered y labels and polyline coordinates,
+      // deriving the scale from the chart's own labels instead of a hardcoded
+      // ceiling — the generator computes it dynamically, so a fixed constant
+      // silently desyncs.
+      function buildStaticPoints() {
+        if (!polyline || points.length) return;
+        var yLabels = [];
+        starsSvg.querySelectorAll('.stars-y-label').forEach(function (el) {
+          var value = parseFloat(el.textContent);
+          var y = parseFloat(el.getAttribute('y'));
+          if (!isNaN(value) && !isNaN(y)) yLabels.push({ value: value, y: y });
+        });
+        var yZero = null, yCeiling = null;
+        yLabels.forEach(function (label) {
+          if (yZero === null || label.y > yZero.y) yZero = label;
+          if (yCeiling === null || label.value > yCeiling.value) yCeiling = label;
+        });
+        if (yZero && yCeiling && yCeiling.y !== yZero.y) {
+          polyline.getAttribute('points').trim().split(/\s+/).forEach(function (pt, i) {
+            var xy = pt.split(',');
+            if (xy.length === 2) {
+              var y = +xy[1];
+              var stars = Math.round(yZero.value + ((y - yZero.y) / (yCeiling.y - yZero.y)) * (yCeiling.value - yZero.value));
+              points.push({ x: +xy[0], y: y, stars: Math.max(0, stars), idx: i });
+            }
+          });
+        }
+      }
+      // Shared by the static fallback above: map a polyline x back to the
+      // calendar date via the chart's own x extents.
+      function getDateForX(x) {
+        var pointsList = polyline ? polyline.getAttribute('points').trim().split(/\s+/) : [];
+        var startX = pointsList.length ? +pointsList[0].split(',')[0] : null;
+        var endX = pointsList.length ? +pointsList[pointsList.length - 1].split(',')[0] : null;
+        if (startMs === null || endMs === null || startX === null || endX === null || endX === startX) return '';
+        var ratio = Math.min(1, Math.max(0, (x - startX) / (endX - startX)));
+        var ms = startMs + ratio * (endMs - startMs);
+        return new Date(ms).toISOString().slice(0, 10);
+      }
     }
 
     // Copy buttons & toast

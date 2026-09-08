@@ -113,6 +113,21 @@ class ChartDataTests(unittest.TestCase):
         # end_x is the x-projection of the last index: left + plot_width.
         self.assertEqual(chart["end_x"], "936.0")
 
+    def test_series_exposes_one_total_per_entry_for_the_adaptive_layout(self) -> None:
+        # data-series feeds main.js's ResizeObserver re-layout (labels >=12
+        # CSS px on phones); it must carry exactly the plotted totals, fork
+        # offset included, so the client line matches the static one.
+        entries = [
+            {"date": "2026-03-01", "gained": 0, "total": 0},
+            {"date": "2026-03-02", "gained": 5, "total": 5},
+            {"date": "2026-03-03", "gained": 3, "total": 8},
+        ]
+        self.assertEqual(
+            chart_data(self._history(entries))["series"].split(), ["0", "5", "8"]
+        )
+        offset = chart_data(self._history(entries), fork_stars=5)["series"].split()
+        self.assertEqual(offset, ["5", "10", "13"])
+
     def test_fork_stars_offsets_every_plotted_point_and_the_endpoint(self) -> None:
         # fork_stars has no daily history of its own (GitHub gives no reliable
         # per-day signal for fork stargazers), so it's added as a constant
