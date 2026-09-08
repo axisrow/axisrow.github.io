@@ -105,6 +105,7 @@ jobs:
           python3 profile/sync/apply_site_fragments.py index.html \
             --projects .build/profile/site/projects.html \
             --stars .build/profile/site/stars.html \
+            --contributions .build/profile/site/contributions.html \
             --stats .build/profile/site/stats.json
 
       - name: Test and build

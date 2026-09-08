@@ -29,6 +29,9 @@ class SiteSyncTests(unittest.TestCase):
     <!-- PROFILE:STARS:START -->
     <section id="stars">old</section>
     <!-- PROFILE:STARS:END -->
+    <!-- PROFILE:CONTRIBUTIONS:START -->
+    <details class="proof-all">old</details>
+    <!-- PROFILE:CONTRIBUTIONS:END -->
 </body>
 """
         self.stats = {
@@ -40,11 +43,13 @@ class SiteSyncTests(unittest.TestCase):
     def test_apply_is_marker_scoped_and_idempotent(self) -> None:
         projects = '    <section id="projects">new projects</section>\n'
         stars = '    <section id="stars">new stars</section>\n'
-        once = apply_site_fragments(self.html, projects, stars, self.stats)
-        twice = apply_site_fragments(once, projects, stars, self.stats)
+        contributions = '    <details class="proof-all">new registry</details>\n'
+        once = apply_site_fragments(self.html, projects, stars, self.stats, contributions)
+        twice = apply_site_fragments(once, projects, stars, self.stats, contributions)
         self.assertEqual(twice, once)
         self.assertIn("new projects", once)
         self.assertIn("new stars", once)
+        self.assertIn("new registry", once)
         self.assertIn('data-target="104">104</span>', once)
         self.assertEqual(once.count('data-profile-value="merged_upstream_prs" data-target="37">37'), 2)
         self.assertIn("37 merged upstream PRs · 104 stars · 7 starred projects.", once)

@@ -1,0 +1,9 @@
+          <details class="proof-all reveal">
+            <summary data-i18n="opensource.allSummary" data-i18n-vars='{"count":"{{ stats.merged_upstream_prs }}"}'>All {{ stats.merged_upstream_prs }} merged pull requests</summary>
+            <ul class="proof-all-list">
+{% for c in contributions_registry.merged %}              <li>
+                <a href="https://github.com/{{ c.repo }}/pull/{{ c.pr_number }}" target="_blank" rel="noopener">{{ c.repo }} <span class="proof-all-number">#{{ c.pr_number }}</span></a>{% if c.role == "coauthor" %} <small class="proof-all-role" data-i18n="opensource.roleCoauthor">Co-authored</small>{% endif %}{% if c.featured %} <small class="proof-all-role proof-all-featured" data-i18n="opensource.roleFeatured">Featured</small>{% endif %}
+                <span class="proof-all-title">{{ c.title }}</span>
+              </li>
+{% endfor %}            </ul>
+          </details>

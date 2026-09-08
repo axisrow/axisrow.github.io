@@ -120,6 +120,10 @@
       "opensource.row4Status": "Merged · PR #2357 ↗",
       "opensource.row5Desc": "Co-authored the ZCode SQLite usage adapter and report/test integration.",
       "opensource.row5Status": "Co-authored · Merged · PR #1675 ↗",
+      "opensource.featuredNote": "Featured examples — the full registry of merged PRs is listed below.",
+      "opensource.allSummary": "All {count} merged pull requests",
+      "opensource.roleCoauthor": "Co-authored",
+      "opensource.roleFeatured": "Featured",
 
       "experience.eyebrow": "Experience",
       "experience.title": "Built, shipped, maintained",
@@ -276,6 +280,10 @@
       "opensource.row4Status": "Объединено · PR #2357 ↗",
       "opensource.row5Desc": "Соавторство в адаптере ZCode для SQLite и интеграции отчётов и тестов.",
       "opensource.row5Status": "Соавтор · Объединено · PR #1675 ↗",
+      "opensource.featuredNote": "Избранные примеры — полный реестр принятых PR приведён ниже.",
+      "opensource.allSummary": "Все принятые PR ({count})",
+      "opensource.roleCoauthor": "Соавтор",
+      "opensource.roleFeatured": "Избранное",
 
       "experience.eyebrow": "Опыт",
       "experience.title": "Создано, выпущено, поддерживается",
@@ -431,6 +439,10 @@
       "opensource.row4Status": "已合并 · PR #2357 ↗",
       "opensource.row5Desc": "共同完成 ZCode SQLite 使用适配器以及报告和测试集成。",
       "opensource.row5Status": "共同作者 · 已合并 · PR #1675 ↗",
+      "opensource.featuredNote": "精选示例——下方列出全部已合并 PR 的完整清单。",
+      "opensource.allSummary": "全部 {count} 个已合并 PR",
+      "opensource.roleCoauthor": "共同作者",
+      "opensource.roleFeatured": "精选",
 
       "experience.eyebrow": "经历",
       "experience.title": "构建、发布、持续维护",
@@ -586,6 +598,10 @@
       "opensource.row4Status": "मर्ज किया गया · PR #2357 ↗",
       "opensource.row5Desc": "ZCode SQLite उपयोग एडाप्टर और रिपोर्ट/टेस्ट इंटीग्रेशन में सह-लेखन।",
       "opensource.row5Status": "सह-लेखक · मर्ज किया गया · PR #1675 ↗",
+      "opensource.featuredNote": "चुनिंदा उदाहरण — मर्ज किए गए PR का पूरा रजिस्टर नीचे सूचीबद्ध है।",
+      "opensource.allSummary": "सभी {count} मर्ज किए गए पुल रिक्वेस्ट",
+      "opensource.roleCoauthor": "सह-लेखक",
+      "opensource.roleFeatured": "चुनिंदा",
 
       "experience.eyebrow": "अनुभव",
       "experience.title": "बनाया, रिलीज़ किया, बनाए रखा",
