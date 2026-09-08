@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img" aria-labelledby="ydm-title ydm-desc">
+  <title id="ydm-title">yandex-direct-mcp plugin diagram</title>
+  <desc id="ydm-desc">Architecture diagram (not a screenshot): a Claude Code session drives the yandex-direct-mcp plugin, which exposes 147 MCP tools over the Yandex Direct API — campaigns, ads, bids and budgets, keywords, reports, finance — with browser OAuth login and a copywriting skill; distributed through a Claude Code plugin marketplace.</desc>
+  <rect width="960" height="360" rx="14" fill="#f6f7f9"/>
+  <g font-family="'IBM Plex Mono', ui-monospace, Menlo, monospace">
+    <text x="32" y="42" font-size="15" font-weight="700" letter-spacing="2" fill="#3c4350">YANDEX-DIRECT-MCP — PLUGIN</text>
+    <text x="32" y="62" font-size="11" fill="#8a8f98">architecture diagram · not a screenshot</text>
+
+    <!-- agent -->
+    <rect x="32" y="140" width="200" height="110" rx="10" fill="#ffffff" stroke="#c9cdd4"/>
+    <text x="50" y="170" font-size="13" font-weight="700" fill="#3c4350">Claude Code / LLM</text>
+    <text x="50" y="192" font-size="11" fill="#5c6370">plain-prompt control</text>
+    <text x="50" y="210" font-size="11" fill="#5c6370">"show campaigns, cut</text>
+    <text x="50" y="228" font-size="11" fill="#5c6370">costly ads, raise budgets"</text>
+
+    <!-- plugin -->
+    <rect x="290" y="112" width="230" height="166" rx="10" fill="#ffffff" stroke="#c9cdd4"/>
+    <text x="308" y="142" font-size="13" font-weight="700" fill="#3c4350">yandex-direct-mcp</text>
+    <text x="308" y="164" font-size="11" fill="#5c6370">147 MCP tools</text>
+    <text x="308" y="182" font-size="11" fill="#5c6370">campaigns · ads</text>
+    <text x="308" y="200" font-size="11" fill="#5c6370">bids &amp; budgets · keywords</text>
+    <text x="308" y="218" font-size="11" fill="#5c6370">reports · finance</text>
+    <text x="308" y="240" font-size="11" fill="#5c6370">OAuth via browser</text>
+    <text x="308" y="258" font-size="11" fill="#5c6370">ad-copywriting skill</text>
+
+    <!-- api -->
+    <rect x="578" y="140" width="150" height="110" rx="10" fill="#ffffff" stroke="#c9cdd4"/>
+    <text x="596" y="170" font-size="13" font-weight="700" fill="#3c4350">Yandex.Direct</text>
+    <text x="596" y="192" font-size="11" fill="#5c6370">live API</text>
+    <text x="596" y="210" font-size="11" fill="#5c6370">campaigns</text>
+    <text x="596" y="228" font-size="11" fill="#5c6370">reports &amp; finance</text>
+
+    <!-- marketplace -->
+    <rect x="756" y="140" width="172" height="110" rx="10" fill="#ffffff" stroke="#c9cdd4"/>
+    <text x="774" y="170" font-size="13" font-weight="700" fill="#3c4350">Marketplace</text>
+    <text x="774" y="192" font-size="11" fill="#5c6370">/plugin marketplace</text>
+    <text x="774" y="210" font-size="11" fill="#5c6370">add etopro/…</text>
+    <text x="774" y="228" font-size="11" fill="#5c6370">/plugin install</text>
+
+    <!-- arrows -->
+    <g stroke="#9aa0aa" stroke-width="2" fill="none" marker-end="url(#b)">
+      <line x1="232" y1="195" x2="284" y2="195"/>
+      <line x1="520" y1="195" x2="572" y2="195"/>
+    </g>
+    <g stroke="#c9cdd4" stroke-width="2" fill="none" stroke-dasharray="5 5" marker-end="url(#c)">
+      <line x1="756" y1="195" x2="526" y2="290"/>
+    </g>
+    <defs>
+      <marker id="b" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 z" fill="#9aa0aa"/>
+      </marker>
+      <marker id="c" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 z" fill="#c9cdd4"/>
+      </marker>
+    </defs>
+
+    <text x="32" y="322" font-size="11" fill="#5c6370">Verifiable scenario: /plugin marketplace add etopro/plugin-marketplace → /plugin install yandex-direct@plugin-marketplace</text>
+  </g>
+</svg>

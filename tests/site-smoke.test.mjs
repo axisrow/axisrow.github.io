@@ -343,6 +343,47 @@ test('Open Source uses the asymmetric R1 field without duplicated cards', async 
   assert.doesNotMatch(html, /proof-stage|contribution-card|proof-layout|mandelbrot-frame|Iteration \/ proof/i);
 });
 
+test('featured case studies live in the bot-managed template with sized, lazy figures', async () => {
+  // Case-study panels are rendered from the Jinja template (PROFILE:PROJECTS
+  // markers), so both the template and the rendered index.html must carry the
+  // full "task → built → verified result" structure. Figures must declare
+  // dimensions, alt text and deferred loading — and only real, allowlisted
+  // asset paths.
+  const html = await source('index.html');
+  const template = await source('profile/sync/templates/projects.html.j2');
+  const buildPages = await source('profile/sync/build_pages.py');
+
+  const expected = ['tg_content_factory', 'yandex-direct-mcp-plugin'];
+  assert.equal((html.match(/class="case-study"/g) || []).length, expected.length);
+  for (const markup of ['id="case-{{ name }}"', 'projects.case.{{ name }}.task', 'projects.case.{{ name }}.built', 'projects.case.{{ name }}.result', 'projects.case.{{ name }}.imageAlt']) {
+    assert.ok(template.includes(markup), `projects.html.j2 must contain ${markup}`);
+  }
+  for (const name of expected) {
+    for (const markup of [`id="case-${name}"`, `projects.case.${name}.task`, `projects.case.${name}.built`, `projects.case.${name}.result`, `projects.case.${name}.imageAlt`]) {
+      assert.ok(html.includes(markup), `index.html must contain ${markup}`);
+    }
+  }
+  // Case/demo link is separate from the repository link.
+  assert.ok(html.includes('https://pypi.org/project/tg-agent/'));
+  assert.ok(html.includes('https://github.com/etopro/plugin-marketplace'));
+  assert.ok((html.match(/class="case-link"/g) || []).length >= 2);
+
+  // Every case figure: explicit dimensions, translated alt, lazy loading.
+  const figures = [...html.matchAll(/<img class="case-figure" ([^>]*)>/g)];
+  assert.equal(figures.length, expected.length);
+  for (const [, attrs] of figures) {
+    assert.match(attrs, /width="\d+"/);
+    assert.match(attrs, /height="\d+"/);
+    assert.match(attrs, /alt="[^"]+"/);
+    assert.match(attrs, /data-i18n-attr="alt:[^"]+"/);
+    assert.match(attrs, /loading="lazy"/);
+    assert.match(attrs, /decoding="async"/);
+    const src = attrs.match(/src="([^"]+)"/)[1];
+    assert.ok(buildPages.includes(`"${src}"`), `case asset ${src} must be in the build_pages.py allowlist`);
+    assert.ok(html.includes(`src="${src}"`));
+  }
+});
+
 test('navigation and generated values are data-driven', async () => {
   const html = await source('index.html');
   const navIds = Array.from(html.matchAll(/data-nav="([^"]+)"/g), (match) => match[1]);

@@ -9,6 +9,7 @@ from tempfile import TemporaryDirectory
 from profile.sync.build_pages import (
     ALLOWED_ARTIFACT_FILES,
     CANONICAL_OUTPUT_NAME,
+    CASE_ASSET_FILES,
     PUBLIC_FILES,
     VENDORED_DEMOSCENE_FILES,
     build_pages,
@@ -39,6 +40,10 @@ def _seed_site_root(temp: Path) -> Path:
         target = temp / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(source.read_bytes())
+    for relative in CASE_ASSET_FILES:
+        target = temp / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((REPO / relative).read_bytes())
     # index.html must contain the markers/values apply_site_fragments expects.
     (temp / "index.html").write_text((REPO / "index.html").read_text())
 
@@ -264,8 +269,22 @@ class BuildPagesTests(unittest.TestCase):
     def test_allowlist_contract(self) -> None:
         self.assertEqual(
             set(ALLOWED_ARTIFACT_FILES),
-            set(PUBLIC_FILES) | {"stars-history.json"} | set(VENDORED_DEMOSCENE_FILES),
+            set(PUBLIC_FILES)
+            | {"stars-history.json"}
+            | set(VENDORED_DEMOSCENE_FILES)
+            | set(CASE_ASSET_FILES),
         )
+
+    def test_case_assets_exist_and_are_referenced(self) -> None:
+        # Every allowlisted case asset must exist at the site root (the builder
+        # copies it unconditionally) and be referenced by a case in
+        # projects.json — the template renders image srcs from that data, so
+        # the allowlist and the case data must stay in lockstep.
+        cases = json.loads((REPO / "profile" / "projects.json").read_text())["cases"]
+        referenced = {c["image"]["src"] for c in cases}
+        self.assertEqual(referenced, set(CASE_ASSET_FILES))
+        for relative in CASE_ASSET_FILES:
+            self.assertTrue((REPO / relative).is_file(), f"missing case asset: {relative}")
 
 
 if __name__ == "__main__":

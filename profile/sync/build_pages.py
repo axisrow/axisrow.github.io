@@ -41,6 +41,14 @@ VENDORED_DEMOSCENE_FILES = (
     "assets/demoscene/demoscene.js",
 )
 
+# Public case-study figures referenced by the Projects section (rendered from
+# profile/sync/templates/projects.html.j2). Each must exist at the site root or
+# the build fails closed, like the vendored Demoscene files.
+CASE_ASSET_FILES = (
+    "assets/cases/tg-content-factory-pipeline.svg",
+    "assets/cases/yandex-direct-mcp-diagram.svg",
+)
+
 # The single generated file that is not a public site source. Together with the
 # public sources and the explicitly vendored Demoscene runtime this is the
 # complete fixed set of files the artifact may hold.
@@ -50,8 +58,9 @@ ALLOWED_ARTIFACT_FILES = (
     *PUBLIC_FILES,
     "stars-history.json",
     *VENDORED_DEMOSCENE_FILES,
+    *CASE_ASSET_FILES,
 )
-ALLOWED_ARTIFACT_DIRS = ("assets", "assets/demoscene")
+ALLOWED_ARTIFACT_DIRS = ("assets", "assets/demoscene", "assets/cases")
 
 
 def _resolve_canonical(site_root: Path) -> Path:
@@ -98,6 +107,12 @@ def _write_artifact_files(
         source = site_root / relative
         if not source.is_file():
             raise FileNotFoundError(f"missing vendored Demoscene file: {relative}")
+        _atomic_copy(source, canonical / relative)
+
+    for relative in CASE_ASSET_FILES:
+        source = site_root / relative
+        if not source.is_file():
+            raise FileNotFoundError(f"missing case-study asset: {relative}")
         _atomic_copy(source, canonical / relative)
 
     index_html = apply_site_fragments(

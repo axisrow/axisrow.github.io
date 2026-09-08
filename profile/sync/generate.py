@@ -183,6 +183,8 @@ def main() -> int:
     cfg = json.loads((ROOT.parent / "projects.json").read_text())
     handle = os.environ.get("HANDLE") or str(cfg["handle"])
 
+    cfg["cases_by_project"] = {c["project"]: c for c in cfg.get("cases", [])}
+
     all_repos = [r for group in cfg["projects"].values() for r in group]
     print(f"Fetching live star counts for {len(all_repos)} repos…", file=sys.stderr)
     cfg["stars"] = get_stars(handle, all_repos)  # consumed by templates

@@ -83,6 +83,39 @@
     ]
   },
 
+  "cases": [
+    {
+      "project": "tg_content_factory",
+      "task": "Keeping track of hundreds of Telegram channels and chats by hand does not scale: messages scroll away, built-in search is limited, and there is no way to watch keywords across accounts.",
+      "built": "A self-hosted monitoring pipeline: multi-account collector with flood-wait rotation, SQLite (FTS5) message store, three search modes (local full-text, direct Telegram API, LLM agent), keyword alerts with bot notifications, anti-spam filters and a FastAPI web dashboard.",
+      "result": "Published on PyPI as tg-agent and shipped via tagged GitHub Releases (latest v0.2.3). Verifiable end-to-end scenario: pip install tg-agent, then python -m src.main serve brings up the dashboard on http://localhost:8080. No usage metrics are claimed.",
+      "role": "Sole author — architecture, Telegram client layer, storage, dashboard.",
+      "image_alt": "Architecture diagram of tg_content_factory: Telegram sources feed a collector that stores messages in SQLite, surfaced through three search modes, keyword alerts and a FastAPI dashboard (diagram, not a screenshot).",
+      "demo_url": "https://pypi.org/project/tg-agent/",
+      "demo_link_key": "projects.case.tryIt",
+      "image": {
+        "src": "assets/cases/tg-content-factory-pipeline.svg",
+        "width": 960,
+        "height": 360
+      }
+    },
+    {
+      "project": "yandex-direct-mcp-plugin",
+      "task": "Routine Yandex.Direct campaign work means clicking through a slow web interface; an LLM agent can only help if the whole API is exposed to it as a structured, reliable tool surface.",
+      "built": "A Claude Code plugin wrapping the Yandex.Direct API as 147 MCP tools — campaigns, ads, bids and budgets, keywords, reports, finance — with OAuth login through the browser, an ad-copywriting skill and a plugin-marketplace distribution channel.",
+      "result": "Installable from a public Claude Code plugin marketplace: /plugin marketplace add etopro/plugin-marketplace, then /plugin install yandex-direct@plugin-marketplace. Tagged releases up to v0.3.3; the full tool list is documented in docs/TOOLS.md in the repository.",
+      "role": "Sole author — MCP server, tool surface, OAuth flow, skills.",
+      "image_alt": "Architecture diagram of yandex-direct-mcp-plugin: a Claude Code session drives the plugin, which exposes 147 MCP tools over the Yandex Direct API and installs from a plugin marketplace (diagram, not a screenshot).",
+      "demo_url": "https://github.com/etopro/plugin-marketplace",
+      "demo_link_key": "projects.case.tryIt",
+      "image": {
+        "src": "assets/cases/yandex-direct-mcp-diagram.svg",
+        "width": 960,
+        "height": 360
+      }
+    }
+  ],
+
   "descriptions": {
     "tg_content_factory": "Content-factory pipeline for Telegram — flagship project.",
     "yandex-direct-mcp-plugin": "Claude Code plugin for Yandex.Direct — MCP server + skills + OAuth.",

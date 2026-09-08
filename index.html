@@ -91,7 +91,7 @@
       }
     }());
   </script>
-  <link rel="stylesheet" href="styles.css?v=fx-pause-1" />
+  <link rel="stylesheet" href="styles.css?v=case-studies-1" />
 </head>
 <body>
   <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
@@ -274,6 +274,40 @@
           <p class="card-desc" data-i18n="projects.desc.gemini-webapi-mcp">MCP server for Google Gemini — image generation, editing, and chat via browser cookies, no API keys.</p>
           <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
+      </div>
+      <div class="case-study" id="case-tg_content_factory">
+        <div class="case-head">
+          <span class="case-tag" data-i18n="projects.case.tag">Case study</span>
+          <strong class="case-name">tg_content_factory</strong>
+        </div>
+        <img class="case-figure" src="assets/cases/tg-content-factory-pipeline.svg" width="960" height="360" alt="Architecture diagram of tg_content_factory: Telegram sources feed a collector that stores messages in SQLite, surfaced through three search modes, keyword alerts and a FastAPI dashboard (diagram, not a screenshot)." data-i18n-attr="alt:projects.case.tg_content_factory.imageAlt" loading="lazy" decoding="async">
+        <dl class="case-grid">
+          <div><dt data-i18n="projects.case.taskLabel">The task</dt><dd data-i18n="projects.case.tg_content_factory.task">Keeping track of hundreds of Telegram channels and chats by hand does not scale: messages scroll away, built-in search is limited, and there is no way to watch keywords across accounts.</dd></div>
+          <div><dt data-i18n="projects.case.builtLabel">What was built</dt><dd data-i18n="projects.case.tg_content_factory.built">A self-hosted monitoring pipeline: multi-account collector with flood-wait rotation, SQLite (FTS5) message store, three search modes (local full-text, direct Telegram API, LLM agent), keyword alerts with bot notifications, anti-spam filters and a FastAPI web dashboard.</dd></div>
+          <div><dt data-i18n="projects.case.resultLabel">Verified result</dt><dd data-i18n="projects.case.tg_content_factory.result">Published on PyPI as tg-agent and shipped via tagged GitHub Releases (latest v0.2.3). Verifiable end-to-end scenario: pip install tg-agent, then python -m src.main serve brings up the dashboard on http://localhost:8080. No usage metrics are claimed.</dd></div>
+        </dl>
+        <p class="case-role"><span data-i18n="projects.case.roleLabel">Role</span> <span data-i18n="projects.case.tg_content_factory.role">Sole author — architecture, Telegram client layer, storage, dashboard.</span></p>
+        <div class="case-links">
+          <a class="case-link case-link-demo" href="https://pypi.org/project/tg-agent/" target="_blank" rel="noopener" data-i18n="projects.case.tryIt">Try it ↗</a>
+          <a class="case-link" href="https://github.com/axisrow/tg_content_factory" target="_blank" rel="noopener" data-i18n="projects.viewRepository">View repository ↗</a>
+        </div>
+      </div>
+      <div class="case-study" id="case-yandex-direct-mcp-plugin">
+        <div class="case-head">
+          <span class="case-tag" data-i18n="projects.case.tag">Case study</span>
+          <strong class="case-name">yandex-direct-mcp-plugin</strong>
+        </div>
+        <img class="case-figure" src="assets/cases/yandex-direct-mcp-diagram.svg" width="960" height="360" alt="Architecture diagram of yandex-direct-mcp-plugin: a Claude Code session drives the plugin, which exposes 147 MCP tools over the Yandex Direct API and installs from a plugin marketplace (diagram, not a screenshot)." data-i18n-attr="alt:projects.case.yandex-direct-mcp-plugin.imageAlt" loading="lazy" decoding="async">
+        <dl class="case-grid">
+          <div><dt data-i18n="projects.case.taskLabel">The task</dt><dd data-i18n="projects.case.yandex-direct-mcp-plugin.task">Routine Yandex.Direct campaign work means clicking through a slow web interface; an LLM agent can only help if the whole API is exposed to it as a structured, reliable tool surface.</dd></div>
+          <div><dt data-i18n="projects.case.builtLabel">What was built</dt><dd data-i18n="projects.case.yandex-direct-mcp-plugin.built">A Claude Code plugin wrapping the Yandex.Direct API as 147 MCP tools — campaigns, ads, bids and budgets, keywords, reports, finance — with OAuth login through the browser, an ad-copywriting skill and a plugin-marketplace distribution channel.</dd></div>
+          <div><dt data-i18n="projects.case.resultLabel">Verified result</dt><dd data-i18n="projects.case.yandex-direct-mcp-plugin.result">Installable from a public Claude Code plugin marketplace: /plugin marketplace add etopro/plugin-marketplace, then /plugin install yandex-direct@plugin-marketplace. Tagged releases up to v0.3.3; the full tool list is documented in docs/TOOLS.md in the repository.</dd></div>
+        </dl>
+        <p class="case-role"><span data-i18n="projects.case.roleLabel">Role</span> <span data-i18n="projects.case.yandex-direct-mcp-plugin.role">Sole author — MCP server, tool surface, OAuth flow, skills.</span></p>
+        <div class="case-links">
+          <a class="case-link case-link-demo" href="https://github.com/etopro/plugin-marketplace" target="_blank" rel="noopener" data-i18n="projects.case.tryIt">Try it ↗</a>
+          <a class="case-link" href="https://github.com/axisrow/yandex-direct-mcp-plugin" target="_blank" rel="noopener" data-i18n="projects.viewRepository">View repository ↗</a>
+        </div>
       </div>
       </div>
       <div class="project-group" data-category="agent-tooling">
@@ -470,7 +504,7 @@
   </aside>
 
   <script src="effect-skins.js?v=fx-feedback-1"></script>
-  <script src="i18n.js?v=fx-pause-1"></script>
+  <script src="i18n.js?v=case-studies-1"></script>
   <script src="main.js?v=fx-pause-2"></script>
 </body>
 </html>
