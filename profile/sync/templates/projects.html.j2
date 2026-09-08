@@ -25,6 +25,23 @@
           <span class="card-link" data-i18n="projects.viewRepository">View repository ↗</span>
         </a>
 {% endfor %}      </div>
+{% for name in repos if cases_by_project[name] %}{% set case = cases_by_project[name] %}      <div class="case-study" id="case-{{ name }}">
+        <div class="case-head">
+          <span class="case-tag" data-i18n="projects.case.tag">Case study</span>
+          <strong class="case-name">{{ name }}</strong>
+        </div>
+        <img class="case-figure" src="{{ case.image.src }}" width="{{ case.image.width }}" height="{{ case.image.height }}" alt="{{ case.image_alt }}" data-i18n-attr="alt:projects.case.{{ name }}.imageAlt" loading="lazy" decoding="async">
+        <dl class="case-grid">
+          <div><dt data-i18n="projects.case.taskLabel">The task</dt><dd data-i18n="projects.case.{{ name }}.task">{{ case.task }}</dd></div>
+          <div><dt data-i18n="projects.case.builtLabel">What was built</dt><dd data-i18n="projects.case.{{ name }}.built">{{ case.built }}</dd></div>
+          <div><dt data-i18n="projects.case.resultLabel">Verified result</dt><dd data-i18n="projects.case.{{ name }}.result">{{ case.result }}</dd></div>
+        </dl>
+        <p class="case-role"><span data-i18n="projects.case.roleLabel">Role</span> {{ case.role }}</p>
+        <div class="case-links">
+          <a class="case-link case-link-demo" href="{{ case.demo_url }}" target="_blank" rel="noopener" data-i18n="{{ case.demo_link_key }}">Try it ↗</a>
+          <a class="case-link" href="https://github.com/{{ handle }}/{{ name }}" target="_blank" rel="noopener" data-i18n="projects.viewRepository">View repository ↗</a>
+        </div>
       </div>
+{% endfor %}      </div>
 {% endfor %}      </div>
     </section>
