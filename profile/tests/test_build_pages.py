@@ -52,6 +52,7 @@ def _seed_site_root(temp: Path) -> Path:
     site.mkdir(parents=True)
     (site / "projects.html").write_text("<section>generated projects</section>\n")
     (site / "stars.html").write_text("<section>generated stars</section>\n")
+    (site / "contributions.html").write_text("<details>generated contributions</details>\n")
     stats = {
         "stars_earned": 100,
         "merged_upstream_prs": 30,

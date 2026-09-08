@@ -87,7 +87,7 @@ def apply_site_fragments(
     projects_fragment: str,
     stars_fragment: str,
     stats: Mapping[str, object],
-    contributions_fragment: str = "",
+    contributions_fragment: str,
 ) -> str:
     updated = replace_marker(html, "projects", projects_fragment)
     updated = replace_marker(updated, "stars", stars_fragment)
