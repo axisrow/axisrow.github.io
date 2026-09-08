@@ -198,7 +198,7 @@
     // Every path that could otherwise revive motion (lazy mount, remount,
     // theme change, resize, tab visibility) ends in syncEffectPlayback(), so
     // a paused choice is never self-resumed.
-    var active = document.hidden || fxPaused ? [] : scenes
+    var active = (document.hidden || fxPaused) ? [] : scenes
       .filter(function (scene) { return scene.controller && !scene.staticOnly && scene.visible; })
       .sort(function (left, right) { return right.ratio - left.ratio; })
       .slice(0, allowed);
