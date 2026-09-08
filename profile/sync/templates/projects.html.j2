@@ -36,7 +36,7 @@
           <div><dt data-i18n="projects.case.builtLabel">What was built</dt><dd data-i18n="projects.case.{{ name }}.built">{{ case.built }}</dd></div>
           <div><dt data-i18n="projects.case.resultLabel">Verified result</dt><dd data-i18n="projects.case.{{ name }}.result">{{ case.result }}</dd></div>
         </dl>
-        <p class="case-role"><span data-i18n="projects.case.roleLabel">Role</span> {{ case.role }}</p>
+        <p class="case-role"><span data-i18n="projects.case.roleLabel">Role</span> <span data-i18n="projects.case.{{ name }}.role">{{ case.role }}</span></p>
         <div class="case-links">
           <a class="case-link case-link-demo" href="{{ case.demo_url }}" target="_blank" rel="noopener" data-i18n="{{ case.demo_link_key }}">Try it ↗</a>
           <a class="case-link" href="https://github.com/{{ handle }}/{{ name }}" target="_blank" rel="noopener" data-i18n="projects.viewRepository">View repository ↗</a>
