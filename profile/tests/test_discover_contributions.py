@@ -210,6 +210,24 @@ class DiscoveryTests(unittest.TestCase):
         self.assertIn("no title", stderr)
         self.assertEqual(self.registry.read_text(), self.original)
 
+    def test_search_timeout_keeps_the_committed_registry(self) -> None:
+        def api_get(path, accept=None, *, timeout=30, tolerate=()):
+            raise TimeoutError("timed out")
+
+        stdout, stderr = self._run(api_get)
+        self.assertIn("registry up to date", stdout)
+        self.assertIn("WARNING: contributions discovery failed", stderr)
+        self.assertEqual(self.registry.read_text(), self.original)
+
+    def test_search_malformed_json_keeps_the_committed_registry(self) -> None:
+        def api_get(path, accept=None, *, timeout=30, tolerate=()):
+            raise json.JSONDecodeError("Expecting value", "{", 0)
+
+        stdout, stderr = self._run(api_get)
+        self.assertIn("registry up to date", stdout)
+        self.assertIn("WARNING: contributions discovery failed", stderr)
+        self.assertEqual(self.registry.read_text(), self.original)
+
     def test_search_pagination_stops_on_a_short_page(self) -> None:
         full_page = [_search_item("steipete/CodexBar", 2814)] * 100
         calls: list[str] = []

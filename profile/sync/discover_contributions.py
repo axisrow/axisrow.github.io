@@ -107,7 +107,7 @@ def discover(config: dict) -> list[dict]:
     }
     try:
         candidates = search_merged_pulls(handle)
-    except (urllib.error.HTTPError, urllib.error.URLError, RuntimeError) as error:
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, RuntimeError, json.JSONDecodeError) as error:
         print(
             f"  WARNING: contributions discovery failed ({error}): keeping the committed registry",
             file=sys.stderr,
