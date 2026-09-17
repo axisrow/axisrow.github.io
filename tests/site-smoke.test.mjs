@@ -403,8 +403,8 @@ test('the five proof rows are labelled as a sample and backed by a full registry
   assert.ok(countVar, 'registry summary must carry the counter as an i18n var');
   assert.equal(Number(countVar[1]), (registry.match(/<li>/g) || []).length);
   assert.equal(Number(countVar[1]), Number(/data-profile-value="merged_upstream_prs" data-target="(\d+)">/.exec(html)[1]));
-  // Author and co-authored contributions must be distinguishable.
-  assert.match(registry, /data-i18n="opensource\.roleCoauthor"/);
+  // Every merged PR renders the same way — no co-author distinction.
+  assert.doesNotMatch(registry, /roleCoauthor/);
   assert.match(registry, /data-i18n="opensource\.roleFeatured"/);
 });
 
@@ -1456,7 +1456,7 @@ test('both themes and reduced-motion rendering are present', async () => {
   assert.match(css, /\.visual-field\s*\{[^}]*width: 100vw;/s);
   assert.match(css, /\.proof-field\s*\{/);
   assert.match(css, /grid-template-columns: minmax\(360px, 0\.38fr\) minmax\(0, 0\.62fr\)/);
-  assert.match(css, /\.proof-field\s*\{[^}]*height: 412px;/s);
+  assert.match(css, /\.proof-field\s*\{[^}]*min-height: 412px;/s);
   // Panels over a live canvas fade towards their canvas instead of painting a
   // flat near-opaque plate, matching .experience-field / .about-field.
   assert.match(css, /\.contact-card\.veil-panel[^{]*\{[^}]*linear-gradient\(90deg, var\(--veil\), var\(--veil\) 46%, transparent 100%\)/s);

@@ -1062,7 +1062,10 @@ main {
 
 .proof-field {
   display: flex;
-  height: 412px;
+  /* min-height, not height: the card (summary + five rows + the collapsible
+     registry) sizes the field. A fixed height made the card overflow upward,
+     where the heading wash painted over the counter. */
+  min-height: 412px;
   align-items: center;
 }
 
@@ -1145,7 +1148,7 @@ main {
 .proof-row {
   display: grid;
   min-height: 64px;
-  grid-template-columns: minmax(120px, 0.28fr) minmax(230px, 1fr) auto;
+  grid-template-columns: minmax(210px, 0.38fr) minmax(200px, 1fr) auto;
   align-items: center;
   gap: 18px;
   padding: var(--row-space) var(--card-space);
