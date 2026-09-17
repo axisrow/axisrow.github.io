@@ -75,6 +75,9 @@ def merged_pull(repo: str, number: int) -> tuple[str, str] | None:
     if payload is None:
         print(f"  WARNING: {repo}#{number}: PR not found ({status})", file=sys.stderr)
         return None
+    if not isinstance(payload, dict):
+        print(f"  WARNING: {repo}#{number}: unexpected PR response", file=sys.stderr)
+        return None
     if not payload.get("merged"):
         print(f"  WARNING: {repo}#{number}: search reported merged but the PR is not", file=sys.stderr)
         return None
@@ -82,7 +85,11 @@ def merged_pull(repo: str, number: int) -> tuple[str, str] | None:
     if not MERGED_AT_RE.fullmatch(merged_at):
         print(f"  WARNING: {repo}#{number}: malformed merged_at {merged_at!r}", file=sys.stderr)
         return None
-    return str(payload["title"]), merged_at
+    title = str(payload.get("title", ""))
+    if not title:
+        print(f"  WARNING: {repo}#{number}: PR payload has no title", file=sys.stderr)
+        return None
+    return title, merged_at
 
 
 def discover(config: dict) -> list[dict]:
@@ -123,7 +130,16 @@ def discover(config: dict) -> list[dict]:
                 file=sys.stderr,
             )
             continue
-        confirmed = merged_pull(repo, number)
+        # A flaky/unavailable candidate endpoint must not fail the daily
+        # publish: skip the candidate with a warning, keep the rest.
+        try:
+            confirmed = merged_pull(repo, number)
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as error:
+            print(
+                f"  WARNING: {repo}#{number}: could not confirm merge ({error}) — skipping",
+                file=sys.stderr,
+            )
+            continue
         if confirmed is None:
             continue
         title, merged_at = confirmed

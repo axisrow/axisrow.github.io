@@ -172,6 +172,44 @@ class DiscoveryTests(unittest.TestCase):
         self.assertIn("repo renamed", stderr)
         self.assertEqual(self.registry.read_text(), expected)
 
+    def test_transient_failure_on_a_candidate_is_skipped(self) -> None:
+        def api_get(path, accept=None, *, timeout=30, tolerate=()):
+            if path.startswith(SEARCH_URL):
+                return (
+                    _search_payload([
+                        _search_item("Untrivial-ai/agent-orchestrator", 1),
+                        _search_item("Untrivial-ai/agent-orchestrator", 3905),
+                    ]),
+                    200,
+                )
+            if path.endswith("/pulls/1"):
+                raise urllib.error.HTTPError(
+                    f"https://api.github.com/{path}", 502, "Bad gateway", None, None
+                )
+            if path == NEW_PULL_URL:
+                return _pull(), 200
+            raise AssertionError(f"unexpected path {path}")
+
+        stdout, stderr = self._run(api_get)
+        self.assertIn("discovered 1 new merged PR(s)", stdout)
+        self.assertIn("could not confirm merge", stderr)
+        cfg = json.loads(self.registry.read_text())
+        self.assertEqual(len(cfg["contributions"]), 2)
+        self.assertEqual(cfg["contributions"][-1]["pr_number"], 3905)
+
+    def test_candidate_without_a_title_is_skipped(self) -> None:
+        def api_get(path, accept=None, *, timeout=30, tolerate=()):
+            if path.startswith(SEARCH_URL):
+                return _search_payload([_search_item("Untrivial-ai/agent-orchestrator", 3905)]), 200
+            if path == NEW_PULL_URL:
+                return {"merged": True, "merged_at": "2026-09-16T16:59:19Z"}, 200
+            raise AssertionError(f"unexpected path {path}")
+
+        stdout, stderr = self._run(api_get)
+        self.assertIn("registry up to date", stdout)
+        self.assertIn("no title", stderr)
+        self.assertEqual(self.registry.read_text(), self.original)
+
     def test_search_pagination_stops_on_a_short_page(self) -> None:
         full_page = [_search_item("steipete/CodexBar", 2814)] * 100
         calls: list[str] = []
