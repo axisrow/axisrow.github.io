@@ -228,6 +228,35 @@ class DiscoveryTests(unittest.TestCase):
         self.assertIn("WARNING: contributions discovery failed", stderr)
         self.assertEqual(self.registry.read_text(), self.original)
 
+    def test_malformed_search_items_are_skipped(self) -> None:
+        def api_get(path, accept=None, *, timeout=30, tolerate=()):
+            if path.startswith(SEARCH_URL):
+                return (
+                    {
+                        "total_count": 4,
+                        "items": [None, "bad", 42, _search_item("Untrivial-ai/agent-orchestrator", 3905)],
+                    },
+                    200,
+                )
+            if path == NEW_PULL_URL:
+                return _pull(), 200
+            raise AssertionError(f"unexpected path {path}")
+
+        stdout, _ = self._run(api_get)
+        self.assertIn("discovered 1 new merged PR(s)", stdout)
+        cfg = json.loads(self.registry.read_text())
+        self.assertEqual(len(cfg["contributions"]), 2)
+        self.assertEqual(cfg["contributions"][-1]["pr_number"], 3905)
+
+    def test_unexpected_discovery_failure_keeps_the_registry(self) -> None:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with mock.patch.object(discover_contributions, "discover", side_effect=AttributeError("boom")):
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                code = discover_contributions.main(["--registry", str(self.registry)])
+        self.assertEqual(code, 0)
+        self.assertIn("WARNING: contributions discovery failed", stderr.getvalue())
+        self.assertEqual(self.registry.read_text(), self.original)
+
     def test_search_pagination_stops_on_a_short_page(self) -> None:
         full_page = [_search_item("steipete/CodexBar", 2814)] * 100
         calls: list[str] = []

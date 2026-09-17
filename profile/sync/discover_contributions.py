@@ -116,6 +116,8 @@ def discover(config: dict) -> list[dict]:
 
     fresh: list[dict] = []
     for item in candidates:
+        if not isinstance(item, dict):
+            continue
         repo = str(item.get("repository_url", "")).removeprefix("https://api.github.com/repos/")
         try:
             number = int(item.get("number", 0))
@@ -161,7 +163,18 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     config = json.loads(args.registry.read_text())
-    fresh = discover(config)
+    # The degrade contract, enforced at one place: nothing from the API side
+    # may fail the daily publish — a warning plus the committed registry is
+    # always a valid outcome. (Corrupted local config still fails loudly on
+    # the read/parse above, matching the other sync scripts.)
+    try:
+        fresh = discover(config)
+    except Exception as error:  # noqa: BLE001 - the whole point is the boundary
+        print(
+            f"  WARNING: contributions discovery failed ({error}): keeping the committed registry",
+            file=sys.stderr,
+        )
+        return 0
     if not fresh:
         print("registry up to date")
         return 0
