@@ -334,7 +334,7 @@ test('Open Source uses the asymmetric R1 field without duplicated cards', async 
   assert.match(html, /class="proof-field-visual"/);
   assert.equal((html.match(/class="proof-row"/g) || []).length, 5);
   assert.equal((html.match(/data-contribution-repo=/g) || []).length, 5);
-  for (const repo of ['steipete/CodexBar', 'ranaroussi/yfinance', 'IBM/mcp-cli', 'AgentWrapper/agent-orchestrator', 'ccusage/ccusage']) {
+  for (const repo of ['steipete/CodexBar', 'ranaroussi/yfinance', 'IBM/mcp-cli', 'Untrivial-ai/agent-orchestrator', 'ccusage/ccusage']) {
     assert.ok(html.includes(`data-contribution-repo="${repo}"`));
   }
   assert.doesNotMatch(html, /proof-stage|contribution-card|proof-layout|mandelbrot-frame|Iteration \/ proof/i);

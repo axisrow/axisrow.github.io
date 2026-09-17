@@ -90,16 +90,28 @@ jobs:
           GH_TOKEN: ${{ steps.token.outputs.token }}
         run: python3 profile/sync/stars_history.py
 
+      # discover_contributions.py may append newly merged upstream PRs to the
+      # registry in projects.json. It must run BEFORE the render: the committed
+      # index.html is re-spliced from the file below, and test_registry pins the
+      # committed block against a render of the committed data. The script
+      # degrades to the committed registry (stderr warning, exit 0) when the
+      # search API fails, so a GitHub outage cannot fail the daily publish.
+      - name: Discover newly merged upstream PRs
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: python3 profile/sync/discover_contributions.py
+
       - name: Generate profile fragments
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
         run: python3 profile/sync/generate.py
 
       # stars_history.py may have extended the history (a new day or new star
-      # events since the last run), so re-splice the committed index.html from
-      # the fresh render BEFORE testing: test_site_sync pins the committed
-      # stars block against a render of the current history, and the node
-      # smoke tests pin the same markup.
+      # events since the last run) and discover_contributions.py may have
+      # appended newly merged PRs to the registry, so re-splice the committed
+      # index.html from the fresh render BEFORE testing: test_site_sync and
+      # test_registry pin the committed blocks against renders of the committed
+      # data, and the node smoke tests pin the same markup.
       - name: Splice fresh fragments into index.html
         run: |
           python3 profile/sync/apply_site_fragments.py index.html \
@@ -134,15 +146,15 @@ jobs:
             git -C "$tmp/repo" -c credential.helper='' push origin HEAD:main
           fi
 
-      - name: Persist star history and re-spliced index.html
+      - name: Persist synced data files and re-spliced index.html
         env:
           TOKEN: ${{ steps.token.outputs.token }}
         run: |
           test -n "$TOKEN" || { echo "::error::TOKEN is empty"; exit 1; }
-          if git diff --quiet -- profile/data/stars-history.json index.html; then
+          if git diff --quiet -- profile/data/stars-history.json profile/projects.json index.html; then
             echo "Generated files unchanged."
           else
-            git add profile/data/stars-history.json index.html
+            git add profile/data/stars-history.json profile/projects.json index.html
             git -c user.email="4278593+axisrow-ci[bot]@users.noreply.github.com" \
               -c user.name="axisrow-ci[bot]" commit -m \
               "bot: sync portfolio projects and stars ($(date -u +%Y-%m-%d)) [skip ci]"

@@ -33,6 +33,11 @@ class DirectScriptInvocationTests(unittest.TestCase):
         self.assertNotIn("ModuleNotFoundError", result.stderr + result.stdout)
         self.assertEqual(result.returncode, 0)
 
+    def test_discover_contributions_help_runs_without_importerror(self) -> None:
+        result = _run("discover_contributions.py", "--help")
+        self.assertNotIn("ModuleNotFoundError", result.stderr + result.stdout)
+        self.assertEqual(result.returncode, 0)
+
     def test_generate_module_import_resolves(self) -> None:
         # generate.py needs a valid projects.json to fully run, but we only care
         # that it gets past the `from profile.sync import github` line. --help is enough
