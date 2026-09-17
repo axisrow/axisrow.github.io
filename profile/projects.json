@@ -478,6 +478,33 @@
       "merged_at": "2026-08-13",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Untrivial-ai/agent-orchestrator",
+      "pr_number": 4028,
+      "title": "feat(cli): enrich session list status",
+      "merged": true,
+      "merged_at": "2026-09-10",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Untrivial-ai/agent-orchestrator",
+      "pr_number": 4859,
+      "title": "fix(tmux): classify an absent socket file as conclusive server absence",
+      "merged": true,
+      "merged_at": "2026-09-15",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Untrivial-ai/agent-orchestrator",
+      "pr_number": 3905,
+      "title": "fix(scm): make PR attribution strict and stable",
+      "merged": true,
+      "merged_at": "2026-09-16",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
