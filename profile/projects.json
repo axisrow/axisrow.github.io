@@ -505,6 +505,15 @@
       "merged_at": "2026-09-16",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Untrivial-ai/agent-orchestrator",
+      "pr_number": 5486,
+      "title": "fix(session): stop provider chrome and never-messaged Chat from failing interface switches",
+      "merged": true,
+      "merged_at": "2026-09-17",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
