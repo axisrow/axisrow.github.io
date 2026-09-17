@@ -50,8 +50,10 @@ python3 profile/sync/build_pages.py
 
 `projects.json` tracks a fixed set of repos (the starred ones). New repos are not
 added automatically — only the ones listed. Per-repo star counts are pulled live
-from the GitHub API on each run; the aggregate stats (`stars_earned`,
-`merged_upstream_prs`) are verified snapshots. The site also keeps a daily star
+from the GitHub API on each run; `stars_earned` is a verified snapshot, and
+`merged_upstream_prs` is derived from the contributions registry, which the daily
+sync extends by itself — discover_contributions.py appends newly merged upstream
+PRs. The site also keeps a daily star
 history from 2026-03-01: it uses an opening balance plus dated GitHub star
 events so the restored series ends at 99 original-repository stars (104 total
 minus 5 fork stars).
