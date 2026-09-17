@@ -39,7 +39,9 @@ from profile.sync.generate import contributions_registry  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_REGISTRY = ROOT / "projects.json"
 MERGED_AT_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-SEARCH_PAGES = 3  # 3 x 100 results; the registry holds ~50, so this is generous.
+SEARCH_PAGES = 10  # GitHub caps search results at 1000 (10 x 100). Pagination
+# runs until a short page, so coverage is complete by construction; hitting
+# this bound warns loudly instead of silently undercounting the registry.
 
 
 def search_merged_pulls(handle: str) -> list[dict]:
@@ -61,6 +63,10 @@ def search_merged_pulls(handle: str) -> list[dict]:
         items.extend(batch)
         if len(batch) < 100:
             return items
+    print(
+        "  WARNING: contributions search hit its page bound; older entries may be unscanned",
+        file=sys.stderr,
+    )
     return items
 
 
@@ -115,6 +121,7 @@ def discover(config: dict) -> list[dict]:
         return []
 
     fresh: list[dict] = []
+    fresh_keys: set[tuple[str, int]] = set()
     for item in candidates:
         if not isinstance(item, dict):
             continue
@@ -132,6 +139,8 @@ def discover(config: dict) -> list[dict]:
                 file=sys.stderr,
             )
             continue
+        if (repo, number) in fresh_keys:
+            continue  # search pagination can repeat items across pages
         # A flaky/unavailable candidate endpoint must not fail the daily
         # publish: skip the candidate with a warning, keep the rest.
         try:
@@ -145,6 +154,7 @@ def discover(config: dict) -> list[dict]:
         if confirmed is None:
             continue
         title, merged_at = confirmed
+        fresh_keys.add((repo, number))
         fresh.append({
             "repo": repo,
             "pr_number": number,

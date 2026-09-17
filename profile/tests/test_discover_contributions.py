@@ -257,6 +257,45 @@ class DiscoveryTests(unittest.TestCase):
         self.assertIn("WARNING: contributions discovery failed", stderr.getvalue())
         self.assertEqual(self.registry.read_text(), self.original)
 
+    def test_duplicate_candidates_in_one_run_are_appended_once(self) -> None:
+        def api_get(path, accept=None, *, timeout=30, tolerate=()):
+            if path.startswith(SEARCH_URL):
+                return (
+                    _search_payload([
+                        _search_item("Untrivial-ai/agent-orchestrator", 3905),
+                        _search_item("Untrivial-ai/agent-orchestrator", 3905),
+                    ]),
+                    200,
+                )
+            if path == NEW_PULL_URL:
+                return _pull(), 200
+            raise AssertionError(f"unexpected path {path}")
+
+        stdout, _ = self._run(api_get)
+        self.assertIn("discovered 1 new merged PR(s)", stdout)
+        cfg = json.loads(self.registry.read_text())
+        self.assertEqual(len(cfg["contributions"]), 2)
+        self.assertEqual(cfg["contributions"][-1]["pr_number"], 3905)
+
+    def test_pagination_continues_past_three_pages(self) -> None:
+        calls: list[str] = []
+        full_known = [_search_item("steipete/CodexBar", 2814)] * 100
+
+        def api_get(path, accept=None, *, timeout=30, tolerate=()):
+            calls.append(path)
+            if path.endswith(("page=1", "page=2", "page=3")):
+                return _search_payload(full_known), 200
+            if path.endswith("page=4"):
+                return _search_payload([_search_item("Untrivial-ai/agent-orchestrator", 3905)]), 200
+            if path == NEW_PULL_URL:
+                return _pull(), 200
+            raise AssertionError(f"unexpected path {path}")
+
+        stdout, _ = self._run(api_get)
+        self.assertIn("discovered 1 new merged PR(s)", stdout)
+        search_calls = [c for c in calls if c.startswith("search/issues")]
+        self.assertEqual(len(search_calls), 4)  # page=4 came back short: stop there
+
     def test_search_pagination_stops_on_a_short_page(self) -> None:
         full_page = [_search_item("steipete/CodexBar", 2814)] * 100
         calls: list[str] = []
