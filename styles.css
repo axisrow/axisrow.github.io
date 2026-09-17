@@ -1256,6 +1256,12 @@ main {
   color: var(--accent);
 }
 
+.proof-all-date {
+  color: var(--ink-faint);
+  font: 500 11px/1.35 "IBM Plex Mono", monospace;
+  white-space: nowrap;
+}
+
 .proof-all-title {
   color: var(--ink-soft);
 }

@@ -13,13 +13,14 @@
     "_note": "stars_earned includes 5 stars on forks; the daily history (stars-history.json) tracks only original-repository events (GitHub has no reliable per-day fork-star signal), so the rendered chart adds fork_stars as a constant offset to every point — the line's endpoint always equals stars_earned, matching the 'all repositories' copy next to it",
     "_merged_upstream_prs_source": "derived at render time from the merged entries of the contributions registry"
   },
-  "contributions_note": "Full registry of merged upstream PRs (key: repo + pr_number). Built from the GitHub search 'type:pr author:axisrow is:merged -user:axisrow' (50 entries), commit-author search 'author-email:axisrow@gmail.com -user:axisrow' mapped to merged PRs (adds no unique entries), and manually verified co-authored PRs whose commits carry a Co-authored-by trailer but are authored by someone else, which no search covers (ccusage/ccusage#1675). role distinguishes author from coauthor; featured marks the five proof rows shown on the site. stats.merged_upstream_prs is derived from these entries at render time (see generate.py) — never edit it by hand.",
+  "contributions_note": "Full registry of merged upstream PRs (key: repo + pr_number). Built from the GitHub search 'type:pr author:axisrow is:merged -user:axisrow' (50 entries), commit-author search 'author-email:axisrow@gmail.com -user:axisrow' mapped to merged PRs (adds no unique entries), and manually verified co-authored PRs whose commits carry a Co-authored-by trailer but are authored by someone else, which no search covers (ccusage/ccusage#1675). role distinguishes author from coauthor; featured marks the five proof rows shown on the site. merged_at is the PR's GitHub merge date (YYYY-MM-DD) — the registry renders sorted by it, newest first. stats.merged_upstream_prs is derived from these entries at render time (see generate.py) — never edit it by hand.",
   "contributions": [
     {
       "repo": "steipete/CodexBar",
       "pr_number": 2814,
       "title": "fix: stop background Ollama refresh from spuriously requiring re-sign-in",
       "merged": true,
+      "merged_at": "2026-08-13",
       "role": "author",
       "featured": true,
       "desc": "Feature and documentation contributions to Peter Steinberger's desktop utility"
@@ -29,6 +30,7 @@
       "pr_number": 2627,
       "title": "Add optional retry mechanism for transient network errors",
       "merged": true,
+      "merged_at": "2025-12-02",
       "role": "author",
       "featured": true,
       "desc": "Optional retry mechanism for transient network errors"
@@ -38,6 +40,7 @@
       "pr_number": 227,
       "title": "feat(cmd): add CmdCommand for Unix-friendly automation and fix serialization",
       "merged": true,
+      "merged_at": "2026-03-01",
       "role": "author",
       "featured": true,
       "desc": "`CmdCommand` for Unix-friendly automation + serialization fix"
@@ -47,6 +50,7 @@
       "pr_number": 2357,
       "title": "fix(send): submit multiline prompts + never nudge a session paused on a permission dialog",
       "merged": true,
+      "merged_at": "2026-07-11",
       "role": "author",
       "featured": true,
       "desc": "Multiline prompt submit + safer permission-dialog handling"
@@ -56,6 +60,7 @@
       "pr_number": 1675,
       "title": "feat(zcode): add ZCode usage adapter",
       "merged": true,
+      "merged_at": "2026-08-31",
       "role": "coauthor",
       "featured": true,
       "desc": "Co-authored the merged ZCode SQLite usage adapter and report/test integration"
@@ -65,6 +70,7 @@
       "pr_number": 1,
       "title": "feat: добавлены новые изображения локаций и монстров",
       "merged": true,
+      "merged_at": "2026-02-06",
       "role": "author",
       "featured": false
     },
@@ -73,6 +79,7 @@
       "pr_number": 2683,
       "title": "test(cli): stabilize native e2e daemon shutdown",
       "merged": true,
+      "merged_at": "2026-07-17",
       "role": "author",
       "featured": false
     },
@@ -81,6 +88,7 @@
       "pr_number": 2684,
       "title": "fix(import): surface legacy config parse errors instead of \"no data\"",
       "merged": true,
+      "merged_at": "2026-07-18",
       "role": "author",
       "featured": false
     },
@@ -89,6 +97,7 @@
       "pr_number": 2690,
       "title": "fix(daemon): nil tracker interface when GitHub token absent (spawn --issue panic)",
       "merged": true,
+      "merged_at": "2026-07-14",
       "role": "author",
       "featured": false
     },
@@ -97,6 +106,7 @@
       "pr_number": 2847,
       "title": "feat(desktop): AO_KEEP_DAEMON to keep the daemon alive after the app closes (#2230)",
       "merged": true,
+      "merged_at": "2026-07-21",
       "role": "author",
       "featured": false
     },
@@ -105,6 +115,7 @@
       "pr_number": 3896,
       "title": "fix(desktop): preserve Intel Node JIT entitlement",
       "merged": true,
+      "merged_at": "2026-09-06",
       "role": "author",
       "featured": false
     },
@@ -113,6 +124,7 @@
       "pr_number": 3900,
       "title": "fix(sessions): store activity timestamps in UTC so SQL comparisons hold",
       "merged": true,
+      "merged_at": "2026-09-02",
       "role": "author",
       "featured": false
     },
@@ -121,6 +133,7 @@
       "pr_number": 3902,
       "title": "fix(restore): fall back to a fresh launch when the native conversation is gone",
       "merged": true,
+      "merged_at": "2026-09-03",
       "role": "author",
       "featured": false
     },
@@ -129,6 +142,7 @@
       "pr_number": 3915,
       "title": "fix(desktop): label the default reviewer with its display name",
       "merged": true,
+      "merged_at": "2026-08-15",
       "role": "author",
       "featured": false
     },
@@ -137,6 +151,7 @@
       "pr_number": 62,
       "title": "feat: Review System v0.2 - Complete Implementation",
       "merged": true,
+      "merged_at": "2026-03-17",
       "role": "author",
       "featured": false
     },
@@ -145,6 +160,7 @@
       "pr_number": 63,
       "title": "feat(user): v0.3 User Management milestone",
       "merged": true,
+      "merged_at": "2026-03-19",
       "role": "author",
       "featured": false
     },
@@ -153,6 +169,7 @@
       "pr_number": 64,
       "title": "feat(testing): v0.9 Backend Testing",
       "merged": true,
+      "merged_at": "2026-03-17",
       "role": "author",
       "featured": false
     },
@@ -161,6 +178,7 @@
       "pr_number": 65,
       "title": "feat(caching): v0.6 Redis Caching",
       "merged": true,
+      "merged_at": "2026-03-17",
       "role": "author",
       "featured": false
     },
@@ -169,6 +187,7 @@
       "pr_number": 67,
       "title": "feat(db): v0.7 Database Optimization",
       "merged": true,
+      "merged_at": "2026-03-17",
       "role": "author",
       "featured": false
     },
@@ -177,6 +196,7 @@
       "pr_number": 68,
       "title": "feat(admin): v0.4 Advanced Moderation",
       "merged": true,
+      "merged_at": "2026-03-17",
       "role": "author",
       "featured": false
     },
@@ -185,6 +205,7 @@
       "pr_number": 69,
       "title": "feat(user): v0.5 User Preferences System",
       "merged": true,
+      "merged_at": "2026-03-17",
       "role": "author",
       "featured": false
     },
@@ -193,6 +214,7 @@
       "pr_number": 70,
       "title": "feat(frontend): v0.8 Frontend Performance",
       "merged": true,
+      "merged_at": "2026-03-17",
       "role": "author",
       "featured": false
     },
@@ -201,6 +223,7 @@
       "pr_number": 71,
       "title": "test(frontend): v0.10 Frontend Testing",
       "merged": true,
+      "merged_at": "2026-03-17",
       "role": "author",
       "featured": false
     },
@@ -209,6 +232,7 @@
       "pr_number": 72,
       "title": "fix(security): critical security fixes",
       "merged": true,
+      "merged_at": "2026-03-18",
       "role": "author",
       "featured": false
     },
@@ -217,6 +241,7 @@
       "pr_number": 73,
       "title": "Fix auth controller tests",
       "merged": true,
+      "merged_at": "2026-03-18",
       "role": "author",
       "featured": false
     },
@@ -225,6 +250,7 @@
       "pr_number": 74,
       "title": "Add Playwright end-to-end tests for the frontend",
       "merged": true,
+      "merged_at": "2026-03-19",
       "role": "author",
       "featured": false
     },
@@ -233,6 +259,7 @@
       "pr_number": 75,
       "title": "Improve test signal and coverage",
       "merged": true,
+      "merged_at": "2026-03-19",
       "role": "author",
       "featured": false
     },
@@ -241,6 +268,7 @@
       "pr_number": 76,
       "title": "Implement v0.3 user management profile summary and preference defaults",
       "merged": true,
+      "merged_at": "2026-03-21",
       "role": "author",
       "featured": false
     },
@@ -249,6 +277,7 @@
       "pr_number": 80,
       "title": "Add Claude Code GitHub Workflow",
       "merged": true,
+      "merged_at": "2026-03-21",
       "role": "author",
       "featured": false
     },
@@ -257,6 +286,7 @@
       "pr_number": 81,
       "title": "feat: implement v0.5 and v0.6 milestones",
       "merged": true,
+      "merged_at": "2026-03-21",
       "role": "author",
       "featured": false
     },
@@ -265,6 +295,7 @@
       "pr_number": 82,
       "title": "feat: email verification/reset flows and legal pages",
       "merged": true,
+      "merged_at": "2026-03-21",
       "role": "author",
       "featured": false
     },
@@ -273,6 +304,7 @@
       "pr_number": 139,
       "title": "feat(perf): complete v0.4 Performance milestone",
       "merged": true,
+      "merged_at": "2026-03-23",
       "role": "author",
       "featured": false
     },
@@ -281,6 +313,7 @@
       "pr_number": 140,
       "title": "test(v0.5): add mock fixtures, Sentry integration, and new tests",
       "merged": true,
+      "merged_at": "2026-03-23",
       "role": "author",
       "featured": false
     },
@@ -289,6 +322,7 @@
       "pr_number": 141,
       "title": "fix(api): resolve broken devDependencies and regenerate yarn.lock",
       "merged": true,
+      "merged_at": "2026-03-23",
       "role": "author",
       "featured": false
     },
@@ -297,6 +331,7 @@
       "pr_number": 142,
       "title": "docs(staging): add staging sync script and workflow documentation",
       "merged": true,
+      "merged_at": "2026-03-23",
       "role": "author",
       "featured": false
     },
@@ -305,6 +340,7 @@
       "pr_number": 175,
       "title": "test: Issue #120 Test Coverage Improvements",
       "merged": true,
+      "merged_at": "2026-03-24",
       "role": "author",
       "featured": false
     },
@@ -313,6 +349,7 @@
       "pr_number": 193,
       "title": "feat: E2E coverage, PWA push notifications, social digest (#191, #85, #117)",
       "merged": true,
+      "merged_at": "2026-03-27",
       "role": "author",
       "featured": false
     },
@@ -321,6 +358,7 @@
       "pr_number": 1,
       "title": "Add sliplane deployment plugin",
       "merged": true,
+      "merged_at": "2026-04-10",
       "role": "author",
       "featured": false
     },
@@ -329,6 +367,7 @@
       "pr_number": 3,
       "title": "plugin/yandex-direct: Yandex.Direct MCP plugin with 111 tools",
       "merged": true,
+      "merged_at": "2026-04-16",
       "role": "author",
       "featured": false
     },
@@ -337,6 +376,7 @@
       "pr_number": 4,
       "title": "plugin/cycle-review: Add automated PR review cycle plugin",
       "merged": true,
+      "merged_at": "2026-04-25",
       "role": "author",
       "featured": false
     },
@@ -345,6 +385,7 @@
       "pr_number": 5,
       "title": "plugin/claude-tools: anchor 5h rate-limit window via watchdog cron",
       "merged": true,
+      "merged_at": "2026-04-30",
       "role": "author",
       "featured": false
     },
@@ -353,6 +394,7 @@
       "pr_number": 6,
       "title": "fix: install errors for code-formatter, git-workflow, sliplane",
       "merged": true,
+      "merged_at": "2026-05-02",
       "role": "author",
       "featured": false
     },
@@ -361,6 +403,7 @@
       "pr_number": 7,
       "title": "feat: add `pat` plugin — GitHub App installation token (no manual PAT)",
       "merged": true,
+      "merged_at": "2026-07-12",
       "role": "author",
       "featured": false
     },
@@ -369,6 +412,7 @@
       "pr_number": 8,
       "title": "feat(pat): CI mode — PEM from APP_PRIVATE_KEY env",
       "merged": true,
+      "merged_at": "2026-07-12",
       "role": "author",
       "featured": false
     },
@@ -377,6 +421,7 @@
       "pr_number": 9,
       "title": "fix(pat): don't require PAT_BW_ITEM in CI mode",
       "merged": true,
+      "merged_at": "2026-07-12",
       "role": "author",
       "featured": false
     },
@@ -385,6 +430,7 @@
       "pr_number": 1,
       "title": "feat: add onboarding trigger and service type detection",
       "merged": true,
+      "merged_at": "2026-04-07",
       "role": "author",
       "featured": false
     },
@@ -393,6 +439,7 @@
       "pr_number": 2,
       "title": "feat: add ASCII logo for onboarding",
       "merged": true,
+      "merged_at": "2026-04-08",
       "role": "author",
       "featured": false
     },
@@ -401,6 +448,7 @@
       "pr_number": 2,
       "title": "fix: move author to metadata in SKILL.md frontmatter",
       "merged": true,
+      "merged_at": "2026-02-28",
       "role": "author",
       "featured": false
     },
@@ -409,6 +457,7 @@
       "pr_number": 1,
       "title": "Setup: Add support for environment-specific .env files",
       "merged": true,
+      "merged_at": "2025-11-19",
       "role": "author",
       "featured": false
     },
@@ -417,6 +466,7 @@
       "pr_number": 2,
       "title": "Add Dockerfile for containerized deployment",
       "merged": true,
+      "merged_at": "2025-11-19",
       "role": "author",
       "featured": false
     },
@@ -425,6 +475,7 @@
       "pr_number": 2813,
       "title": "fix: gate CLI background usage fetch on confirmed-absent OAuth creds",
       "merged": true,
+      "merged_at": "2026-08-13",
       "role": "author",
       "featured": false
     }

@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -169,7 +170,8 @@ def contributions_registry(cfg: dict) -> dict:
 
     The registry in projects.json is the single source of truth for merged
     upstream PRs: every entry carries a unique ``repo + pr_number`` key, a
-    confirmed ``merged`` flag and the contributor's ``role``. The counter is
+    confirmed ``merged`` flag with its ``merged_at`` date and the
+    contributor's ``role``. The counter is
     derived from the same set the site renders, so they can never disagree.
     Raises on duplicate keys instead of silently double counting.
 
@@ -186,7 +188,11 @@ def contributions_registry(cfg: dict) -> dict:
         seen.add(key)
         if entry.get("merged") and entry.get("role") not in ("author", "coauthor"):
             raise ValueError(f"{key[0]}#{key[1]}: unknown role {entry.get('role')!r}")
+        if entry.get("merged") and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(entry.get("merged_at"))):
+            raise ValueError(f"{key[0]}#{key[1]}: missing or malformed merged_at {entry.get('merged_at')!r}")
     merged = [entry for entry in contributions if entry.get("merged")]
+    # The registry reads as a changelog: newest merge first.
+    merged.sort(key=lambda entry: entry["merged_at"], reverse=True)
     featured = [entry for entry in merged if entry.get("featured")]
     return {
         "merged": merged,

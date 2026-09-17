@@ -56,6 +56,18 @@ class ContributionsRegistryTests(unittest.TestCase):
         for entry in cfg["contributions"]:
             self.assertIn(entry["role"], ("author", "coauthor"))
 
+    def test_merged_entries_carry_a_merge_date(self) -> None:
+        cfg = _load_cfg()
+        for entry in cfg["contributions"]:
+            if entry.get("merged"):
+                self.assertRegex(str(entry["merged_at"]), r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_registry_renders_sorted_newest_first(self) -> None:
+        html = _marker_block(_index_html(), "CONTRIBUTIONS")
+        dates = re.findall(r'class="proof-all-date">(\d{4}-\d{2}-\d{2})<', html)
+        self.assertEqual(len(dates), html.count("<li>"))
+        self.assertEqual(dates, sorted(dates, reverse=True))
+
     def test_featured_is_a_subset_of_merged(self) -> None:
         registry = contributions_registry(_load_cfg())
         for entry in registry["featured"]:
