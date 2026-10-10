@@ -332,10 +332,11 @@ test('Open Source uses the asymmetric R1 field without duplicated cards', async 
   // (see the PROFILE:* markers in CLAUDE.md), so check the pattern instead.
   assert.match(html, /data-profile-value="merged_upstream_prs" data-target="(\d+)">\1/);
   assert.match(html, /class="proof-field-visual"/);
-  assert.equal((html.match(/class="proof-row"/g) || []).length, 5);
-  assert.equal((html.match(/data-contribution-repo=/g) || []).length, 5);
-  for (const repo of ['steipete/CodexBar', 'ranaroussi/yfinance', 'IBM/mcp-cli', 'Untrivial-ai/agent-orchestrator', 'ccusage/ccusage']) {
-    assert.ok(html.includes(`data-contribution-repo="${repo}"`));
+  const featured = JSON.parse(await source('profile/projects.json')).contributions.filter((c) => c.merged && c.featured);
+  assert.equal((html.match(/class="proof-row"/g) || []).length, featured.length);
+  assert.equal((html.match(/data-contribution-repo=/g) || []).length, featured.length);
+  for (const entry of featured) {
+    assert.ok(html.includes(`data-contribution-repo="${entry.repo}"`));
   }
   assert.doesNotMatch(html, /proof-stage|contribution-card|proof-layout|mandelbrot-frame|Iteration \/ proof/i);
 });
@@ -381,7 +382,7 @@ test('featured case studies live in the bot-managed template with sized, lazy fi
   }
 });
 
-test('the five proof rows are labelled as a sample and backed by a full registry', async () => {
+test('the proof rows are labelled as a sample and backed by a full registry', async () => {
   const html = await source('index.html');
   const start = html.indexOf('<!-- PROFILE:CONTRIBUTIONS:START -->');
   const end = html.indexOf('<!-- PROFILE:CONTRIBUTIONS:END -->');

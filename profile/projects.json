@@ -13,7 +13,7 @@
     "_note": "stars_earned includes 5 stars on forks; the daily history (stars-history.json) tracks only original-repository events (GitHub has no reliable per-day fork-star signal), so the rendered chart adds fork_stars as a constant offset to every point — the line's endpoint always equals stars_earned, matching the 'all repositories' copy next to it",
     "_merged_upstream_prs_source": "derived at render time from the merged entries of the contributions registry"
   },
-  "contributions_note": "Full registry of merged upstream PRs (key: repo + pr_number). Maintained automatically: the daily sync runs discover_contributions.py, which appends merged PRs authored by the handle (GitHub search 'type:pr author:axisrow is:merged -user:axisrow', every candidate re-confirmed against the PR endpoint). Co-authored PRs whose commits carry a Co-authored-by trailer but are authored by someone else are invisible to that search and stay hand-maintained (ccusage/ccusage#1675). role distinguishes author from coauthor; featured marks the five proof rows shown on the site. merged_at is the PR's GitHub merge date (YYYY-MM-DD) — the registry renders sorted by it, newest first. stats.merged_upstream_prs is derived from these entries at render time (see generate.py) — never edit it by hand.",
+  "contributions_note": "Full registry of merged upstream PRs (key: repo + pr_number). Maintained automatically: the daily sync runs discover_contributions.py, which appends merged PRs authored by the handle (GitHub search 'type:pr author:axisrow is:merged -user:axisrow', every candidate re-confirmed against the PR endpoint). Co-authored PRs whose commits carry a Co-authored-by trailer but are authored by someone else are invisible to that search and stay hand-maintained (ccusage/ccusage#1675). role distinguishes author from coauthor; featured marks the proof rows shown on the site. merged_at is the PR's GitHub merge date (YYYY-MM-DD) — the registry renders sorted by it, newest first. stats.merged_upstream_prs is derived from these entries at render time (see generate.py) — never edit it by hand.",
   "contributions": [
     {
       "repo": "steipete/CodexBar",
@@ -64,6 +64,16 @@
       "role": "coauthor",
       "featured": true,
       "desc": "Co-authored the merged ZCode SQLite usage adapter and report/test integration"
+    },
+    {
+      "repo": "sirmalloc/ccstatusline",
+      "pr_number": 617,
+      "title": "feat(git-is-fork): render forks as an editable glyph",
+      "merged": true,
+      "merged_at": "2026-10-06",
+      "role": "author",
+      "featured": true,
+      "desc": "Render forks as an editable glyph in the git-is-fork widget"
     },
     {
       "repo": "Richard10-cpu/termux-telegram-rpg",
@@ -548,15 +558,6 @@
       "title": "chore(desktop): de-duplicate the bundled tmux version literal",
       "merged": true,
       "merged_at": "2026-09-23",
-      "role": "author",
-      "featured": false
-    },
-    {
-      "repo": "sirmalloc/ccstatusline",
-      "pr_number": 617,
-      "title": "feat(git-is-fork): render forks as an editable glyph",
-      "merged": true,
-      "merged_at": "2026-10-06",
       "role": "author",
       "featured": false
     }

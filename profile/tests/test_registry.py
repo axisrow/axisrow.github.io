@@ -114,7 +114,7 @@ class ContributionsRegistryTests(unittest.TestCase):
         self.assertEqual(rendered_count, registry["merged_count"])
 
     def test_featured_rows_in_index_match_the_registry(self) -> None:
-        """The five featured proof rows must correspond 1:1 to featured
+        """The featured proof rows must correspond 1:1 to featured
         registry entries (repo + number), so the sample and the registry can
         never drift apart."""
         html = _index_html()
