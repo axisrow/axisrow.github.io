@@ -560,6 +560,78 @@
       "merged_at": "2026-09-23",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 319,
+      "title": "Lint: align advisory flake8 with black (99), clear the E501/F84x backlog — closes #318",
+      "merged": true,
+      "merged_at": "2026-10-16",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 316,
+      "title": "fix(sanitize): decode and sanitize bytes fields in sanitize_dict",
+      "merged": true,
+      "merged_at": "2026-10-16",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 315,
+      "title": "fix(custom_emojis): reject non-emoji signs as fallback (№, ™, lone keycap)",
+      "merged": true,
+      "merged_at": "2026-10-16",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 314,
+      "title": "fix(aliases): create parent dir for an overridden TELEGRAM_ALIASES_FILE",
+      "merged": true,
+      "merged_at": "2026-10-16",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 313,
+      "title": "fix(accounts): fold dashes to underscores in account labels everywhere",
+      "merged": true,
+      "merged_at": "2026-10-16",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 312,
+      "title": "fix(runtime): readable config error when TELEGRAM_API_ID/HASH are missing",
+      "merged": true,
+      "merged_at": "2026-10-16",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 311,
+      "title": "fix(photos): do not serve web-preview images as message photos",
+      "merged": true,
+      "merged_at": "2026-10-16",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 309,
+      "title": "fix(chats): title users by first + last name in get_chats",
+      "merged": true,
+      "merged_at": "2026-10-16",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
