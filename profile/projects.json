@@ -632,6 +632,60 @@
       "merged_at": "2026-10-16",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 325,
+      "title": "fix(profile): set_privacy_settings merges exceptions instead of opening privacy to everyone",
+      "merged": true,
+      "merged_at": "2026-10-17",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 323,
+      "title": "fix(allowlist): check contact_id/group_id chats and hide unallowed chats in listings",
+      "merged": true,
+      "merged_at": "2026-10-17",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 320,
+      "title": "fix(messages): only delete messages that belong to the given chat",
+      "merged": true,
+      "merged_at": "2026-10-17",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 310,
+      "title": "fix(runtime): replay failed reconnect result to queued callers",
+      "merged": true,
+      "merged_at": "2026-10-17",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 308,
+      "title": "fix(contacts): find direct chat when get_contact_chats is called with a username",
+      "merged": true,
+      "merged_at": "2026-10-17",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 307,
+      "title": "fix(messages): don't export whole history when unread_count is 0",
+      "merged": true,
+      "merged_at": "2026-10-17",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
