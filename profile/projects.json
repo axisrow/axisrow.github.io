@@ -686,6 +686,222 @@
       "merged_at": "2026-10-17",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 150,
+      "title": "Raise the F06 mesh caps in code and cases",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 349,
+      "title": "fix(sanitize): keep the joiners that hold emoji and words together",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 348,
+      "title": "fix(runner): skip a preset default session that never logged in next to labelled accounts",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 347,
+      "title": "fix(transcription): fall back to a user cache when the working directory is not writable",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 346,
+      "title": "fix(groups): handle basic groups in get_admins, get_banned_users and the admin/ban tools",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 344,
+      "title": "fix(media): inspect_document names the image format from its bytes and skips files it cannot read",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 342,
+      "title": "fix(messages): get_pinned_messages returns every pinned message",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 341,
+      "title": "chore: silence test deprecation warnings (pythonjsonlogger, pytest-asyncio)",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 340,
+      "title": "fix: don't print None for users without a last name",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 339,
+      "title": "fix(contacts): import_contacts used a class that does not exist",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 338,
+      "title": "fix(errors): keep the generic error code stable across restarts",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 337,
+      "title": "fix(runtime): split TELEGRAM_ALLOWED_ROOTS correctly when a path ends in a one-letter folder",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 116,
+      "title": "Admit stored quantities above one cubic metre; definition drop-downs lead with the display name",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 115,
+      "title": "A04: record the verified through-hole behaviour (storage stays deprecated per A-2)",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 114,
+      "title": "Fix the nine confirmed visual bugs of the native window on the V06.1 UI",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 113,
+      "title": "A03 first slice: one plane cut authored with a plate or member",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 112,
+      "title": "Q02: unsigned native packages for Windows, Linux and macOS",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 111,
+      "title": "E03: bill of materials export (bom-export) as CSV",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 109,
+      "title": "A05: minimal bolt groups joining two parts",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 108,
+      "title": "Perf 26: bound shared mesh admission once, concurrent refresh queries",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 107,
+      "title": "V05.2: keep typed move coordinates on a re-selection and pre-fill in round-trip form",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 106,
+      "title": "Keep the test suite runtime bounded (sections ceiling, 1024-entry library paging)",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 105,
+      "title": "Canonicalise the usd_process temp root on macOS",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 104,
+      "title": "Resolve macOS system symlinks before the storage ancestor link assertion",
+      "merged": true,
+      "merged_at": "2026-10-20",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
