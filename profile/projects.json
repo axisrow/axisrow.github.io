@@ -902,6 +902,78 @@
       "merged_at": "2026-10-20",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 169,
+      "title": "Inject per-window stats instead of a process-wide counter static",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 160,
+      "title": "Speed up cold release builds and preserve distribution optimization",
+      "merged": true,
+      "merged_at": "2026-10-22",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 159,
+      "title": "Measure and fix what #39 left of issue 26 (refresh, selection, memory)",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 158,
+      "title": "Add a proper macOS application icon",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 152,
+      "title": "Navigation presets: mouse by default, trackpad (macOS) preset, zoom toward the cursor",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 151,
+      "title": "Keep eframe's default icon out of the beamcraft-ui binary",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 350,
+      "title": "fix: return readable Cyrillic and emoji from tools that use json.dumps",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 343,
+      "title": "fix(messages): make search_global pages different",
+      "merged": true,
+      "merged_at": "2026-10-21",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
