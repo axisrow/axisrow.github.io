@@ -974,6 +974,51 @@
       "merged_at": "2026-10-21",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 182,
+      "title": "Remove Python from the project toolchain",
+      "merged": true,
+      "merged_at": "2026-10-22",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 179,
+      "title": "Bound every CI job with an explicit timeout and document Windows runner queues",
+      "merged": true,
+      "merged_at": "2026-10-22",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 176,
+      "title": "Resolve the macOS system temp link in the output tests",
+      "merged": true,
+      "merged_at": "2026-10-22",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 175,
+      "title": "Drop eframe's unused links feature: cut 32 s from the cold build",
+      "merged": true,
+      "merged_at": "2026-10-22",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "OrchestratorInc/agent-orchestrator",
+      "pr_number": 5603,
+      "title": "fix(browser): detect wedged runtime via ping/pong liveness (#5369)",
+      "merged": true,
+      "merged_at": "2026-10-22",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
