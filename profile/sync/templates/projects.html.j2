@@ -31,6 +31,13 @@
           <strong class="case-name">{{ name }}</strong>
         </div>
         <img class="case-figure" src="{{ case.image.src }}" width="{{ case.image.width }}" height="{{ case.image.height }}" alt="{{ case.image_alt }}" data-i18n-attr="alt:projects.case.{{ name }}.imageAlt" loading="lazy" decoding="async">
+        <details class="case-diagram">
+          <summary id="case-{{ name }}-diagram-title" data-i18n="projects.case.fullSizeDiagram">Full-size diagram</summary>
+          <p class="case-diagram-hint" data-i18n="projects.case.diagramHint">Scroll horizontally to explore the diagram.</p>
+          <div class="case-diagram-viewport" tabindex="0" role="region" aria-labelledby="case-{{ name }}-diagram-title">
+            <img class="case-diagram-full" src="{{ case.image.src }}" width="{{ case.image.width }}" height="{{ case.image.height }}" alt="{{ case.image_alt }}" data-i18n-attr="alt:projects.case.{{ name }}.imageAlt" loading="lazy" decoding="async">
+          </div>
+        </details>
         <dl class="case-grid">
           <div><dt data-i18n="projects.case.taskLabel">The task</dt><dd data-i18n="projects.case.{{ name }}.task">{{ case.task }}</dd></div>
           <div><dt data-i18n="projects.case.builtLabel">What was built</dt><dd data-i18n="projects.case.{{ name }}.built">{{ case.built }}</dd></div>

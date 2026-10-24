@@ -945,6 +945,37 @@ main {
   border-radius: 10px;
 }
 
+.case-diagram {
+  margin-top: 8px;
+}
+
+.case-diagram > summary {
+  width: fit-content;
+  padding: 10px 0;
+  color: var(--accent-strong);
+  font-size: var(--type-body-small);
+  cursor: pointer;
+}
+
+.case-diagram-hint {
+  margin-bottom: 8px;
+  color: var(--ink-soft);
+  font-size: var(--type-body-small);
+}
+
+.case-diagram-viewport {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.case-diagram-full {
+  display: block;
+  max-width: none;
+}
+
 .case-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1997,13 +2028,13 @@ main {
      but no effect canvas sits behind it, so its cards keep the global tones
      against a flat surface. The dark theme needs no equivalent either -- its
      worst backdrop is #29251c and every token already sits above 5.6:1. */
-  .hero-copy-plane,
-  .projects-field-copy,
-  .proof-field-copy,
-  .stars-field-copy,
-  .experience-field,
-  .about-field,
-  .contact-card {
+  :root[data-theme="light"] .hero-copy-plane,
+  :root[data-theme="light"] .projects-field-copy,
+  :root[data-theme="light"] .proof-field-copy,
+  :root[data-theme="light"] .stars-field-copy,
+  :root[data-theme="light"] .experience-field,
+  :root[data-theme="light"] .about-field,
+  :root[data-theme="light"] .contact-card {
     --ink-soft: #3f423f;
     --ink-faint: #4a4d4a;
     --success: #257151;
@@ -2239,6 +2270,12 @@ main {
 
   .section-title {
     font-size: clamp(38px, 12vw, 58px);
+  }
+
+  .section-experience .section-title {
+    /* Keep the longest RU word inside the 272px column at 320px. */
+    font-size: clamp(32px, 10vw, 58px);
+    overflow-wrap: anywhere;
   }
 
   .section-note {
