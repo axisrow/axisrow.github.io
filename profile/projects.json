@@ -1064,6 +1064,15 @@
       "merged_at": "2026-10-24",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 197,
+      "title": "Test the Q01 frame from personal draft through published output",
+      "merged": true,
+      "merged_at": "2026-10-24",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
