@@ -1019,6 +1019,33 @@
       "merged_at": "2026-10-22",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 188,
+      "title": "feat(view): display attached read-only reference geometry (#95)",
+      "merged": true,
+      "merged_at": "2026-10-23",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 187,
+      "title": "Fix picking of I-section members and plates with holes (#63)",
+      "merged": true,
+      "merged_at": "2026-10-23",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 184,
+      "title": "Evaluate each distinct body once, parse the stage once and index used_by per inspection",
+      "merged": true,
+      "merged_at": "2026-10-23",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
