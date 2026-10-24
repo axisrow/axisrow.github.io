@@ -1278,13 +1278,15 @@ main {
 }
 
 .proof-all-list a {
+  min-width: 0;
   color: var(--ink);
   font: 500 13px/1.35 "IBM Plex Mono", monospace;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .proof-all-number {
   color: var(--accent);
+  white-space: nowrap;
 }
 
 .proof-all-date {
