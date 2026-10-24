@@ -10,11 +10,11 @@
         </div>
       </div>
       <div class="project-surface veil-panel">
-      <div class="project-filter-bar" role="tablist" data-i18n-attr="aria-label:projects.filterLabel" aria-label="Filter projects by category">
-        <button type="button" class="filter-pill is-active" data-filter="all" data-i18n="projects.filterAll">All</button>
-        <button type="button" class="filter-pill" data-filter="integrations" data-i18n="projects.group.integrations">Integrations</button>
-        <button type="button" class="filter-pill" data-filter="agent-tooling" data-i18n="projects.group.agent-tooling">Agent Tooling</button>
-        <button type="button" class="filter-pill" data-filter="evaluation-data" data-i18n="projects.group.evaluation-data">Evaluation &amp; Data</button>
+      <div class="project-filter-bar" role="group" data-i18n-attr="aria-label:projects.filterLabel" aria-label="Filter projects by category">
+        <button type="button" class="filter-pill is-active" data-filter="all" aria-pressed="true" data-i18n="projects.filterAll">All</button>
+        <button type="button" class="filter-pill" data-filter="integrations" aria-pressed="false" data-i18n="projects.group.integrations">Integrations</button>
+        <button type="button" class="filter-pill" data-filter="agent-tooling" aria-pressed="false" data-i18n="projects.group.agent-tooling">Agent Tooling</button>
+        <button type="button" class="filter-pill" data-filter="evaluation-data" aria-pressed="false" data-i18n="projects.group.evaluation-data">Evaluation &amp; Data</button>
       </div>
 {% for group, repos in projects.items() %}      <div class="project-group" data-category="{{ group | replace(' & ', '-') | replace(' / ', '-') | replace(' ', '-') | lower }}">
       <h3 class="group-title" data-i18n="projects.group.{{ group | replace(' & ', '-') | replace(' / ', '-') | replace(' ', '-') | lower }}">{{ group }}</h3>

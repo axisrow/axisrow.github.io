@@ -2397,19 +2397,24 @@ main {
 
   .proof-row {
     min-height: 104px;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
     gap: 5px 12px;
     padding: var(--row-space) var(--card-space);
   }
 
+  .proof-row strong {
+    overflow-wrap: anywhere;
+  }
+
   .proof-row > span {
     grid-row: 2;
-    grid-column: 1 / -1;
+    grid-column: 1;
   }
 
   .proof-row small {
-    grid-row: 1;
-    grid-column: 2;
+    grid-row: 3;
+    grid-column: 1;
+    white-space: normal;
   }
 
   .contact-field {
@@ -2825,21 +2830,6 @@ main {
   width: 16px;
   height: 16px;
   margin: 0 0 0 auto;
-}
-
-.fx-stats-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--page) 50%, transparent);
-}
-
-.fx-stats-badge {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  color: var(--success);
 }
 
 .fx-actions {
