@@ -166,7 +166,6 @@
       "fx.animation": "Background animation",
       "fx.state.running": "Running",
       "fx.state.paused": "Paused",
-      "fx.fps": "Performance",
       "fx.reset": "Reset",
       "contact.copyEmail": "Copy email address",
     },
@@ -326,7 +325,6 @@
       "fx.animation": "Анимация фона",
       "fx.state.running": "Идёт",
       "fx.state.paused": "Пауза",
-      "fx.fps": "Производительность",
       "fx.reset": "Сброс",
       "contact.copyEmail": "Скопировать email"
     },
@@ -486,7 +484,6 @@
       "fx.animation": "背景动画",
       "fx.state.running": "运行中",
       "fx.state.paused": "已暂停",
-      "fx.fps": "性能",
       "fx.reset": "重置",
       "contact.copyEmail": "复制邮箱地址"
     },
@@ -646,7 +643,6 @@
       "fx.animation": "बैकग्राउंड एनिमेशन",
       "fx.state.running": "चल रहा है",
       "fx.state.paused": "रुका हुआ",
-      "fx.fps": "प्रदर्शन",
       "fx.reset": "रीसेट",
       "contact.copyEmail": "ईमेल पता कॉपी करें"
     }

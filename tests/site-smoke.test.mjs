@@ -1014,13 +1014,18 @@ async function runLoader({
   bundleError = false,
   missingApi = false,
   reducedMotion = false,
-  fileProtocol = false
+  fileProtocol = false,
+  elements = {},
+  nodeLists = {},
+  mediaMatches = {}
 }) {
   const script = await source('main.js');
   const skinScript = await source('effect-skins.js');
   const root = { dataset: { theme: 'dark' }, classList: createClassList() };
   const appendedScripts = [];
   const warnings = [];
+  const documentEvents = {};
+  const mediaQueries = {};
   let fetchCalls = 0;
 
   class MockIntersectionObserver {
@@ -1060,19 +1065,21 @@ async function runLoader({
           });
         }
       },
-      addEventListener() {},
+      addEventListener(type, handler) {
+        (documentEvents[type] || (documentEvents[type] = [])).push(handler);
+      },
       createElement(tag) {
         assert.equal(tag, 'script');
         return {};
       },
-      getElementById() { return null; },
+      getElementById(id) { return elements[id] || null; },
       querySelector(selector) {
         if (selector === 'meta[name="demoscene-base"]') {
           return { getAttribute() { return 'assets/demoscene'; } };
         }
         return null;
       },
-      querySelectorAll() { return []; }
+      querySelectorAll(selector) { return nodeLists[selector] || []; }
     },
     fetch: async () => {
       fetchCalls++;
@@ -1084,10 +1091,13 @@ async function runLoader({
     },
     localStorage: { getItem() { return null; }, setItem() {} },
     matchMedia(query) {
-      return {
-        matches: reducedMotion && query.includes('prefers-reduced-motion'),
-        addEventListener() {}
+      const mql = {
+        matches: mediaMatches[query] ?? (reducedMotion && query.includes('prefers-reduced-motion')),
+        handlers: [],
+        addEventListener(type, handler) { if (type === 'change') this.handlers.push(handler); }
       };
+      mediaQueries[query] = mql;
+      return mql;
     },
     requestAnimationFrame(callback) { callback(0); return 1; },
     addEventListener() {},
@@ -1100,8 +1110,76 @@ async function runLoader({
   vm.runInContext(skinScript, sandbox, { filename: 'effect-skins.js' });
   vm.runInContext(script, sandbox, { filename: 'main.js' });
   await new Promise((resolve) => setTimeout(resolve, 5));
-  return { root, appendedScripts, warnings, fetchCalls };
+  return { root, appendedScripts, warnings, fetchCalls, documentEvents, mediaQueries };
 }
+
+function uiControl(attrs = {}, dataset = {}) {
+  return {
+    ...fakeElement({ attrs }),
+    dataset,
+    classList: createClassList(),
+    handlers: {},
+    addEventListener(type, handler) { this.handlers[type] = handler; },
+    contains(node) { return node === this; }
+  };
+}
+
+test('the page stays visible if main.js never loads', async () => {
+  const html = await source('index.html');
+  const root = { dataset: {}, classList: createClassList() };
+  const sandbox = {
+    document: { documentElement: root, querySelector() { return null; } },
+    localStorage: { getItem() { return null; } },
+    navigator: { languages: ['en'] },
+    window: { matchMedia() { return { matches: false }; } }
+  };
+  vm.runInNewContext(/<script>([\s\S]*?)<\/script>/.exec(html)[1], sandbox);
+  assert.equal(root.classList.contains('js'), false, 'the bootstrap must not enable reveal hiding');
+  const runtime = await runLoader({ responseOk: false });
+  assert.equal(runtime.root.classList.contains('js'), true, 'reveal hiding starts after the observer is installed');
+});
+
+test('tablet navigation closes outside the menu and when it returns to desktop', async () => {
+  const toggle = uiControl({ 'aria-expanded': 'false' });
+  const nav = uiControl();
+  const runtime = await runLoader({
+    responseOk: false,
+    elements: { 'menu-toggle': toggle, 'section-navigation': nav },
+    mediaMatches: { '(max-width: 800px)': true, '(max-width: 720px)': false }
+  });
+  const click = (target) => runtime.documentEvents.click.forEach((handler) => handler({ target }));
+  toggle.handlers.click();
+  click(nav);
+  assert.equal(toggle.getAttribute('aria-expanded'), 'true', 'a click inside keeps the menu open');
+  click({});
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false', 'outside clicks work at 768px');
+  assert.equal(nav.classList.contains('is-open'), false);
+  toggle.handlers.click();
+  const menuQuery = runtime.mediaQueries['(max-width: 800px)'];
+  menuQuery.matches = false;
+  menuQuery.handlers.forEach((handler) => handler());
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false', 'desktop resize resets the menu');
+});
+
+test('project filters expose the active choice and keep generated markup accessible', async () => {
+  for (const markup of [await source('index.html'), await source('profile/sync/templates/projects.html.j2')]) {
+    assert.match(markup, /class="project-filter-bar" role="group"/);
+    assert.match(markup, /data-filter="all" aria-pressed="true"/);
+    assert.equal((markup.match(/data-filter="[^"]+" aria-pressed="false"/g) || []).length, 3);
+  }
+  const all = uiControl({ 'aria-pressed': 'true' }, { filter: 'all' });
+  const agents = uiControl({ 'aria-pressed': 'false' }, { filter: 'agent-tooling' });
+  const groups = ['integrations', 'agent-tooling', 'evaluation-data'].map((category) => uiControl({}, { category }));
+  await runLoader({ responseOk: false, nodeLists: { '.filter-pill': [all, agents], '.project-group': groups } });
+  agents.handlers.click();
+  assert.equal(all.getAttribute('aria-pressed'), 'false');
+  assert.equal(agents.getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(groups.map((group) => group.classList.contains('is-hidden')), [true, false, true]);
+  all.handlers.click();
+  assert.equal(all.getAttribute('aria-pressed'), 'true');
+  assert.equal(agents.getAttribute('aria-pressed'), 'false');
+  assert.ok(groups.every((group) => !group.classList.contains('is-hidden')));
+});
 
 async function runEffectRuntime({ reducedMotion = false, mobile = false, throwingEffect = null, renderOnceThrows = null, fxControls = false, storedFxPause = null } = {}) {
   const script = await source('main.js');
@@ -1538,12 +1616,15 @@ test('stars chart tooltip derives its scale from the rendered y-axis labels, not
   assert.doesNotMatch(script, /110 - \(\(y - 22\)/, 'tooltip must not hardcode the 110/22/298 scale');
 });
 
-test('a failed navigator.clipboard write still shows the copy toast via a fallback path', async () => {
+test('a failed navigator.clipboard write still announces the copy via a fallback path', async () => {
   const script = await source('main.js');
   const skinScript = await source('effect-skins.js');
   const root = { dataset: { theme: 'dark' }, classList: createClassList() };
   const toastClassList = createClassList();
   const toast = { classList: toastClassList };
+  const html = await source('index.html');
+  assert.match(html, /id="copy-toast"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"><\/div>/);
+  assert.doesNotMatch(/<div id="copy-toast"[^>]*>/.exec(html)[0], /aria-hidden|\shidden/);
   const textarea = { style: {}, setAttribute() {}, select() {} };
   let execCommandCalled = false;
   let clickHandler = null;
@@ -1599,6 +1680,7 @@ test('a failed navigator.clipboard write still shows the copy toast via a fallba
 
   assert.ok(execCommandCalled, 'a rejected clipboard write must fall back to document.execCommand("copy")');
   assert.equal(toastClassList.contains('is-active'), true, 'the copy toast must still show after the fallback succeeds');
+  assert.equal(toast.textContent, 'Copied to clipboard!', 'the live region must receive a text update on success');
 });
 
 test('the scroll-progress bar guards against a zero-height scrollable range', async () => {

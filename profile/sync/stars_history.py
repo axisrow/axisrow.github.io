@@ -2,8 +2,8 @@
 """Build a durable daily history of stars on axisrow's original repositories.
 
 GitHub exposes timestamps for current stargazers but no unstar events.  The
-first run restores every available event from START_DATE; later runs preserve
-that history and append newly observed events only.
+first run restores every available event from START_DATE; later runs backfill
+missed events without reducing previously recorded daily counts.
 """
 from __future__ import annotations
 
@@ -114,28 +114,31 @@ def build_history(handle: str, start: date, target_initial_total: int, history: 
 
     today = datetime.now(UTC).date()
     if history:
-        entries = list(history["entries"])
-        last_date = date.fromisoformat(entries[-1]["date"])
-        total = int(entries[-1]["total"])
-        begin = last_date + timedelta(days=1)
+        opening_balance = int(history["opening_balance"])
+        recorded = {
+            date.fromisoformat(entry["date"]): int(entry["gained"])
+            for entry in history["entries"]
+        }
+        today = max(today, max(recorded))
     else:
         observed = sum(events.values())
         opening_balance = target_initial_total - observed
         if opening_balance < 0:
             raise RuntimeError("Recovered events exceed the declared initial total")
-        entries = []
-        total = opening_balance
-        begin = start
+        recorded = {}
 
-    for day in dates_between(begin, today) if begin <= today else []:
-        gained = events[day]
+    entries = []
+    total = opening_balance
+    for day in dates_between(start, today):
+        # shortcut: daily counts cannot distinguish replacement stars; track stargazer identities if churn matters.
+        gained = max(recorded.get(day, 0), events[day])
         total += gained
         entries.append({"date": day.isoformat(), "gained": gained, "total": total})
 
     return {
         "scope": "Original axisrow repositories; forks excluded",
         "start_date": start.isoformat(),
-        "opening_balance": entries[0]["total"] - entries[0]["gained"],
+        "opening_balance": opening_balance,
         "target_initial_total": target_initial_total,
         "entries": entries,
     }

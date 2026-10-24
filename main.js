@@ -8,6 +8,7 @@
   var sectionNavigation = document.getElementById("section-navigation");
   var reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   var mobileQuery = window.matchMedia("(max-width: 720px)");
+  var menuMobileQuery = window.matchMedia("(max-width: 800px)");
   var navLinks = Array.prototype.slice.call(document.querySelectorAll(".section-nav a[data-nav]"));
   var sectionStates = new Map();
   var scenes = [];
@@ -528,6 +529,8 @@
     if (reduceMotionQuery.matches) element.classList.add("is-visible");
     else observer.observe(element);
   });
+  // Hide unrevealed content only after its observer is ready.
+  root.classList.add("js");
 
   navLinks.forEach(function (link) {
     var section = document.getElementById(link.dataset.nav);
@@ -542,7 +545,7 @@
   });
 
   document.addEventListener("click", function (event) {
-    if (!mobileQuery.matches || !sectionNavigation || !menuToggle) return;
+    if (!menuMobileQuery.matches || !sectionNavigation || !menuToggle) return;
     if (!sectionNavigation.contains(event.target) && !menuToggle.contains(event.target)) closeMenu();
   });
 
@@ -612,8 +615,10 @@
   }
 
   document.addEventListener("visibilitychange", syncEffectPlayback);
+  menuMobileQuery.addEventListener("change", function () {
+    if (!menuMobileQuery.matches) closeMenu();
+  });
   mobileQuery.addEventListener("change", function () {
-    if (!mobileQuery.matches) closeMenu();
     remountEffects();
   });
   reduceMotionQuery.addEventListener("change", function () {
@@ -900,10 +905,16 @@
 
     // Copy buttons & toast
     var toast = document.getElementById('copy-toast');
+    var toastTimer = null;
     function showToast() {
       if (!toast) return;
+      clearTimeout(toastTimer);
+      toast.textContent = menuLabel('common.copied', 'Copied to clipboard!');
       toast.classList.add('is-active');
-      setTimeout(function () { toast.classList.remove('is-active'); }, 2000);
+      toastTimer = setTimeout(function () {
+        toast.classList.remove('is-active');
+        toast.textContent = '';
+      }, 2000);
     }
     // Fallback for browsers/contexts without the async Clipboard API (e.g.
     // non-secure origins): still surface the toast on success so a copy
@@ -944,7 +955,11 @@
     pills.forEach(function (pill) {
       pill.addEventListener('click', function () {
         var filter = pill.dataset.filter;
-        pills.forEach(function (p) { p.classList.toggle('is-active', p === pill); });
+        pills.forEach(function (p) {
+          var active = p === pill;
+          p.classList.toggle('is-active', active);
+          p.setAttribute('aria-pressed', String(active));
+        });
         groups.forEach(function (g) {
           var cat = g.dataset.category;
           var hide = filter !== 'all' && cat !== filter;
