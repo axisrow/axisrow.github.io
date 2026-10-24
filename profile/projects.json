@@ -1046,6 +1046,24 @@
       "merged_at": "2026-10-23",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 366,
+      "title": "fix(media): send real video dimensions and duration from send_file",
+      "merged": true,
+      "merged_at": "2026-10-24",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 345,
+      "title": "fix(media): make get_gif_search return documents send_gif can send",
+      "merged": true,
+      "merged_at": "2026-10-24",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
