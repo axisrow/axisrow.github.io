@@ -1073,6 +1073,24 @@
       "merged_at": "2026-10-24",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 223,
+      "title": "Add the fork-sync schema example for mirrors",
+      "merged": true,
+      "merged_at": "2026-10-24",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 218,
+      "title": "chore: shorten CI with independent nextest test shards",
+      "merged": true,
+      "merged_at": "2026-10-24",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
