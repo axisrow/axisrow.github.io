@@ -1091,6 +1091,114 @@
       "merged_at": "2026-10-24",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 406,
+      "title": "Rename the CLI commands to the F04 naming rule, verb first",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 405,
+      "title": "Rebuild the macOS icon family on the exact system grid",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 402,
+      "title": "Name the compaction fixture dir with the process id",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 401,
+      "title": "feat: refresh the viewport by itself when the store changes",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 400,
+      "title": "test: extend Q01 through published drawing reopen and staleness",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 399,
+      "title": "refactor: share mechanical real-binary CLI test fixtures",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 396,
+      "title": "refactor: share CLI result reporting outside plate commands",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 243,
+      "title": "feat: place members with a rigid rotation and edit their orientation",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 242,
+      "title": "chore: ship the Claude Code plugin for driving beamcraft-cli",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 241,
+      "title": "docs: add the nextest fast profile and the dist-profile g07 bench note",
+      "merged": true,
+      "merged_at": "2026-10-25",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 204,
+      "title": "Redesign the macOS app icon with an inset enamel tile",
+      "merged": true,
+      "merged_at": "2026-10-24",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 198,
+      "title": "Verify K1 and K2 acceptance with frozen member cases and explicit verdicts",
+      "merged": true,
+      "merged_at": "2026-10-24",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
