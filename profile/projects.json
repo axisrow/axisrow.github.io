@@ -1199,6 +1199,123 @@
       "merged_at": "2026-10-24",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 422,
+      "title": "feat: derive display-only USD grid tubes (T01.7)",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 421,
+      "title": "feat: resolve grid intersections, snap and place parts (T01.4)",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 420,
+      "title": "fix: preserve F10 rule IDs for non-finite quaternions",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 418,
+      "title": "fix(tests): use the #406 command names in the levels test",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 417,
+      "title": "feat: draw, reshape, remove and relabel grid lines (T01.2)",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 415,
+      "title": "docs: settle MVP defaults for the T01 grid contract",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 414,
+      "title": "Tune macOS test shards for #239",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 412,
+      "title": "Resolve FeatureIds for contour plates and profile members",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 410,
+      "title": "feat: measure a reference's composed surface with the kernel (R02)",
+      "merged": true,
+      "merged_at": "2026-10-27",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 409,
+      "title": "feat: close the remaining D01-D03 acceptance gaps (SVG export, resolved-only publication)",
+      "merged": true,
+      "merged_at": "2026-10-27",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 408,
+      "title": "Alert when CI jobs wait in the runner queue",
+      "merged": true,
+      "merged_at": "2026-10-27",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "sirmalloc/ccstatusline",
+      "pr_number": 717,
+      "title": "test(claude-settings): isolate install tests from the real home directory",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "sirmalloc/ccstatusline",
+      "pr_number": 614,
+      "title": "feat(git): fish-style abbreviation for branch and worktree names",
+      "merged": true,
+      "merged_at": "2026-10-26",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
