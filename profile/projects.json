@@ -1316,6 +1316,33 @@
       "merged_at": "2026-10-26",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 736,
+      "title": "refactor: reuse the shared CLI context parser and publication tail",
+      "merged": true,
+      "merged_at": "2026-10-29",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 734,
+      "title": "feat: deliver the remaining fork work (A13, A03, A04, A12.3, P13, CLI test speed-ups)",
+      "merged": true,
+      "merged_at": "2026-10-29",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "sirmalloc/ccstatusline",
+      "pr_number": 725,
+      "title": "fix(jsonl): dedup cumulative token totals by message.id",
+      "merged": true,
+      "merged_at": "2026-10-29",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
