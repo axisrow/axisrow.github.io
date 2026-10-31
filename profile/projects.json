@@ -1343,6 +1343,69 @@
       "merged_at": "2026-10-29",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 752,
+      "title": "feat: build fastener geometry prototypes (A14.2)",
+      "merged": true,
+      "merged_at": "2026-10-30",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 751,
+      "title": "feat: edit plate contours vertex by vertex (A12.3)",
+      "merged": true,
+      "merged_at": "2026-10-30",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 750,
+      "title": "feat: schedule the verified head through attribute templates (I05)",
+      "merged": true,
+      "merged_at": "2026-10-30",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 749,
+      "title": "feat: rebase the workspace draft through the coordinator (C03)",
+      "merged": true,
+      "merged_at": "2026-10-30",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 748,
+      "title": "feat: deliver I04 user attributes, the expanded Q01 alpha story and C04 acceptance fixes",
+      "merged": true,
+      "merged_at": "2026-10-30",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 374,
+      "title": "fix(read): keep rich-post link URLs and embedded media reachable",
+      "merged": true,
+      "merged_at": "2026-10-30",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "OrchestratorInc/agent-orchestrator",
+      "pr_number": 6871,
+      "title": "fix(i18n): render relative times in the app language, not the OS locale",
+      "merged": true,
+      "merged_at": "2026-10-30",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
