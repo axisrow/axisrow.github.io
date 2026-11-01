@@ -1406,6 +1406,87 @@
       "merged_at": "2026-10-30",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 792,
+      "title": "chore: skip the Rust builds for pull requests that change only prose",
+      "merged": true,
+      "merged_at": "2026-11-01",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 788,
+      "title": "refactor: compose the head once when reading references",
+      "merged": true,
+      "merged_at": "2026-10-31",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 786,
+      "title": "chore: let pull requests save rust-cache again",
+      "merged": true,
+      "merged_at": "2026-10-31",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 785,
+      "title": "refactor: build the kernel's and steel's integration suites into one test binary each",
+      "merged": true,
+      "merged_at": "2026-11-01",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 784,
+      "title": "refactor: build the window's integration suites into one test binary",
+      "merged": true,
+      "merged_at": "2026-11-01",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 782,
+      "title": "chore: gate CI on one job that proves every test ran",
+      "merged": true,
+      "merged_at": "2026-11-01",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 781,
+      "title": "chore: stop the macOS test shards queueing for runners",
+      "merged": true,
+      "merged_at": "2026-10-31",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 770,
+      "title": "Deliver the fork's wave-two work: C06 compensation, A14.3-A14.4 bolt groups, D04 slice 2, D05 sheets, V12 named views, V17 colour filter classes and annotations",
+      "merged": true,
+      "merged_at": "2026-10-31",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 768,
+      "title": "feat: deliver the fork's wave-one work (T03, A10, A11, A04.2, V14, V15, T02, D04 slice 1)",
+      "merged": true,
+      "merged_at": "2026-10-31",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
