@@ -1487,6 +1487,33 @@
       "merged_at": "2026-10-31",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 808,
+      "title": "docs: extend the D01 drawing contract for the D04/D05 surfaces and the D07 slices 2-3",
+      "merged": true,
+      "merged_at": "2026-11-01",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 807,
+      "title": "docs: add the wave-two design notes (C06, A14.3, A14.4, D04, D05, V12, V17, T03, G13)",
+      "merged": true,
+      "merged_at": "2026-11-01",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 789,
+      "title": "refactor: build engine, host and layer-engine suites into one binary each",
+      "merged": true,
+      "merged_at": "2026-11-01",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
