@@ -1514,6 +1514,15 @@
       "merged_at": "2026-11-01",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 814,
+      "title": "feat: cut directed oblique and faceted-wall member holes (G14.2 slices 1-2)",
+      "merged": true,
+      "merged_at": "2026-11-02",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
