@@ -1523,6 +1523,24 @@
       "merged_at": "2026-11-02",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 832,
+      "title": "feat: deliver the post-#830 fork delta (camera-prim view restore, bolt-group rename, whole-sheet export, V07 presets)",
+      "merged": true,
+      "merged_at": "2026-11-04",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 830,
+      "title": "feat: deliver the fork delta (batch/session CLI, U08, U11, U12, U15, U19, W01, F12/U20/U21, P09, P-Degenerate, recorded test gate)",
+      "merged": true,
+      "merged_at": "2026-11-04",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
