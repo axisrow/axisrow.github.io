@@ -1550,6 +1550,15 @@
       "merged_at": "2026-11-05",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 834,
+      "title": "feat: deliver the fork delta since the 1106 sync wave",
+      "merged": true,
+      "merged_at": "2026-11-06",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
