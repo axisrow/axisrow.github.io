@@ -1577,6 +1577,33 @@
       "merged_at": "2026-11-07",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 856,
+      "title": "docs: extend the GR-N22 contract wording to placement rewrites",
+      "merged": true,
+      "merged_at": "2026-11-09",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 853,
+      "title": "feat: deliver the fork delta since the 1108c sync wave",
+      "merged": true,
+      "merged_at": "2026-11-09",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 852,
+      "title": "feat: magnetic grid bindings for members (T01.8 slice 1)",
+      "merged": true,
+      "merged_at": "2026-11-08",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
