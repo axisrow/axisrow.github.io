@@ -1604,6 +1604,42 @@
       "merged_at": "2026-11-08",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 862,
+      "title": "docs: carry the M4 closing references and refresh the D04 boundary",
+      "merged": true,
+      "merged_at": "2026-11-10",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 859,
+      "title": "fix: deliver the fork delta since the 1109 sync wave",
+      "merged": true,
+      "merged_at": "2026-11-10",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 858,
+      "title": "docs: record the K10 and K11 gate verdicts",
+      "merged": true,
+      "merged_at": "2026-11-10",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 363,
+      "title": "feat: flood-prevention layer (vendored telethon-floodgate, no new deps)",
+      "merged": true,
+      "merged_at": "2026-11-10",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
