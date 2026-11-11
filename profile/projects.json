@@ -1640,6 +1640,24 @@
       "merged_at": "2026-11-10",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 865,
+      "title": "fix: deliver the fork delta since the 1110 sync wave",
+      "merged": true,
+      "merged_at": "2026-11-10",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 863,
+      "title": "feat: submit a published drawing version to the printer (D08)",
+      "merged": true,
+      "merged_at": "2026-11-10",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
