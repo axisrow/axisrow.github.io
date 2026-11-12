@@ -1658,6 +1658,15 @@
       "merged_at": "2026-11-10",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 869,
+      "title": "fix: deliver the fork delta of the 1111 sync wave (supersedes #866)",
+      "merged": true,
+      "merged_at": "2026-11-11",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
