@@ -1667,6 +1667,24 @@
       "merged_at": "2026-11-11",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 875,
+      "title": "fix: deliver the fork delta of the 1113 sync wave",
+      "merged": true,
+      "merged_at": "2026-11-13",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 874,
+      "title": "fix: deliver the remaining fork delta of the 1112 sync wave",
+      "merged": true,
+      "merged_at": "2026-11-12",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
