@@ -1703,6 +1703,24 @@
       "merged_at": "2026-11-15",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "chigwell/telegram-mcp",
+      "pr_number": 410,
+      "title": "fix(groups): say why leave_chat cannot leave a private chat",
+      "merged": true,
+      "merged_at": "2026-11-17",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 883,
+      "title": "feat: deliver the fork delta of the 1116 sync wave",
+      "merged": true,
+      "merged_at": "2026-11-17",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
