@@ -1721,6 +1721,15 @@
       "merged_at": "2026-11-17",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "OrchestratorInc/agent-orchestrator",
+      "pr_number": 6891,
+      "title": "fix(review): retire a pass-only --agent override reviewer when its pass ends",
+      "merged": true,
+      "merged_at": "2026-11-18",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
