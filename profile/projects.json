@@ -1739,6 +1739,15 @@
       "merged_at": "2026-11-20",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 891,
+      "title": "test: deliver the fork test-side delta since the 1117 sync wave",
+      "merged": true,
+      "merged_at": "2026-11-20",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
