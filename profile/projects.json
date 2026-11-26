@@ -1748,6 +1748,15 @@
       "merged_at": "2026-11-20",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "Apibim-com/BeamCraft",
+      "pr_number": 903,
+      "title": "feat: deliver the fork delta of the 1122 sync wave",
+      "merged": true,
+      "merged_at": "2026-11-25",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
