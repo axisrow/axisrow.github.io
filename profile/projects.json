@@ -1757,6 +1757,24 @@
       "merged_at": "2026-11-25",
       "role": "author",
       "featured": false
+    },
+    {
+      "repo": "matt1398/claude-devtools",
+      "pr_number": 247,
+      "title": "fix(test): repair pnpm test:* scripts pointing to missing files",
+      "merged": true,
+      "merged_at": "2026-11-28",
+      "role": "author",
+      "featured": false
+    },
+    {
+      "repo": "matt1398/claude-devtools",
+      "pr_number": 238,
+      "title": "fix(parser): treat Agent tool as subagent spawn (Task renamed in CC 2.1.63)",
+      "merged": true,
+      "merged_at": "2026-11-28",
+      "role": "author",
+      "featured": false
     }
   ],
   "tech_stack": [
